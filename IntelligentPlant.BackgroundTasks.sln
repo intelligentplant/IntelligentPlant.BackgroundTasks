@@ -1,0 +1,42 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29424.173
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{3CB681C0-51F0-4E1C-B2C5-6EEFF358D2EF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IntelligentPlant.BackgroundTasks", "src\IntelligentPlant.BackgroundTasks\IntelligentPlant.BackgroundTasks.csproj", "{3F0CC8D8-2E64-4BAB-ABAC-92F69B947AA3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IntelligentPlant.BackgroundTasks.AspNetCore", "src\IntelligentPlant.BackgroundTasks.AspNetCore\IntelligentPlant.BackgroundTasks.AspNetCore.csproj", "{59BE620A-0FEB-41C8-992A-C8D860B003A0}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{447F1085-FAF3-43A6-970A-4FC9EE8085FF}"
+	ProjectSection(SolutionItems) = preProject
+		README.md = README.md
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{3F0CC8D8-2E64-4BAB-ABAC-92F69B947AA3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3F0CC8D8-2E64-4BAB-ABAC-92F69B947AA3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3F0CC8D8-2E64-4BAB-ABAC-92F69B947AA3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3F0CC8D8-2E64-4BAB-ABAC-92F69B947AA3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{59BE620A-0FEB-41C8-992A-C8D860B003A0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{59BE620A-0FEB-41C8-992A-C8D860B003A0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{59BE620A-0FEB-41C8-992A-C8D860B003A0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{59BE620A-0FEB-41C8-992A-C8D860B003A0}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{3F0CC8D8-2E64-4BAB-ABAC-92F69B947AA3} = {3CB681C0-51F0-4E1C-B2C5-6EEFF358D2EF}
+		{59BE620A-0FEB-41C8-992A-C8D860B003A0} = {3CB681C0-51F0-4E1C-B2C5-6EEFF358D2EF}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {E93F7E4D-A117-4B72-9562-E3CCAE7C0CD2}
+	EndGlobalSection
+EndGlobal
