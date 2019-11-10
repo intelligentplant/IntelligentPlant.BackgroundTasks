@@ -1,0 +1,47 @@
+<Project>
+  
+  <!-- Recursively import the Directory.Build.targets file from the parent folder if it exists. -->
+  <PropertyGroup>
+    <ParentProject>$([MSBuild]::GetPathOfFileAbove('$(MSBuildThisFile)', '$(MSBuildThisFileDirectory)../'))</ParentProject>
+  </PropertyGroup>
+  <Import Project="$(ParentProject)" Condition=" '$(ParentProject)' != '' " /> 
+
+  <!-- SourceLink settings -->
+  <PropertyGroup>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- FxCop NuGet Package -->
+    <PackageReference Remove="Microsoft.CodeAnalysis.FxCopAnalyzers" />
+    <PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="2.9.4">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
+
+    <!-- SourceLink NuGet Package -->
+    <PackageReference Remove="Microsoft.SourceLink.GitHub" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0-beta2-19367-01">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <!-- Workaround https://github.com/NuGet/Home/issues/7001 -->
+  <Target Name="DisableNuGetDeterministicPackaging" BeforeTargets="GenerateNuspec" AfterTargets="CoreCompile">
+    <PropertyGroup>
+      <Deterministic>false</Deterministic>
+    </PropertyGroup>
+  </Target>
+
+  <!-- Workaround https://github.com/dotnet/cli/issues/11378#issuecomment-499988244 -->
+  <Target Name="WorkaroundNetStandard" AfterTargets="ResolvePackageAssets" Condition=" '$(TargetFramework)' == 'netcoreapp3.0' ">
+    <ItemGroup>
+      <TransitiveFrameworkReference Remove="NETStandard.Library" />
+    </ItemGroup>
+  </Target>
+
+</Project>
