@@ -23,6 +23,11 @@ namespace IntelligentPlant.BackgroundTasks {
         private int _isRunning;
 
         /// <summary>
+        /// Gets a flag indicating if the service is currently running.
+        /// </summary>
+        public bool IsRunning { get { return _isRunning != 0; } }
+
+        /// <summary>
         /// Flags if the service has been disposed.
         /// </summary>
         private bool _isDisposed;
@@ -41,6 +46,11 @@ namespace IntelligentPlant.BackgroundTasks {
         /// Signals when an item is added to the <see cref="_queue"/>.
         /// </summary>
         private readonly SemaphoreSlim _queueSignal = new SemaphoreSlim(0);
+
+        /// <summary>
+        /// Gets the number of work items that are currently queued.
+        /// </summary>
+        public int QueuedItemCount { get { return _queue.Count; } }
 
 
         /// <summary>
