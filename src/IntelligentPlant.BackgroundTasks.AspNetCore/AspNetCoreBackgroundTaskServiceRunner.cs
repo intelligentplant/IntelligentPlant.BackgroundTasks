@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
 
@@ -8,7 +9,7 @@ namespace IntelligentPlant.BackgroundTasks.AspNetCore {
     /// <see cref="IHostedService"/> that is used to start and stop the registered 
     /// <see cref="IBackgroundTaskService"/> when the application starts and stops.
     /// </summary>
-    internal class AspNetCoreBackgroundTaskServiceRunner : IHostedService {
+    public class AspNetCoreBackgroundTaskServiceRunner : IHostedService, IDisposable {
 
         /// <summary>
         /// The task that dequeues and runs queued background work items.
@@ -80,5 +81,12 @@ namespace IntelligentPlant.BackgroundTasks.AspNetCore {
             }
 
         }
+
+
+        /// <inheritdoc/>
+        public void Dispose() {
+            _stoppingCts.Dispose();
+        }
+
     }
 }
