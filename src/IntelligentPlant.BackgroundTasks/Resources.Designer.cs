@@ -61,11 +61,56 @@ namespace IntelligentPlant.BackgroundTasks {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Asynchronous.
+        /// </summary>
+        internal static string BackgroundWorkItem_ItemType_Async {
+            get {
+                return ResourceManager.GetString("BackgroundWorkItem_ItemType_Async", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Synchronous.
+        /// </summary>
+        internal static string BackgroundWorkItem_ItemType_Sync {
+            get {
+                return ResourceManager.GetString("BackgroundWorkItem_ItemType_Sync", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Undefined.
+        /// </summary>
+        internal static string BackgroundWorkItem_ItemType_Undefined {
+            get {
+                return ResourceManager.GetString("BackgroundWorkItem_ItemType_Undefined", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {{Id = {0}, Work Item Type = {1}, Description = &quot;{2}&quot;}}.
+        /// </summary>
+        internal static string BackgroundWorkItem_StringFormat {
+            get {
+                return ResourceManager.GetString("BackgroundWorkItem_StringFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The service is already running..
         /// </summary>
         internal static string Error_ServiceIsAlreadyRunning {
             get {
                 return ResourceManager.GetString("Error_ServiceIsAlreadyRunning", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to An unhandled exception occurred in an {0} callback: {1}.
+        /// </summary>
+        internal static string Trace_ErrorInCallback {
+            get {
+                return ResourceManager.GetString("Trace_ErrorInCallback", resourceCulture);
             }
         }
     }

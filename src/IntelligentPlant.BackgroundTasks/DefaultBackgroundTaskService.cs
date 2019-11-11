@@ -22,28 +22,31 @@ namespace IntelligentPlant.BackgroundTasks {
 
 
         /// <inheritdoc/>
-        protected override void RunBackgroundWorkItem(Action<CancellationToken> workItem, CancellationToken cancellationToken) {
-            _ = Task.Run(() => {
-                try {
-                    workItem(cancellationToken);
-                }
-                catch (Exception e) {
-                    OnError(e, workItem);
-                }
-            }, cancellationToken);
-        }
-
-
-        /// <inheritdoc/>
-        protected override void RunBackgroundWorkItem(Func<CancellationToken, Task> workItem, CancellationToken cancellationToken) {
-            _ = Task.Run(async () => {
-                try {
-                    await workItem(cancellationToken).ConfigureAwait(false);
-                }
-                catch (Exception e) {
-                    OnError(e, workItem);
-                }
-            }, cancellationToken);
+        protected override void RunBackgroundWorkItem(BackgroundWorkItem workItem, CancellationToken cancellationToken) {
+            if (workItem.WorkItem != null) {
+                _ = Task.Run(() => {
+                    try {
+                        OnRunning(workItem);
+                        workItem.WorkItem(cancellationToken);
+                        OnCompleted(workItem);
+                    }
+                    catch (Exception e) {
+                        OnError(workItem, e);
+                    }
+                }, cancellationToken);
+            }
+            else if (workItem.WorkItemAsync != null) {
+                _ = Task.Run(async () => {
+                    try {
+                        OnRunning(workItem);
+                        await workItem.WorkItemAsync(cancellationToken).ConfigureAwait(false);
+                        OnCompleted(workItem);
+                    }
+                    catch (Exception e) {
+                        OnError(workItem, e);
+                    }
+                }, cancellationToken);
+            }
         }
 
     }

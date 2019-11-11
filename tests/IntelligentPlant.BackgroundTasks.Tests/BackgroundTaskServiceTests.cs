@@ -104,7 +104,7 @@ namespace IntelligentPlant.BackgroundTasks.Tests {
                         value = 1;
                         semaphore.Release();
                     }
-                }, ctSource2.Token);
+                }, null, ctSource2.Token);
 
                 Assert.AreEqual(1, svc.QueuedItemCount);
 

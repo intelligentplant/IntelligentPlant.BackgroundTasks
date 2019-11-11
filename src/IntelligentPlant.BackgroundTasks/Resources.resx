@@ -117,7 +117,27 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="BackgroundWorkItem_ItemType_Async" xml:space="preserve">
+    <value>Asynchronous</value>
+  </data>
+  <data name="BackgroundWorkItem_ItemType_Sync" xml:space="preserve">
+    <value>Synchronous</value>
+  </data>
+  <data name="BackgroundWorkItem_ItemType_Undefined" xml:space="preserve">
+    <value>Undefined</value>
+  </data>
+  <data name="BackgroundWorkItem_StringFormat" xml:space="preserve">
+    <value>{{Id = {0}, Work Item Type = {1}, Description = "{2}"}}</value>
+    <comment>{0} - ID
+{1} - async/sync/undefined
+{2} - description</comment>
+  </data>
   <data name="Error_ServiceIsAlreadyRunning" xml:space="preserve">
     <value>The service is already running.</value>
+  </data>
+  <data name="Trace_ErrorInCallback" xml:space="preserve">
+    <value>An unhandled exception occurred in an {0} callback: {1}</value>
+    <comment>{0} - the callback type
+{1} - the error message</comment>
   </data>
 </root>

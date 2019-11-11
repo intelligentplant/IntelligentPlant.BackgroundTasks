@@ -33,16 +33,45 @@ namespace IntelligentPlant.BackgroundTasks.AspNetCore {
 
 
         /// <inheritdoc/>
-        protected override void OnError(Exception error, Action<CancellationToken> workItem) {
-            _logger.LogError(error, Resources.Log_ErrorInBackgroundTask, workItem);
-            base.OnError(error, workItem);
+        protected override void OnQueued(BackgroundWorkItem workItem) {
+            if (_logger.IsEnabled(LogLevel.Trace)) {
+                _logger.LogTrace(Resources.Log_TaskQueued, workItem);
+            }
+            base.OnQueued(workItem);
         }
 
 
         /// <inheritdoc/>
-        protected override void OnError(Exception error, Func<CancellationToken, Task> workItem) {
-            _logger.LogError(error, Resources.Log_ErrorInBackgroundTask, workItem);
-            base.OnError(error, workItem);
+        protected override void OnDequeued(BackgroundWorkItem workItem) {
+            if (_logger.IsEnabled(LogLevel.Trace)) {
+                _logger.LogTrace(Resources.Log_TaskDequeued, workItem);
+            }
+            base.OnDequeued(workItem);
+        }
+
+
+        /// <inheritdoc/>
+        protected override void OnRunning(BackgroundWorkItem workItem) {
+            if (_logger.IsEnabled(LogLevel.Trace)) {
+                _logger.LogTrace(Resources.Log_TaskRunning, workItem);
+            }
+            base.OnRunning(workItem);
+        }
+
+
+        /// <inheritdoc/>
+        protected override void OnCompleted(BackgroundWorkItem workItem) {
+            if (_logger.IsEnabled(LogLevel.Trace)) {
+                _logger.LogTrace(Resources.Log_TaskCompleted, workItem);
+            }
+            base.OnCompleted(workItem);
+        }
+
+
+        /// <inheritdoc/>
+        protected override void OnError(BackgroundWorkItem workItem, Exception error) {
+            _logger.LogError(error, Resources.Log_TaskError, workItem);
+            base.OnError(workItem, error);
         }
 
     }

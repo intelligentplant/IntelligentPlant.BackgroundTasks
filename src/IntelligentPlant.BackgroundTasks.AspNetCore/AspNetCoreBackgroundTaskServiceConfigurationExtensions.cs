@@ -52,7 +52,7 @@ namespace Microsoft.Extensions.DependencyInjection {
             var options = new BackgroundTaskServiceOptions();
             configure?.Invoke(options);
             services.AddSingleton<BackgroundTaskServiceOptions>();
-            services.AddSingleton<IBackgroundTaskService, DefaultBackgroundTaskService>();
+            services.AddSingleton<IBackgroundTaskService, AspNetCoreBackgroundTaskService>();
             services.AddHostedService<AspNetCoreBackgroundTaskServiceRunner>();
 
             return services;

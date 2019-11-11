@@ -21,11 +21,10 @@ namespace IntelligentPlant.BackgroundTasks.ExampleApp.Controllers {
         [HttpGet]
         [Route("create-task")]
         public Guid CreateTask() {
-            var taskId = Guid.NewGuid();
-
-            _backgroundTaskService.QueueBackgroundWorkItem(ct => _logger.LogInformation("[BACKGROUND TASK] Running background task {TaskId}", taskId));
-
-            return taskId;
+            return _backgroundTaskService.QueueBackgroundWorkItem(
+                ct => _logger.LogInformation("[BACKGROUND TASK] Running background task"),
+                "Example task"
+            );
         }
     }
 }

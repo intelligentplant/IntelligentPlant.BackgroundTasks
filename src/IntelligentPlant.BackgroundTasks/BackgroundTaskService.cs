@@ -17,6 +17,11 @@ namespace IntelligentPlant.BackgroundTasks {
         public static IBackgroundTaskService Default { get; } = new DefaultBackgroundTaskService(null);
 
         /// <summary>
+        /// The service options.
+        /// </summary>
+        private readonly BackgroundTaskServiceOptions _options;
+
+        /// <summary>
         /// Flags if the service is running.
         /// </summary>
         private int _isRunning;
@@ -37,11 +42,6 @@ namespace IntelligentPlant.BackgroundTasks {
         private readonly SemaphoreSlim _queueSignal = new SemaphoreSlim(0);
 
         /// <summary>
-        /// Callback to invoke when an error occurs while running a background task.
-        /// </summary>
-        private readonly Action<Exception, BackgroundWorkItem> _onError;
-
-        /// <summary>
         /// Gets a flag indicating if the service is currently running.
         /// </summary>
         public bool IsRunning { get { return _isRunning != 0; } }
@@ -59,7 +59,7 @@ namespace IntelligentPlant.BackgroundTasks {
         ///   The options for the service..
         /// </param>
         protected BackgroundTaskService(BackgroundTaskServiceOptions options = null) {
-            _onError = options?.OnError;
+            _options = options ?? new BackgroundTaskServiceOptions();
         }
 
 
@@ -74,25 +74,15 @@ namespace IntelligentPlant.BackgroundTasks {
 
 
         /// <inheritdoc/>
-        public void QueueBackgroundWorkItem(Action<CancellationToken> workItem) {
+        public void QueueBackgroundWorkItem(BackgroundWorkItem workItem) {
             ThrowIfDisposed();
 
-            if (workItem == null) {
-                throw new ArgumentNullException(nameof(workItem));
+            if (workItem.WorkItem == null && workItem.WorkItemAsync == null) {
+                // Default value; we'll ignore the item.
             }
-            _queue.Enqueue(new BackgroundWorkItem(workItem));
-            _queueSignal.Release();
-        }
 
-
-        /// <inheritdoc/>
-        public void QueueBackgroundWorkItem(Func<CancellationToken, Task> workItem) {
-            ThrowIfDisposed();
-
-            if (workItem == null) {
-                throw new ArgumentNullException(nameof(workItem));
-            }
-            _queue.Enqueue(new BackgroundWorkItem(workItem));
+            _queue.Enqueue(workItem);
+            OnQueued(workItem);
             _queueSignal.Release();
         }
 
@@ -143,12 +133,9 @@ namespace IntelligentPlant.BackgroundTasks {
                         continue;
                     }
 
-                    if (item.WorkItem != null) {
-                        RunBackgroundWorkItem(item.WorkItem, cancellationToken);
-                    }
-                    else if (item.WorkItemAsync != null) {
-                        RunBackgroundWorkItem(item.WorkItemAsync, cancellationToken);
-                    }
+                    OnDequeued(item);
+
+                    RunBackgroundWorkItem(item, cancellationToken);
                 }
             }
             finally {
@@ -158,7 +145,7 @@ namespace IntelligentPlant.BackgroundTasks {
 
 
         /// <summary>
-        /// Runs a synchronous background work item.
+        /// Runs a background work item.
         /// </summary>
         /// <param name="workItem">
         ///   The work item.
@@ -166,45 +153,74 @@ namespace IntelligentPlant.BackgroundTasks {
         /// <param name="cancellationToken">
         ///   A cancellation token to pass to the <paramref name="workItem"/>.
         /// </param>
-        protected abstract void RunBackgroundWorkItem(Action<CancellationToken> workItem, CancellationToken cancellationToken);
+        protected abstract void RunBackgroundWorkItem(BackgroundWorkItem workItem, CancellationToken cancellationToken);
 
 
         /// <summary>
-        /// Runs an asynchronous background work item.
-        /// </summary>
-        /// <param name="workItem">
-        ///   The work item.
-        /// </param>
-        /// <param name="cancellationToken">
-        ///   A cancellation token to pass to the <paramref name="workItem"/>.
-        /// </param>
-        protected abstract void RunBackgroundWorkItem(Func<CancellationToken, Task> workItem, CancellationToken cancellationToken);
-
-
-        /// <summary>
-        /// Invokes the <see cref="BackgroundTaskServiceOptions.OnError"/> callback provided when 
+        /// Invokes the <see cref="BackgroundTaskServiceOptions.OnQueued"/> callback provided when 
         /// the service was registered.
         /// </summary>
-        /// <param name="error">
-        ///   The error that occurred.
-        /// </param>
         /// <param name="workItem">
-        ///   The work item that raised the exception.
+        ///   The work item that was queued.
         /// </param>
-        /// <exception cref="ArgumentNullException">
-        ///   <paramref name="error"/> is <see langword="null"/>.
-        /// </exception>
-        /// <exception cref="ArgumentNullException">
-        ///   <paramref name="workItem"/> is <see langword="null"/>.
-        /// </exception>
-        protected virtual void OnError(Exception error, Action<CancellationToken> workItem) {
-            if (error == null) {
-                throw new ArgumentNullException(nameof(error));
+        protected virtual void OnQueued(BackgroundWorkItem workItem) {
+            try {
+                _options.OnQueued?.Invoke(workItem);
             }
-            if (workItem == null) {
-                throw new ArgumentNullException(nameof(workItem));
+            catch (Exception e) {
+                System.Diagnostics.Trace.TraceError(Resources.Trace_ErrorInCallback, nameof(BackgroundTaskServiceOptions.OnQueued), e.ToString());
             }
-            _onError?.Invoke(error, new BackgroundWorkItem(workItem));
+        }
+
+
+        /// <summary>
+        /// Invokes the <see cref="BackgroundTaskServiceOptions.OnDequeued"/> callback provided when 
+        /// the service was registered.
+        /// </summary>
+        /// <param name="workItem">
+        ///   The work item that was dequeued.
+        /// </param>
+        protected virtual void OnDequeued(BackgroundWorkItem workItem) {
+            try {
+                _options.OnQueued?.Invoke(workItem);
+            }
+            catch (Exception e) {
+                System.Diagnostics.Trace.TraceError(Resources.Trace_ErrorInCallback, nameof(BackgroundTaskServiceOptions.OnDequeued), e.ToString());
+            }
+        }
+
+
+        /// <summary>
+        /// Invokes the <see cref="BackgroundTaskServiceOptions.OnRunning"/> callback provided when 
+        /// the service was registered.
+        /// </summary>
+        /// <param name="workItem">
+        ///   The work item that is being run.
+        /// </param>
+        protected virtual void OnRunning(BackgroundWorkItem workItem) {
+            try {
+                _options.OnRunning?.Invoke(workItem);
+            }
+            catch (Exception e) {
+                System.Diagnostics.Trace.TraceError(Resources.Trace_ErrorInCallback, nameof(BackgroundTaskServiceOptions.OnRunning), e.ToString());
+            }
+        }
+
+
+        /// <summary>
+        /// Invokes the <see cref="BackgroundTaskServiceOptions.OnCompleted"/> callback provided when 
+        /// the service was registered.
+        /// </summary>
+        /// <param name="workItem">
+        ///   The work item that completed.
+        /// </param>
+        protected virtual void OnCompleted(BackgroundWorkItem workItem) {
+            try {
+                _options.OnCompleted?.Invoke(workItem);
+            }
+            catch (Exception e) {
+                System.Diagnostics.Trace.TraceError(Resources.Trace_ErrorInCallback, nameof(BackgroundTaskServiceOptions.OnCompleted), e.ToString());
+            }
         }
 
 
@@ -212,23 +228,26 @@ namespace IntelligentPlant.BackgroundTasks {
         /// Invokes the <see cref="BackgroundTaskServiceOptions.OnError"/> callback provided when 
         /// the service was registered.
         /// </summary>
-        /// <param name="error">
-        ///   The error that occurred.
-        /// </param>
         /// <param name="workItem">
         ///   The work item that raised the exception.
+        /// </param>
+        /// <param name="error">
+        ///   The error that occurred.
         /// </param>
         /// <exception cref="ArgumentNullException">
         ///   <paramref name="error"/> is <see langword="null"/>.
         /// </exception>
-        /// <exception cref="ArgumentNullException">
-        ///   <paramref name="workItem"/> is <see langword="null"/>.
-        /// </exception>
-        protected virtual void OnError(Exception error, Func<CancellationToken, Task> workItem) {
-            if (workItem == null) {
-                throw new ArgumentNullException(nameof(workItem));
+        protected virtual void OnError(BackgroundWorkItem workItem, Exception error) {
+            if (error == null) {
+                throw new ArgumentNullException(nameof(error));
             }
-            _onError?.Invoke(error, new BackgroundWorkItem(workItem));
+
+            try {
+                _options.OnError?.Invoke(workItem, error);
+            }
+            catch (Exception e) {
+                System.Diagnostics.Trace.TraceError(Resources.Trace_ErrorInCallback, nameof(BackgroundTaskServiceOptions.OnError), e.ToString());
+            }
         }
 
 

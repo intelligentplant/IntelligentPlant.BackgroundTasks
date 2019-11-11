@@ -10,6 +10,16 @@ namespace IntelligentPlant.BackgroundTasks {
     public struct BackgroundWorkItem : IEquatable<BackgroundWorkItem> {
 
         /// <summary>
+        /// Gets the unique identifier for the work item.
+        /// </summary>
+        public Guid Id { get; }
+
+        /// <summary>
+        /// Gets the optional description for the work item.
+        /// </summary>
+        public string Description { get; }
+
+        /// <summary>
         /// The synchronous work item. The value will be <see langword="null"/> if an asynchronous 
         /// work item was enqueued.
         /// </summary>
@@ -28,12 +38,17 @@ namespace IntelligentPlant.BackgroundTasks {
         /// <param name="workItem">
         ///   The work item.
         /// </param>
+        /// <param name="description">
+        ///   The optional description for the work item.
+        /// </param>
         /// <exception cref="ArgumentNullException">
         ///   <paramref name="workItem"/> is <see langword="null"/>.
         /// </exception>
-        public BackgroundWorkItem(Action<CancellationToken> workItem) {
+        public BackgroundWorkItem(Action<CancellationToken> workItem, string description = null) {
+            Id = Guid.NewGuid();
             WorkItem = workItem ?? throw new ArgumentNullException(nameof(workItem));
             WorkItemAsync = null;
+            Description = description;
         }
 
 
@@ -43,18 +58,53 @@ namespace IntelligentPlant.BackgroundTasks {
         /// <param name="workItem">
         ///   The work item.
         /// </param>
+        /// <param name="description">
+        ///   The optional description for the work item.
+        /// </param>
         /// <exception cref="ArgumentNullException">
         ///   <paramref name="workItem"/> is <see langword="null"/>.
         /// </exception>
-        public BackgroundWorkItem(Func<CancellationToken, Task> workItem) {
+        public BackgroundWorkItem(Func<CancellationToken, Task> workItem, string description = null) {
+            Id = Guid.NewGuid();
             WorkItem = null;
             WorkItemAsync = workItem ?? throw new ArgumentNullException(nameof(workItem));
+            Description = description;
+        }
+
+
+        /// <inheritdoc/>
+        public override string ToString() {
+            return string.Format(
+                System.Globalization.CultureInfo.CurrentCulture,
+                Resources.BackgroundWorkItem_StringFormat,
+                Id,
+                WorkItem != null
+                    ? Resources.BackgroundWorkItem_ItemType_Sync
+                    : WorkItemAsync != null
+                        ? Resources.BackgroundWorkItem_ItemType_Async
+                        : Resources.BackgroundWorkItem_ItemType_Undefined,
+                Description
+            );
         }
 
 
         /// <inheritdoc/>
         public override int GetHashCode() {
-            return WorkItem?.GetHashCode() ?? WorkItemAsync?.GetHashCode() ?? base.GetHashCode();
+            // Implementation from https://stackoverflow.com/questions/263400/what-is-the-best-algorithm-for-overriding-gethashcode/263416#263416
+            unchecked {
+                var hash = (int) 2166136261;
+                hash = (hash * 16777619) ^ Id.GetHashCode();
+                if (WorkItem != null) {
+                    hash = (hash * 16777619) ^ WorkItem.GetHashCode();
+                }
+                if (WorkItemAsync != null) {
+                    hash = (hash * 16777619) ^ WorkItemAsync.GetHashCode();
+                }
+                if (Description != null) {
+                    hash = (hash * 16777619) ^ Description.GetHashCode();
+                }
+                return hash;
+            }
         }
 
 
@@ -68,7 +118,10 @@ namespace IntelligentPlant.BackgroundTasks {
 
         /// <inheritdoc/>
         public bool Equals(BackgroundWorkItem other) {
-            return other.WorkItem == WorkItem && other.WorkItemAsync == WorkItemAsync;
+            return other.Id.Equals(Id) && 
+                string.Equals(other.Description, Description, StringComparison.Ordinal) && 
+                other.WorkItem == WorkItem && 
+                other.WorkItemAsync == WorkItemAsync;
         }
 
 

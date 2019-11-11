@@ -61,11 +61,47 @@ namespace IntelligentPlant.BackgroundTasks.AspNetCore {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to An error occurred in a background work item: {WorkItem}.
+        ///   Looks up a localized string similar to A work item has completed: {WorkItem}.
         /// </summary>
-        internal static string Log_ErrorInBackgroundTask {
+        internal static string Log_TaskCompleted {
             get {
-                return ResourceManager.GetString("Log_ErrorInBackgroundTask", resourceCulture);
+                return ResourceManager.GetString("Log_TaskCompleted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A work item was dequeued: {WorkItem}.
+        /// </summary>
+        internal static string Log_TaskDequeued {
+            get {
+                return ResourceManager.GetString("Log_TaskDequeued", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A work item threw an unhandled exception: {WorkItem}.
+        /// </summary>
+        internal static string Log_TaskError {
+            get {
+                return ResourceManager.GetString("Log_TaskError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A work item was enqueued: {WorkItem}.
+        /// </summary>
+        internal static string Log_TaskQueued {
+            get {
+                return ResourceManager.GetString("Log_TaskQueued", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A work item is running: {WorkItem}.
+        /// </summary>
+        internal static string Log_TaskRunning {
+            get {
+                return ResourceManager.GetString("Log_TaskRunning", resourceCulture);
             }
         }
     }

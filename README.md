@@ -11,6 +11,22 @@ Install the `IntelligentPlant.BackgroundTasks.AspNetCore` NuGet package and regi
 services.AddBackgroundTaskService();
 ```
 
+Logging is automatically added for all events related to work items (enqueueing, dequeueing, running, completion, errors).
+
+You can also configure the [BackgroundTaskServiceOptions](./src/IntelligentPlant.BackgroundTasks/BackgroundTaskServiceOptions.cs) passed to the service to perform additional event handling as follows:
+
+```csharp
+services.AddBackgroundTaskService(options => {
+    options.OnRunning = (workItem) => {
+        // Add custom logic here...
+    };
+
+    options.OnError = (workItem, error) => {
+        // Add custom logic here...
+    }
+});
+```
+
 
 # Registering Background Tasks
 
@@ -36,4 +52,29 @@ public class EmailNotifier {
 }
 ```
 
-By default, the `CancellationToken` provided to the work item will fire when the application is shutting down. The [BackgroundTaskServiceExtensions](./src/IntelligentPlant.BackgroundTasks/BackgroundTaskServiceExtensions.cs) class contains extension methods that allow you to specify additional `CancellationToken` instances for the work item. In these scenarios, a composite of the master token and all of the additional tokens is passed to the work item.
+By default, the `CancellationToken` provided to the work item will fire when the application is shutting down. The [BackgroundTaskServiceExtensions](./src/IntelligentPlant.BackgroundTasks/BackgroundTaskServiceExtensions.cs) class contains extension methods that allow you to specify additional `CancellationToken` instances for the work item. In these scenarios, a composite of the master token and all of the additional tokens is passed to the work item. Examples of when you might want to use this functionality include starting a long-running background task from an object that should stop when the object is disposed, e.g.
+
+```csharp
+public class MyClass : IDisposable {
+
+    private readonly CancellationTokenSource _shutdownSource = new CancellationTokenSource();
+
+    public MyClass(IBackgroundTaskService backgroundTaskService) {
+        backgroundTaskService.QueueBackgroundWorkItem(LongRunningTask, _shutdownSource.Token);
+    }
+
+    private async Task LongRunningTask(CancellationToken cancellationToken) {
+        while (!cancellationToken.IsCancellationRequested) {
+            // Do long-running work. The cancellation token will fire when either 
+            // _shutdownSource is cancelled, or the IBackgroundTaskService is shut 
+            // down.
+        }
+    }
+
+    public void Dispose() {
+        _shutdownSource.Cancel();
+        _shutdownSource.Dispose();
+    }
+
+}
+```
