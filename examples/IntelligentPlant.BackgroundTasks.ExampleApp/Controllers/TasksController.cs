@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
@@ -26,7 +23,7 @@ namespace IntelligentPlant.BackgroundTasks.ExampleApp.Controllers {
         public Guid CreateTask() {
             var taskId = Guid.NewGuid();
 
-            _backgroundTaskService.QueueBackgroundWorkItem(ct => _logger.LogInformation("Running background task {TaskId}", taskId));
+            _backgroundTaskService.QueueBackgroundWorkItem(ct => _logger.LogInformation("[BACKGROUND TASK] Running background task {TaskId}", taskId));
 
             return taskId;
         }

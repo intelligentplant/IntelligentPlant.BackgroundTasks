@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace IntelligentPlant.BackgroundTasks {
+namespace IntelligentPlant.BackgroundTasks.AspNetCore {
     using System;
     
     
@@ -39,7 +39,7 @@ namespace IntelligentPlant.BackgroundTasks {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("IntelligentPlant.BackgroundTasks.Resources", typeof(Resources).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("IntelligentPlant.BackgroundTasks.AspNetCore.Resources", typeof(Resources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -61,11 +61,11 @@ namespace IntelligentPlant.BackgroundTasks {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The service is already running..
+        ///   Looks up a localized string similar to An error occurred in a background work item: {WorkItem}.
         /// </summary>
-        internal static string Error_ServiceIsAlreadyRunning {
+        internal static string Log_ErrorInBackgroundTask {
             get {
-                return ResourceManager.GetString("Error_ServiceIsAlreadyRunning", resourceCulture);
+                return ResourceManager.GetString("Log_ErrorInBackgroundTask", resourceCulture);
             }
         }
     }

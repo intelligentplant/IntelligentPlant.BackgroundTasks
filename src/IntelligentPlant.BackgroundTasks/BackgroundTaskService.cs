@@ -2,7 +2,6 @@
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
 
 namespace IntelligentPlant.BackgroundTasks {
 
@@ -23,19 +22,9 @@ namespace IntelligentPlant.BackgroundTasks {
         private int _isRunning;
 
         /// <summary>
-        /// Gets a flag indicating if the service is currently running.
-        /// </summary>
-        public bool IsRunning { get { return _isRunning != 0; } }
-
-        /// <summary>
         /// Flags if the service has been disposed.
         /// </summary>
         private bool _isDisposed;
-
-        /// <summary>
-        /// The logger for the service.
-        /// </summary>
-        protected ILogger Logger { get; }
 
         /// <summary>
         /// The currently-queued work items.
@@ -48,6 +37,16 @@ namespace IntelligentPlant.BackgroundTasks {
         private readonly SemaphoreSlim _queueSignal = new SemaphoreSlim(0);
 
         /// <summary>
+        /// Callback to invoke when an error occurs while running a background task.
+        /// </summary>
+        private readonly Action<Exception, BackgroundWorkItem> _onError;
+
+        /// <summary>
+        /// Gets a flag indicating if the service is currently running.
+        /// </summary>
+        public bool IsRunning { get { return _isRunning != 0; } }
+
+        /// <summary>
         /// Gets the number of work items that are currently queued.
         /// </summary>
         public int QueuedItemCount { get { return _queue.Count; } }
@@ -56,11 +55,11 @@ namespace IntelligentPlant.BackgroundTasks {
         /// <summary>
         /// Creates a new <see cref="BackgroundTaskService"/> object.
         /// </summary>
-        /// <param name="loggerFactory">
-        ///   The logger factory for the service. Can be <see langword="null"/>.
+        /// <param name="options">
+        ///   The options for the service..
         /// </param>
-        protected BackgroundTaskService(ILogger logger) {
-            Logger = logger ?? Microsoft.Extensions.Logging.Abstractions.NullLogger.Instance;
+        protected BackgroundTaskService(BackgroundTaskServiceOptions options = null) {
+            _onError = options?.OnError;
         }
 
 
@@ -183,6 +182,57 @@ namespace IntelligentPlant.BackgroundTasks {
 
 
         /// <summary>
+        /// Invokes the <see cref="BackgroundTaskServiceOptions.OnError"/> callback provided when 
+        /// the service was registered.
+        /// </summary>
+        /// <param name="error">
+        ///   The error that occurred.
+        /// </param>
+        /// <param name="workItem">
+        ///   The work item that raised the exception.
+        /// </param>
+        /// <exception cref="ArgumentNullException">
+        ///   <paramref name="error"/> is <see langword="null"/>.
+        /// </exception>
+        /// <exception cref="ArgumentNullException">
+        ///   <paramref name="workItem"/> is <see langword="null"/>.
+        /// </exception>
+        protected virtual void OnError(Exception error, Action<CancellationToken> workItem) {
+            if (error == null) {
+                throw new ArgumentNullException(nameof(error));
+            }
+            if (workItem == null) {
+                throw new ArgumentNullException(nameof(workItem));
+            }
+            _onError?.Invoke(error, new BackgroundWorkItem(workItem));
+        }
+
+
+        /// <summary>
+        /// Invokes the <see cref="BackgroundTaskServiceOptions.OnError"/> callback provided when 
+        /// the service was registered.
+        /// </summary>
+        /// <param name="error">
+        ///   The error that occurred.
+        /// </param>
+        /// <param name="workItem">
+        ///   The work item that raised the exception.
+        /// </param>
+        /// <exception cref="ArgumentNullException">
+        ///   <paramref name="error"/> is <see langword="null"/>.
+        /// </exception>
+        /// <exception cref="ArgumentNullException">
+        ///   <paramref name="workItem"/> is <see langword="null"/>.
+        /// </exception>
+        protected virtual void OnError(Exception error, Func<CancellationToken, Task> workItem) {
+            if (workItem == null) {
+                throw new ArgumentNullException(nameof(workItem));
+            }
+            _onError?.Invoke(error, new BackgroundWorkItem(workItem));
+        }
+
+
+        /// <summary>
         /// Releases managed and unmanaged resources.
         /// </summary>
         /// <param name="disposing">
@@ -220,48 +270,6 @@ namespace IntelligentPlant.BackgroundTasks {
         /// </summary>
         ~BackgroundTaskService() {
             Dispose(false);
-        }
-
-
-        /// <summary>
-        /// Describes a work item that has been added to a <see cref="BackgroundTaskService"/>.
-        /// </summary>
-        private struct BackgroundWorkItem {
-
-            /// <summary>
-            /// The synchronous work item.
-            /// </summary>
-            public Action<CancellationToken> WorkItem { get; }
-
-            /// <summary>
-            /// The asynchronous work item.
-            /// </summary>
-            public Func<CancellationToken, Task> WorkItemAsync { get; }
-
-
-            /// <summary>
-            /// Creates a new <see cref="BackgroundWorkItem"/> with a synchronous work item.
-            /// </summary>
-            /// <param name="workItem">
-            ///   The work item.
-            /// </param>
-            public BackgroundWorkItem(Action<CancellationToken> workItem) {
-                WorkItem = workItem;
-                WorkItemAsync = null;
-            }
-
-
-            /// <summary>
-            /// Creates a new <see cref="BackgroundWorkItem"/> with an asynchronous work item.
-            /// </summary>
-            /// <param name="workItem">
-            ///   The work item.
-            /// </param>
-            public BackgroundWorkItem(Func<CancellationToken, Task> workItem) {
-                WorkItem = null;
-                WorkItemAsync = workItem;
-            }
-
         }
 
     }

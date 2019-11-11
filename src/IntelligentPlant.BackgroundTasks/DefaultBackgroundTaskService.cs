@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
 
 namespace IntelligentPlant.BackgroundTasks {
 
@@ -10,16 +9,16 @@ namespace IntelligentPlant.BackgroundTasks {
     /// background using <see cref="Task.Run(Action, CancellationToken)"/> or 
     /// <see cref="Task.Run(Func{Task}, CancellationToken)"/>.
     /// </summary>
-    public sealed class DefaultBackgroundTaskService : BackgroundTaskService {
+    public class DefaultBackgroundTaskService : BackgroundTaskService {
 
         /// <summary>
         /// Creates a new <see cref="DefaultBackgroundTaskService"/> object.
         /// </summary>
-        /// <param name="logger">
-        ///   The logger for the service.
+        /// <param name="options">
+        ///   The options for the service.
         /// </param>
-        public DefaultBackgroundTaskService(ILogger<DefaultBackgroundTaskService> logger) 
-            : base(logger) { }
+        public DefaultBackgroundTaskService(BackgroundTaskServiceOptions options) 
+            : base(options) { }
 
 
         /// <inheritdoc/>
@@ -28,11 +27,8 @@ namespace IntelligentPlant.BackgroundTasks {
                 try {
                     workItem(cancellationToken);
                 }
-                catch (OperationCanceledException) {
-                    // Do nothing
-                }
                 catch (Exception e) {
-                    Logger.LogError(e, Resources.Log_ErrorInBackgroundTask, workItem);
+                    OnError(e, workItem);
                 }
             }, cancellationToken);
         }
@@ -44,11 +40,8 @@ namespace IntelligentPlant.BackgroundTasks {
                 try {
                     await workItem(cancellationToken).ConfigureAwait(false);
                 }
-                catch (OperationCanceledException) {
-                    // Do nothing
-                }
                 catch (Exception e) {
-                    Logger.LogError(e, Resources.Log_ErrorInBackgroundTask, workItem);
+                    OnError(e, workItem);
                 }
             }, cancellationToken);
         }
