@@ -5,7 +5,7 @@ Simplifies the registration of fire-and-forget background tasks in ASP.NET Core.
 
 # Getting Started
 
-Add a reference to the [IntelligentPlant.BackgroundTasks.AspNetCore(https://www.nuget.org/packages/IntelligentPlant.BackgroundTasks.AspNetCore/) NuGet package and register the services in your application's `Startup.cs` file:
+Add a reference to the [IntelligentPlant.BackgroundTasks.AspNetCore](https://www.nuget.org/packages/IntelligentPlant.BackgroundTasks.AspNetCore/) NuGet package and register the services in your application's `Startup.cs` file:
 
 ```csharp
 services.AddBackgroundTaskService();
