@@ -22,6 +22,25 @@ namespace IntelligentPlant.BackgroundTasks.Tests {
 
 
         [TestMethod]
+        public async Task TaskShouldRunOnDefaultScheduler() {
+            var value = 0;
+
+            using (var semaphore = new SemaphoreSlim(0)) {
+                BackgroundTaskService.Default.QueueBackgroundWorkItem(ct => {
+                    value = 1;
+                    semaphore.Release();
+                });
+
+                var lockObtained = await semaphore.WaitAsync(5000);
+
+                Assert.IsTrue(lockObtained);
+                Assert.AreEqual(1, value);
+            }
+
+        }
+
+
+        [TestMethod]
         public async Task TaskShouldRun() {
             var value = 0;
 

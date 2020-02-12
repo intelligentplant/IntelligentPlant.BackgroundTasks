@@ -14,7 +14,16 @@ namespace IntelligentPlant.BackgroundTasks {
         /// <summary>
         /// The default background task service.
         /// </summary>
-        public static IBackgroundTaskService Default { get; } = new DefaultBackgroundTaskService(null);
+        private static readonly Lazy<IBackgroundTaskService> s_default = new Lazy<IBackgroundTaskService>(() => {
+            var result = new DefaultBackgroundTaskService(null);
+            _ = result.RunAsync(default);
+            return result;
+        }, LazyThreadSafetyMode.ExecutionAndPublication);
+
+        /// <summary>
+        /// The default background task service.
+        /// </summary>
+        public static IBackgroundTaskService Default { get { return s_default.Value; } }
 
         /// <summary>
         /// The service options.
