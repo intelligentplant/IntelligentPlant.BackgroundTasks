@@ -70,7 +70,10 @@ namespace IntelligentPlant.BackgroundTasks.AspNetCore {
 
         /// <inheritdoc/>
         protected override void OnError(BackgroundWorkItem workItem, Exception error) {
-            _logger.LogError(error, Resources.Log_TaskError, workItem);
+            // Don't need to log cancellations.
+            if (!(error is OperationCanceledException)) {
+                _logger.LogError(error, Resources.Log_TaskError, workItem);
+            }
             base.OnError(workItem, error);
         }
 

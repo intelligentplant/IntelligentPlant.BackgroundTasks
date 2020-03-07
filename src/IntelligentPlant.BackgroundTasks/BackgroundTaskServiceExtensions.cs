@@ -92,6 +92,34 @@ namespace IntelligentPlant.BackgroundTasks {
         /// <param name="workItem">
         ///   The work item.
         /// </param>
+        /// <param name="tokens">
+        ///   Additional cancellation tokens for the operation. A composite token consisting of 
+        ///   these tokens and the lifetime token of the <see cref="IBackgroundTaskService"/> will 
+        ///   be passed to <paramref name="workItem"/>.
+        /// </param>
+        /// <returns>
+        ///   The unique identifier for the queued work item.
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        ///   <paramref name="scheduler"/> is <see langword="null"/>.
+        /// </exception>
+        /// <exception cref="ArgumentNullException">
+        ///   <paramref name="workItem"/> is <see langword="null"/>.
+        /// </exception>
+        public static Guid QueueBackgroundWorkItem(this IBackgroundTaskService scheduler, Action<CancellationToken> workItem, params CancellationToken[] tokens) {
+            return QueueBackgroundWorkItem(scheduler, workItem, null, (IEnumerable<CancellationToken>) tokens);
+        }
+
+
+        /// <summary>
+        /// Adds a synchronous work item to the queue.
+        /// </summary>
+        /// <param name="scheduler">
+        ///   The <see cref="IBackgroundTaskService"/>.
+        /// </param>
+        /// <param name="workItem">
+        ///   The work item.
+        /// </param>
         /// <param name="description">
         ///   The description for the work item. Can be <see langword="null"/>.
         /// </param>
@@ -158,6 +186,34 @@ namespace IntelligentPlant.BackgroundTasks {
                     workItem(compositeTokenSource.Token);
                 }
             }, description);
+        }
+
+
+        /// <summary>
+        /// Adds a synchronous work item to the queue.
+        /// </summary>
+        /// <param name="scheduler">
+        ///   The <see cref="IBackgroundTaskService"/>.
+        /// </param>
+        /// <param name="workItem">
+        ///   The work item.
+        /// </param>
+        /// <param name="tokens">
+        ///   Additional cancellation tokens for the operation. A composite token consisting of 
+        ///   these tokens and the lifetime token of the <see cref="IBackgroundTaskService"/> will 
+        ///   be passed to <paramref name="workItem"/>.
+        /// </param>
+        /// <returns>
+        ///   The unique identifier for the queued work item.
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        ///   <paramref name="scheduler"/> is <see langword="null"/>.
+        /// </exception>
+        /// <exception cref="ArgumentNullException">
+        ///   <paramref name="workItem"/> is <see langword="null"/>.
+        /// </exception>
+        public static Guid QueueBackgroundWorkItem(this IBackgroundTaskService scheduler, Func<CancellationToken, Task> workItem, params CancellationToken[] tokens) {
+            return QueueBackgroundWorkItem(scheduler, workItem, null, (IEnumerable<CancellationToken>) tokens);
         }
 
 
