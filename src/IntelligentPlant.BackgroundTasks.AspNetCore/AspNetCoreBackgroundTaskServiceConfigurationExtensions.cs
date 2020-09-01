@@ -44,7 +44,10 @@ namespace Microsoft.Extensions.DependencyInjection {
         /// <exception cref="ArgumentNullException">
         ///   <paramref name="services"/> is <see langword="null"/>.
         /// </exception>
-        public static IServiceCollection AddBackgroundTaskService(this IServiceCollection services, Action<BackgroundTaskServiceOptions> configure) {
+        public static IServiceCollection AddBackgroundTaskService(
+            this IServiceCollection services, 
+            Action<BackgroundTaskServiceOptions>? configure
+        ) {
             if (services == null) {
                 throw new ArgumentNullException(nameof(services));
             }

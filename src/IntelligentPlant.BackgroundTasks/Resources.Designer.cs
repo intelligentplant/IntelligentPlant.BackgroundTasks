@@ -88,7 +88,7 @@ namespace IntelligentPlant.BackgroundTasks {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to {{Id = {0}, Work Item Type = {1}, Description = &quot;{2}&quot;}}.
+        ///   Looks up a localized string similar to {{ Id = &apos;{0}&apos;, Work Item Type = &apos;{1}&apos;, Description = &apos;{2}&apos; }}.
         /// </summary>
         internal static string BackgroundWorkItem_StringFormat {
             get {
@@ -106,11 +106,83 @@ namespace IntelligentPlant.BackgroundTasks {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to An unhandled exception occurred in an {0} callback: {1}.
+        ///   Looks up a localized string similar to Unspecified error.
         /// </summary>
-        internal static string Trace_ErrorInCallback {
+        internal static string Error_UnspecifiedError {
             get {
-                return ResourceManager.GetString("Trace_ErrorInCallback", resourceCulture);
+                return ResourceManager.GetString("Error_UnspecifiedError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to An unhandled exception occurred in a &apos;{CallbackType}&apos; callback..
+        /// </summary>
+        internal static string Log_ErrorInCallback {
+            get {
+                return ResourceManager.GetString("Log_ErrorInCallback", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Work item completed: {WorkItem}.
+        /// </summary>
+        internal static string Log_ItemCompleted {
+            get {
+                return ResourceManager.GetString("Log_ItemCompleted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Work item dequeued: {WorkItem}.
+        /// </summary>
+        internal static string Log_ItemDequeued {
+            get {
+                return ResourceManager.GetString("Log_ItemDequeued", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Work item enqueued: {WorkItem}.
+        /// </summary>
+        internal static string Log_ItemEnqueued {
+            get {
+                return ResourceManager.GetString("Log_ItemEnqueued", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Work item faulted: {WorkItem}.
+        /// </summary>
+        internal static string Log_ItemFaulted {
+            get {
+                return ResourceManager.GetString("Log_ItemFaulted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Work item running: {WorkItem}.
+        /// </summary>
+        internal static string Log_ItemRunning {
+            get {
+                return ResourceManager.GetString("Log_ItemRunning", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Background task service is running..
+        /// </summary>
+        internal static string Log_ServiceRunning {
+            get {
+                return ResourceManager.GetString("Log_ServiceRunning", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Background task service has stopped..
+        /// </summary>
+        internal static string Log_ServiceStopped {
+            get {
+                return ResourceManager.GetString("Log_ServiceStopped", resourceCulture);
             }
         }
     }

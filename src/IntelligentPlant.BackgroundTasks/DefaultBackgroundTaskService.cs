@@ -2,6 +2,8 @@
 using System.Threading;
 using System.Threading.Tasks;
 
+using Microsoft.Extensions.Logging;
+
 namespace IntelligentPlant.BackgroundTasks {
 
     /// <summary>
@@ -17,8 +19,13 @@ namespace IntelligentPlant.BackgroundTasks {
         /// <param name="options">
         ///   The options for the service.
         /// </param>
-        public DefaultBackgroundTaskService(BackgroundTaskServiceOptions options) 
-            : base(options) { }
+        /// <param name="logger">
+        ///   The logger for the service.
+        /// </param>
+        public DefaultBackgroundTaskService(
+            BackgroundTaskServiceOptions? options, 
+            ILogger<DefaultBackgroundTaskService>? logger
+        ) : base(options, logger) { }
 
 
         /// <inheritdoc/>

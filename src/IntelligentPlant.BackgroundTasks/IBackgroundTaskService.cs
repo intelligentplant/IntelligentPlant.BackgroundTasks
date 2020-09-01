@@ -1,8 +1,4 @@
-﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
-
-namespace IntelligentPlant.BackgroundTasks {
+﻿namespace IntelligentPlant.BackgroundTasks {
 
     /// <summary>
     /// Describes a service that can queue work items to be run in background tasks.
@@ -12,6 +8,17 @@ namespace IntelligentPlant.BackgroundTasks {
     /// </remarks>
     /// <seealso cref="BackgroundTaskServiceExtensions"/>
     public interface IBackgroundTaskService {
+
+        /// <summary>
+        /// Gets a flag that indicates if the <see cref="IBackgroundTaskService"/> is currently 
+        /// running.
+        /// </summary>
+        bool IsRunning { get; }
+
+        /// <summary>
+        /// Gets the number of work items that are currently queued.
+        /// </summary>
+        int QueuedItemCount { get; }
 
         /// <summary>
         /// Adds a work item to the queue.

@@ -3,27 +3,59 @@ using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Microsoft.Extensions.Logging;
+
 namespace IntelligentPlant.BackgroundTasks {
 
     /// <summary>
     /// Base <see cref="IBackgroundTaskService"/> implementation. Call the <see cref="RunAsync"/> 
     /// method to start the service.
     /// </summary>
-    public abstract class BackgroundTaskService : IBackgroundTaskService, IDisposable {
+    public abstract partial class BackgroundTaskService : IBackgroundTaskService, IDisposable {
 
         /// <summary>
         /// The default background task service.
         /// </summary>
         private static readonly Lazy<IBackgroundTaskService> s_default = new Lazy<IBackgroundTaskService>(() => {
-            var result = new DefaultBackgroundTaskService(null);
+            var result = new DefaultBackgroundTaskService(null, null);
             _ = result.RunAsync(default);
             return result;
         }, LazyThreadSafetyMode.ExecutionAndPublication);
 
         /// <summary>
+        /// The default background task service, if the original default was externally overridden.
+        /// </summary>
+        private static IBackgroundTaskService? s_defaultOverridden;
+
+        /// <summary>
         /// The default background task service.
         /// </summary>
-        public static IBackgroundTaskService Default { get { return s_default.Value; } }
+        public static IBackgroundTaskService Default { 
+            get { return s_defaultOverridden ?? s_default.Value; } 
+            set {
+                if (value != null && s_default.IsValueCreated && s_default.Value == value) {
+                    s_defaultOverridden = null;
+                }
+                else {
+                    s_defaultOverridden = value;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Logging.
+        /// </summary>
+        private readonly ILogger _logger;
+
+        /// <summary>
+        /// Cancellation token source that fires when the service is being disposed.
+        /// </summary>
+        private readonly CancellationTokenSource _disposedCancellationTokenSource;
+
+        /// <summary>
+        /// Cancellation token that fires when the service is being disposed.
+        /// </summary>
+        private readonly CancellationToken _disposedCancellationToken;
 
         /// <summary>
         /// The service options.
@@ -50,14 +82,10 @@ namespace IntelligentPlant.BackgroundTasks {
         /// </summary>
         private readonly SemaphoreSlim _queueSignal = new SemaphoreSlim(0);
 
-        /// <summary>
-        /// Gets a flag indicating if the service is currently running.
-        /// </summary>
+        /// <inheritdoc/>
         public bool IsRunning { get { return _isRunning != 0; } }
 
-        /// <summary>
-        /// Gets the number of work items that are currently queued.
-        /// </summary>
+        /// <inheritdoc/>
         public int QueuedItemCount { get { return _queue.Count; } }
 
 
@@ -67,8 +95,17 @@ namespace IntelligentPlant.BackgroundTasks {
         /// <param name="options">
         ///   The options for the service..
         /// </param>
-        protected BackgroundTaskService(BackgroundTaskServiceOptions options = null) {
+        /// <param name="logger">
+        ///   The <see cref="ILogger"/> for the service.
+        /// </param>
+        protected BackgroundTaskService(
+            BackgroundTaskServiceOptions? options,
+            ILogger? logger
+        ) {
             _options = options ?? new BackgroundTaskServiceOptions();
+            _disposedCancellationTokenSource = new CancellationTokenSource();
+            _disposedCancellationToken = _disposedCancellationTokenSource.Token;
+            _logger = logger ?? Microsoft.Extensions.Logging.Abstractions.NullLogger.Instance;
         }
 
 
@@ -106,7 +143,8 @@ namespace IntelligentPlant.BackgroundTasks {
         ///   items.
         /// </param>
         /// <returns>
-        ///   A long-running task that will end when the <paramref name="cancellationToken"/> fires.
+        ///   A long-running task that will end when the <paramref name="cancellationToken"/> 
+        ///   fires or the <see cref="BackgroundTaskService"/> is disposed.
         /// </returns>
         /// <exception cref="OperationCanceledException">
         ///   The service is already running.
@@ -119,35 +157,40 @@ namespace IntelligentPlant.BackgroundTasks {
             }
 
             try {
-                while (!cancellationToken.IsCancellationRequested) {
-                    if (_isDisposed) {
-                        break;
-                    }
+                LogServiceRunning(_logger);
+                using (var compositeSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _disposedCancellationToken)) {
+                    var compositeToken = compositeSource.Token;
+                    while (!compositeToken.IsCancellationRequested) {
+                        if (_isDisposed) {
+                            break;
+                        }
 
-                    try {
-                        await _queueSignal.WaitAsync(cancellationToken).ConfigureAwait(false);
-                    }
-                    catch (OperationCanceledException) {
-                        break;
-                    }
-                    catch (ArgumentNullException) {
-                        // SemaphoreSlim on .NET Framework can throw an ArgumentNullException if it is 
-                        // disposed during an asynchronous wait, because it attempts to lock on an object 
-                        // that has been reset to null. See here for the code in question: 
-                        // https://github.com/microsoft/referencesource/blob/17b97365645da62cf8a49444d979f94a59bbb155/mscorlib/system/threading/SemaphoreSlim.cs#L720
-                        break;
-                    }
+                        try {
+                            await _queueSignal.WaitAsync(compositeToken).ConfigureAwait(false);
+                        }
+                        catch (OperationCanceledException) {
+                            break;
+                        }
+                        catch (ArgumentNullException) {
+                            // SemaphoreSlim on .NET Framework can throw an ArgumentNullException if it is 
+                            // disposed during an asynchronous wait, because it attempts to lock on an object 
+                            // that has been reset to null. See here for the code in question: 
+                            // https://github.com/microsoft/referencesource/blob/17b97365645da62cf8a49444d979f94a59bbb155/mscorlib/system/threading/SemaphoreSlim.cs#L720
+                            break;
+                        }
 
-                    if (!_queue.TryDequeue(out var item)) {
-                        continue;
+                        if (!_queue.TryDequeue(out var item)) {
+                            continue;
+                        }
+
+                        OnDequeued(item);
+
+                        RunBackgroundWorkItem(item, compositeToken);
                     }
-
-                    OnDequeued(item);
-
-                    RunBackgroundWorkItem(item, cancellationToken);
                 }
             }
             finally {
+                LogServiceStopped(_logger);
                 _isRunning = 0;
             }
         }
@@ -174,10 +217,11 @@ namespace IntelligentPlant.BackgroundTasks {
         /// </param>
         protected virtual void OnQueued(BackgroundWorkItem workItem) {
             try {
+                LogItemEnqueued(_logger, workItem);
                 _options.OnQueued?.Invoke(workItem);
             }
             catch (Exception e) {
-                System.Diagnostics.Trace.TraceError(Resources.Trace_ErrorInCallback, nameof(BackgroundTaskServiceOptions.OnQueued), e.ToString());
+                _logger.LogError(e, Resources.Log_ErrorInCallback, nameof(BackgroundTaskServiceOptions.OnQueued));
             }
         }
 
@@ -191,10 +235,11 @@ namespace IntelligentPlant.BackgroundTasks {
         /// </param>
         protected virtual void OnDequeued(BackgroundWorkItem workItem) {
             try {
-                _options.OnQueued?.Invoke(workItem);
+                LogItemDequeued(_logger, workItem);
+                _options.OnDequeued?.Invoke(workItem);
             }
             catch (Exception e) {
-                System.Diagnostics.Trace.TraceError(Resources.Trace_ErrorInCallback, nameof(BackgroundTaskServiceOptions.OnDequeued), e.ToString());
+                _logger.LogError(e, Resources.Log_ErrorInCallback, nameof(BackgroundTaskServiceOptions.OnDequeued));
             }
         }
 
@@ -208,10 +253,11 @@ namespace IntelligentPlant.BackgroundTasks {
         /// </param>
         protected virtual void OnRunning(BackgroundWorkItem workItem) {
             try {
+                LogItemRunning(_logger, workItem);
                 _options.OnRunning?.Invoke(workItem);
             }
             catch (Exception e) {
-                System.Diagnostics.Trace.TraceError(Resources.Trace_ErrorInCallback, nameof(BackgroundTaskServiceOptions.OnRunning), e.ToString());
+                _logger.LogError(e, Resources.Log_ErrorInCallback, nameof(BackgroundTaskServiceOptions.OnRunning));
             }
         }
 
@@ -225,10 +271,11 @@ namespace IntelligentPlant.BackgroundTasks {
         /// </param>
         protected virtual void OnCompleted(BackgroundWorkItem workItem) {
             try {
+                LogItemCompleted(_logger, workItem);
                 _options.OnCompleted?.Invoke(workItem);
             }
             catch (Exception e) {
-                System.Diagnostics.Trace.TraceError(Resources.Trace_ErrorInCallback, nameof(BackgroundTaskServiceOptions.OnCompleted), e.ToString());
+                _logger.LogError(e, Resources.Log_ErrorInCallback, nameof(BackgroundTaskServiceOptions.OnCompleted));
             }
         }
 
@@ -240,22 +287,20 @@ namespace IntelligentPlant.BackgroundTasks {
         /// <param name="workItem">
         ///   The work item that raised the exception.
         /// </param>
-        /// <param name="error">
+        /// <param name="err">
         ///   The error that occurred.
         /// </param>
-        /// <exception cref="ArgumentNullException">
-        ///   <paramref name="error"/> is <see langword="null"/>.
-        /// </exception>
-        protected virtual void OnError(BackgroundWorkItem workItem, Exception error) {
-            if (error == null) {
-                throw new ArgumentNullException(nameof(error));
+        protected virtual void OnError(BackgroundWorkItem workItem, Exception err) {
+            if (err == null) {
+                err = new Exception(Resources.Error_UnspecifiedError);
             }
 
             try {
-                _options.OnError?.Invoke(workItem, error);
+                LogItemFaulted(_logger, workItem, err);
+                _options.OnError?.Invoke(workItem, err);
             }
             catch (Exception e) {
-                System.Diagnostics.Trace.TraceError(Resources.Trace_ErrorInCallback, nameof(BackgroundTaskServiceOptions.OnError), e.ToString());
+                _logger.LogError(e, Resources.Log_ErrorInCallback, nameof(BackgroundTaskServiceOptions.OnError));
             }
         }
 
@@ -268,7 +313,13 @@ namespace IntelligentPlant.BackgroundTasks {
         ///   if it is being finalized.
         /// </param>
         protected virtual void Dispose(bool disposing) {
+            if (_isDisposed) {
+                return;
+            }
+
             if (disposing) {
+                _disposedCancellationTokenSource.Cancel();
+                _disposedCancellationTokenSource.Dispose();
                 _queueSignal.Dispose();
 #if NETSTANDARD2_0
                 // .NET Standard 2.0 doesn't have a Clear() method on ConcurrentQueue<T>, so we'll 
@@ -278,16 +329,13 @@ namespace IntelligentPlant.BackgroundTasks {
                 _queue.Clear();
 #endif
             }
+
+            _isDisposed = true;
         }
 
 
         /// <inheritdoc/>
         public void Dispose() {
-            if (_isDisposed) {
-                return;
-            }
-
-            _isDisposed = true;
             Dispose(true);
             GC.SuppressFinalize(this);
         }

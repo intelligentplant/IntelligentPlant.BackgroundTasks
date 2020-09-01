@@ -17,19 +17,19 @@ namespace IntelligentPlant.BackgroundTasks {
         /// <summary>
         /// Gets the optional description for the work item.
         /// </summary>
-        public string Description { get; }
+        public string? Description { get; }
 
         /// <summary>
         /// The synchronous work item. The value will be <see langword="null"/> if an asynchronous 
         /// work item was enqueued.
         /// </summary>
-        public Action<CancellationToken> WorkItem { get; }
+        public Action<CancellationToken>? WorkItem { get; }
 
         /// <summary>
         /// The asynchronous work item. The value will be <see langword="null"/> if a synchronous 
         /// work item was enqueued.
         /// </summary>
-        public Func<CancellationToken, Task> WorkItemAsync { get; }
+        public Func<CancellationToken, Task>? WorkItemAsync { get; }
 
 
         /// <summary>
@@ -44,7 +44,7 @@ namespace IntelligentPlant.BackgroundTasks {
         /// <exception cref="ArgumentNullException">
         ///   <paramref name="workItem"/> is <see langword="null"/>.
         /// </exception>
-        public BackgroundWorkItem(Action<CancellationToken> workItem, string description = null) {
+        public BackgroundWorkItem(Action<CancellationToken> workItem, string? description = null) {
             Id = Guid.NewGuid();
             WorkItem = workItem ?? throw new ArgumentNullException(nameof(workItem));
             WorkItemAsync = null;
@@ -64,7 +64,7 @@ namespace IntelligentPlant.BackgroundTasks {
         /// <exception cref="ArgumentNullException">
         ///   <paramref name="workItem"/> is <see langword="null"/>.
         /// </exception>
-        public BackgroundWorkItem(Func<CancellationToken, Task> workItem, string description = null) {
+        public BackgroundWorkItem(Func<CancellationToken, Task> workItem, string? description = null) {
             Id = Guid.NewGuid();
             WorkItem = null;
             WorkItemAsync = workItem ?? throw new ArgumentNullException(nameof(workItem));
@@ -90,6 +90,7 @@ namespace IntelligentPlant.BackgroundTasks {
 
         /// <inheritdoc/>
         public override int GetHashCode() {
+#if NETSTANDARD2_0
             // Implementation from https://stackoverflow.com/questions/263400/what-is-the-best-algorithm-for-overriding-gethashcode/263416#263416
             unchecked {
                 var hash = (int) 2166136261;
@@ -105,6 +106,9 @@ namespace IntelligentPlant.BackgroundTasks {
                 }
                 return hash;
             }
+#else
+            return HashCode.Combine(Id, WorkItem, WorkItemAsync, Description);
+#endif
         }
 
 

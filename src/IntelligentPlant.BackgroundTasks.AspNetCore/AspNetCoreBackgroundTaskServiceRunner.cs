@@ -9,12 +9,12 @@ namespace IntelligentPlant.BackgroundTasks.AspNetCore {
     /// <see cref="IHostedService"/> that is used to start and stop the registered 
     /// <see cref="IBackgroundTaskService"/> when the application starts and stops.
     /// </summary>
-    public class AspNetCoreBackgroundTaskServiceRunner : IHostedService, IDisposable {
+    public sealed class AspNetCoreBackgroundTaskServiceRunner : IHostedService, IDisposable {
 
         /// <summary>
         /// The task that dequeues and runs queued background work items.
         /// </summary>
-        private Task _executingTask;
+        private Task? _executingTask;
 
         /// <summary>
         /// Fires when <see cref="StopAsync(CancellationToken)"/> is called or the service is 
@@ -37,6 +37,8 @@ namespace IntelligentPlant.BackgroundTasks.AspNetCore {
         /// </param>
         public AspNetCoreBackgroundTaskServiceRunner(IBackgroundTaskService backgroundTaskService) {
             _backgroundTaskService = (BackgroundTaskService) backgroundTaskService;
+            // Replace default background task service with the one we have been provided.
+            BackgroundTaskService.Default = _backgroundTaskService;
         }
 
 

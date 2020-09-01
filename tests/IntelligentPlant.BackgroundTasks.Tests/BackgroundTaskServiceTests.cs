@@ -1,16 +1,30 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace IntelligentPlant.BackgroundTasks.Tests {
     [TestClass]
     public class BackgroundTaskServiceTests {
 
+        private static IServiceProvider s_serviceProvider;
+
+
+        [ClassInitialize]
+        public static void ClassInitialize(TestContext context) {
+            var services = new ServiceCollection();
+            services.AddLogging(builder => builder.AddConsole().SetMinimumLevel(LogLevel.Trace));
+            s_serviceProvider = services.BuildServiceProvider();
+        }
+
+
         [TestMethod]
         public void TaskShouldBeEnqueued() {
 
-            using (var svc = new DefaultBackgroundTaskService(null)) {
+            using (var svc = new DefaultBackgroundTaskService(null, s_serviceProvider.GetRequiredService<ILogger<DefaultBackgroundTaskService>>())) {
                 svc.QueueBackgroundWorkItem(ct => { 
                     // No-op
                 });
@@ -46,7 +60,7 @@ namespace IntelligentPlant.BackgroundTasks.Tests {
 
             using (var semaphore = new SemaphoreSlim(0))
             using (var ctSource = new CancellationTokenSource())
-            using (var svc = new DefaultBackgroundTaskService(null)) {
+            using (var svc = new DefaultBackgroundTaskService(null, s_serviceProvider.GetRequiredService<ILogger<DefaultBackgroundTaskService>>())) {
                 svc.QueueBackgroundWorkItem(ct => {
                     value = 1;
                     semaphore.Release();
@@ -82,7 +96,7 @@ namespace IntelligentPlant.BackgroundTasks.Tests {
                     }
                 };
 
-                var svc = new DefaultBackgroundTaskService(options);
+                var svc = new DefaultBackgroundTaskService(options, s_serviceProvider.GetRequiredService<ILogger<DefaultBackgroundTaskService>>());
                 try {
                     svc.QueueBackgroundWorkItem(ct => throw new InvalidOperationException());
 
@@ -113,7 +127,7 @@ namespace IntelligentPlant.BackgroundTasks.Tests {
             using (var semaphore = new SemaphoreSlim(0))
             using (var ctSource1 = new CancellationTokenSource())
             using (var ctSource2 = new CancellationTokenSource())
-            using (var svc = new DefaultBackgroundTaskService(null)) {
+            using (var svc = new DefaultBackgroundTaskService(null, s_serviceProvider.GetRequiredService<ILogger<DefaultBackgroundTaskService>>())) {
                 svc.QueueBackgroundWorkItem(async ct => {
                     try {
                         await Task.Delay(Timeout.Infinite, ct);

@@ -127,7 +127,7 @@
     <value>Undefined</value>
   </data>
   <data name="BackgroundWorkItem_StringFormat" xml:space="preserve">
-    <value>{{Id = {0}, Work Item Type = {1}, Description = "{2}"}}</value>
+    <value>{{ Id = '{0}', Work Item Type = '{1}', Description = '{2}' }}</value>
     <comment>{0} - ID
 {1} - async/sync/undefined
 {2} - description</comment>
@@ -135,9 +135,31 @@
   <data name="Error_ServiceIsAlreadyRunning" xml:space="preserve">
     <value>The service is already running.</value>
   </data>
-  <data name="Trace_ErrorInCallback" xml:space="preserve">
-    <value>An unhandled exception occurred in an {0} callback: {1}</value>
-    <comment>{0} - the callback type
-{1} - the error message</comment>
+  <data name="Error_UnspecifiedError" xml:space="preserve">
+    <value>Unspecified error</value>
+  </data>
+  <data name="Log_ErrorInCallback" xml:space="preserve">
+    <value>An unhandled exception occurred in a '{CallbackType}' callback.</value>
+  </data>
+  <data name="Log_ItemCompleted" xml:space="preserve">
+    <value>Work item completed: {WorkItem}</value>
+  </data>
+  <data name="Log_ItemDequeued" xml:space="preserve">
+    <value>Work item dequeued: {WorkItem}</value>
+  </data>
+  <data name="Log_ItemEnqueued" xml:space="preserve">
+    <value>Work item enqueued: {WorkItem}</value>
+  </data>
+  <data name="Log_ItemFaulted" xml:space="preserve">
+    <value>Work item faulted: {WorkItem}</value>
+  </data>
+  <data name="Log_ItemRunning" xml:space="preserve">
+    <value>Work item running: {WorkItem}</value>
+  </data>
+  <data name="Log_ServiceRunning" xml:space="preserve">
+    <value>Background task service is running.</value>
+  </data>
+  <data name="Log_ServiceStopped" xml:space="preserve">
+    <value>Background task service has stopped.</value>
   </data>
 </root>
