@@ -42,11 +42,4 @@
     </PropertyGroup>
   </Target>
 
-  <!-- Workaround https://github.com/dotnet/cli/issues/11378#issuecomment-499988244 -->
-  <Target Name="WorkaroundNetStandard" AfterTargets="ResolvePackageAssets" Condition=" '$(TargetFramework)' == 'netcoreapp3.0' ">
-    <ItemGroup>
-      <TransitiveFrameworkReference Remove="NETStandard.Library" />
-    </ItemGroup>
-  </Target>
-
 </Project>
