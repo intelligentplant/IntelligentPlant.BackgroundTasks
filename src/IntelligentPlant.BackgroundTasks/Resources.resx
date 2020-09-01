@@ -127,7 +127,7 @@
     <value>Undefined</value>
   </data>
   <data name="BackgroundWorkItem_StringFormat" xml:space="preserve">
-    <value>{{ Id = '{0}', Work Item Type = '{1}', Description = '{2}' }}</value>
+    <value>{{ Id = '{0}', WorkItemType = '{1}', Description = '{2}' }}</value>
     <comment>{0} - ID
 {1} - async/sync/undefined
 {2} - description</comment>

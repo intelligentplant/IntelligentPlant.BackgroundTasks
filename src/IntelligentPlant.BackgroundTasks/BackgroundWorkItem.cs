@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -48,6 +49,12 @@ namespace IntelligentPlant.BackgroundTasks {
             Id = Guid.NewGuid();
             WorkItem = workItem ?? throw new ArgumentNullException(nameof(workItem));
             WorkItemAsync = null;
+
+            if (string.IsNullOrWhiteSpace(description)) {
+                var methodInfo = workItem.GetMethodInfo();
+                description = string.Concat(methodInfo.ReflectedType.FullName, ".", methodInfo.Name);
+            }
+
             Description = description;
         }
 
@@ -68,6 +75,12 @@ namespace IntelligentPlant.BackgroundTasks {
             Id = Guid.NewGuid();
             WorkItem = null;
             WorkItemAsync = workItem ?? throw new ArgumentNullException(nameof(workItem));
+
+            if (string.IsNullOrWhiteSpace(description)) {
+                var methodInfo = workItem.GetMethodInfo();
+                description = string.Concat(methodInfo.ReflectedType.FullName, ".", methodInfo.Name);
+            }
+
             Description = description;
         }
 

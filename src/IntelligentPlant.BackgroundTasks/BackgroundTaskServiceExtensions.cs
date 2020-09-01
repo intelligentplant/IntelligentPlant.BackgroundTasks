@@ -32,7 +32,7 @@ namespace IntelligentPlant.BackgroundTasks {
         /// <exception cref="ArgumentNullException">
         ///   <paramref name="workItem"/> is <see langword="null"/>.
         /// </exception>
-        public static Guid QueueBackgroundWorkItem(this IBackgroundTaskService scheduler, Action<CancellationToken> workItem, string description = null) {
+        public static Guid QueueBackgroundWorkItem(this IBackgroundTaskService scheduler, Action<CancellationToken> workItem, string? description = null) {
             if (scheduler == null) {
                 throw new ArgumentNullException(nameof(scheduler));
             }
@@ -68,7 +68,7 @@ namespace IntelligentPlant.BackgroundTasks {
         /// <exception cref="ArgumentNullException">
         ///   <paramref name="workItem"/> is <see langword="null"/>.
         /// </exception>
-        public static Guid QueueBackgroundWorkItem(this IBackgroundTaskService scheduler, Func<CancellationToken, Task> workItem, string description = null) {
+        public static Guid QueueBackgroundWorkItem(this IBackgroundTaskService scheduler, Func<CancellationToken, Task> workItem, string? description = null) {
             if (scheduler == null) {
                 throw new ArgumentNullException(nameof(scheduler));
             }
@@ -137,7 +137,7 @@ namespace IntelligentPlant.BackgroundTasks {
         /// <exception cref="ArgumentNullException">
         ///   <paramref name="workItem"/> is <see langword="null"/>.
         /// </exception>
-        public static Guid QueueBackgroundWorkItem(this IBackgroundTaskService scheduler, Action<CancellationToken> workItem, string description, params CancellationToken[] tokens) {
+        public static Guid QueueBackgroundWorkItem(this IBackgroundTaskService scheduler, Action<CancellationToken> workItem, string? description, params CancellationToken[] tokens) {
             return QueueBackgroundWorkItem(scheduler, workItem, description, (IEnumerable<CancellationToken>) tokens);
         }
 
@@ -168,7 +168,7 @@ namespace IntelligentPlant.BackgroundTasks {
         /// <exception cref="ArgumentNullException">
         ///   <paramref name="workItem"/> is <see langword="null"/>.
         /// </exception>
-        public static Guid QueueBackgroundWorkItem(this IBackgroundTaskService scheduler, Action<CancellationToken> workItem, string description, IEnumerable<CancellationToken> tokens) {
+        public static Guid QueueBackgroundWorkItem(this IBackgroundTaskService scheduler, Action<CancellationToken> workItem, string? description, IEnumerable<CancellationToken> tokens) {
             if (scheduler == null) {
                 throw new ArgumentNullException(nameof(scheduler));
             }
@@ -243,7 +243,7 @@ namespace IntelligentPlant.BackgroundTasks {
         /// <exception cref="ArgumentNullException">
         ///   <paramref name="workItem"/> is <see langword="null"/>.
         /// </exception>
-        public static Guid QueueBackgroundWorkItem(this IBackgroundTaskService scheduler, Func<CancellationToken, Task> workItem, string description, params CancellationToken[] tokens) {
+        public static Guid QueueBackgroundWorkItem(this IBackgroundTaskService scheduler, Func<CancellationToken, Task> workItem, string? description, params CancellationToken[] tokens) {
             return QueueBackgroundWorkItem(scheduler, workItem, description, (IEnumerable<CancellationToken>) tokens);
         }
 
@@ -274,7 +274,7 @@ namespace IntelligentPlant.BackgroundTasks {
         /// <exception cref="ArgumentNullException">
         ///   <paramref name="workItem"/> is <see langword="null"/>.
         /// </exception>
-        public static Guid QueueBackgroundWorkItem(this IBackgroundTaskService scheduler, Func<CancellationToken, Task> workItem, string description, IEnumerable<CancellationToken> tokens) {
+        public static Guid QueueBackgroundWorkItem(this IBackgroundTaskService scheduler, Func<CancellationToken, Task> workItem, string? description, IEnumerable<CancellationToken> tokens) {
             if (scheduler == null) {
                 throw new ArgumentNullException(nameof(scheduler));
             }
