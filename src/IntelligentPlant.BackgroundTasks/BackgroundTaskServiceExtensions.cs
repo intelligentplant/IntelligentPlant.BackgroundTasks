@@ -181,6 +181,15 @@ namespace IntelligentPlant.BackgroundTasks {
                 return scheduler.QueueBackgroundWorkItem(workItem, description);
             }
 
+            // We're constructing a new delegate to allow us to listen to multiple cancellation 
+            // tokens. If no description has been specified, create a description now, using the 
+            // original delegate provided to us, or the auto-generated description will reference 
+            // this method instead of the original delegate.
+
+            if (string.IsNullOrWhiteSpace(description)) {
+                description = BackgroundWorkItem.CreateDescriptionFromDelegate(workItem);
+            }
+
             return scheduler.QueueBackgroundWorkItem(ct => {
                 using (var compositeTokenSource = CancellationTokenSource.CreateLinkedTokenSource(new[] { ct }.Concat(tokens).ToArray())) {
                     workItem(compositeTokenSource.Token);
@@ -285,6 +294,15 @@ namespace IntelligentPlant.BackgroundTasks {
             if (tokens == null || !tokens.Any()) {
                 // No additional tokens; just queue the work item as normal.
                 return scheduler.QueueBackgroundWorkItem(workItem, description);
+            }
+
+            // We're constructing a new delegate to allow us to listen to multiple cancellation 
+            // tokens. If no description has been specified, create a description now, using the 
+            // original delegate provided to us, or the auto-generated description will reference 
+            // this method instead of the original delegate.
+
+            if (string.IsNullOrWhiteSpace(description)) {
+                description = BackgroundWorkItem.CreateDescriptionFromDelegate(workItem);
             }
 
             return scheduler.QueueBackgroundWorkItem(async ct => {

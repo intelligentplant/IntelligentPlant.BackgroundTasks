@@ -40,7 +40,9 @@ namespace IntelligentPlant.BackgroundTasks {
         ///   The work item.
         /// </param>
         /// <param name="description">
-        ///   The optional description for the work item.
+        ///   The optional description for the work item. if no description is specified, a 
+        ///   description will be constructed using the <see cref="MethodInfo"/> for the 
+        ///   <paramref name="workItem"/>
         /// </param>
         /// <exception cref="ArgumentNullException">
         ///   <paramref name="workItem"/> is <see langword="null"/>.
@@ -51,8 +53,7 @@ namespace IntelligentPlant.BackgroundTasks {
             WorkItemAsync = null;
 
             if (string.IsNullOrWhiteSpace(description)) {
-                var methodInfo = workItem.GetMethodInfo();
-                description = string.Concat(methodInfo.ReflectedType.FullName, ".", methodInfo.Name);
+                description = CreateDescriptionFromDelegate(workItem);
             }
 
             Description = description;
@@ -66,7 +67,9 @@ namespace IntelligentPlant.BackgroundTasks {
         ///   The work item.
         /// </param>
         /// <param name="description">
-        ///   The optional description for the work item.
+        ///   The optional description for the work item. if no description is specified, a 
+        ///   description will be constructed using the <see cref="MethodInfo"/> for the 
+        ///   <paramref name="workItem"/>
         /// </param>
         /// <exception cref="ArgumentNullException">
         ///   <paramref name="workItem"/> is <see langword="null"/>.
@@ -77,11 +80,56 @@ namespace IntelligentPlant.BackgroundTasks {
             WorkItemAsync = workItem ?? throw new ArgumentNullException(nameof(workItem));
 
             if (string.IsNullOrWhiteSpace(description)) {
-                var methodInfo = workItem.GetMethodInfo();
-                description = string.Concat(methodInfo.ReflectedType.FullName, ".", methodInfo.Name);
+                description = CreateDescriptionFromDelegate(workItem);
             }
 
             Description = description;
+        }
+
+
+        /// <summary>
+        /// Creates a description for a <see cref="BackgroundWorkItem"/> using the 
+        /// <see cref="MethodInfo"/> associated with the specified delegate.
+        /// </summary>
+        /// <param name="workItem">
+        ///   The delegate.
+        /// </param>
+        /// <returns>
+        ///   A description that can be used when creating a new <see cref="BackgroundWorkItem"/>.
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        ///   <paramref name="workItem"/> is <see langword="null"/>.
+        /// </exception>
+        public static string CreateDescriptionFromDelegate(Action<CancellationToken> workItem) {
+            if (workItem == null) {
+                throw new ArgumentNullException(nameof(workItem));
+            }
+
+            var methodInfo = workItem.GetMethodInfo();
+            return string.Concat(methodInfo.ReflectedType.FullName, ".", methodInfo.Name);
+        }
+
+
+        /// <summary>
+        /// Creates a description for a <see cref="BackgroundWorkItem"/> using the 
+        /// <see cref="MethodInfo"/> associated with the specified delegate.
+        /// </summary>
+        /// <param name="workItem">
+        ///   The delegate.
+        /// </param>
+        /// <returns>
+        ///   A description that can be used when creating a new <see cref="BackgroundWorkItem"/>.
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        ///   <paramref name="workItem"/> is <see langword="null"/>.
+        /// </exception>
+        public static string CreateDescriptionFromDelegate(Func<CancellationToken, Task> workItem) {
+            if (workItem == null) {
+                throw new ArgumentNullException(nameof(workItem));
+            }
+
+            var methodInfo = workItem.GetMethodInfo();
+            return string.Concat(methodInfo.ReflectedType.FullName, ".", methodInfo.Name);
         }
 
 

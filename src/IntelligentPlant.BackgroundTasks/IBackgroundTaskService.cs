@@ -1,4 +1,6 @@
-﻿namespace IntelligentPlant.BackgroundTasks {
+﻿using System;
+
+namespace IntelligentPlant.BackgroundTasks {
 
     /// <summary>
     /// Describes a service that can queue work items to be run in background tasks.
@@ -7,7 +9,7 @@
     ///   Extension methods for enqueuing work items are defined in <see cref="BackgroundTaskServiceExtensions"/>.
     /// </remarks>
     /// <seealso cref="BackgroundTaskServiceExtensions"/>
-    public interface IBackgroundTaskService {
+    public interface IBackgroundTaskService : IDisposable {
 
         /// <summary>
         /// Gets a flag that indicates if the <see cref="IBackgroundTaskService"/> is currently 
