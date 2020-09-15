@@ -10,9 +10,9 @@ namespace IntelligentPlant.BackgroundTasks.Tests {
     [TestClass]
     public class BackgroundTaskServiceTests {
 
-        private static IServiceProvider s_serviceProvider;
+        private static IServiceProvider s_serviceProvider = default!;
 
-        public TestContext TestContext { get; set; }
+        public TestContext TestContext { get; set; } = default!;
 
 
         [ClassInitialize]
