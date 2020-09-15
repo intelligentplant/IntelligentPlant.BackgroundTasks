@@ -16,24 +16,6 @@ namespace Microsoft.Extensions.DependencyInjection {
         /// <param name="services">
         ///   The service collection.
         /// </param>
-        /// <returns>
-        ///   The service collection.
-        /// </returns>
-        /// <exception cref="ArgumentNullException">
-        ///   <paramref name="services"/> is <see langword="null"/>.
-        /// </exception>
-        public static IServiceCollection AddBackgroundTaskService(this IServiceCollection services) {
-            return services.AddBackgroundTaskService(null);
-        }
-
-
-        /// <summary>
-        /// Adds an <see cref="IBackgroundTaskService"/> registration and supporting services to 
-        /// the service collection.
-        /// </summary>
-        /// <param name="services">
-        ///   The service collection.
-        /// </param>
         /// <param name="configure">
         ///   A delegate that can be used to configure the <see cref="BackgroundTaskServiceOptions"/> 
         ///   for the service.
@@ -46,7 +28,7 @@ namespace Microsoft.Extensions.DependencyInjection {
         /// </exception>
         public static IServiceCollection AddBackgroundTaskService(
             this IServiceCollection services, 
-            Action<BackgroundTaskServiceOptions>? configure
+            Action<BackgroundTaskServiceOptions>? configure = null
         ) {
             if (services == null) {
                 throw new ArgumentNullException(nameof(services));
@@ -54,7 +36,7 @@ namespace Microsoft.Extensions.DependencyInjection {
 
             var options = new BackgroundTaskServiceOptions();
             configure?.Invoke(options);
-            services.AddSingleton<BackgroundTaskServiceOptions>();
+            services.AddSingleton(options);
             services.AddSingleton<IBackgroundTaskService, AspNetCoreBackgroundTaskService>();
             services.AddHostedService<AspNetCoreBackgroundTaskServiceRunner>();
 

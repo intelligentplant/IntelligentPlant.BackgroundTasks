@@ -24,9 +24,12 @@ namespace IntelligentPlant.BackgroundTasks.Tests {
 
 
         [TestMethod]
-        public void TaskShouldBeEnqueued() {
+        public void TaskShouldBeEnqueuedWhenServiceIsStopped() {
+            var options = new BackgroundTaskServiceOptions() {
+                AllowWorkItemRegistrationWhileStopped = true,
+            };
 
-            using (var svc = new DefaultBackgroundTaskService(null, s_serviceProvider.GetRequiredService<ILogger<DefaultBackgroundTaskService>>())) {
+            using (var svc = ActivatorUtilities.CreateInstance<DefaultBackgroundTaskService>(s_serviceProvider, options)) {
                 svc.QueueBackgroundWorkItem(ct => { 
                     // No-op
                 });
@@ -38,7 +41,24 @@ namespace IntelligentPlant.BackgroundTasks.Tests {
 
 
         [TestMethod]
-        public async Task TaskShouldRunOnDefaultScheduler() {
+        public void TaskShouldNotBeEnqueuedWhenServiceIsStopped() {
+            var options = new BackgroundTaskServiceOptions() {
+                AllowWorkItemRegistrationWhileStopped = false,
+            };
+
+            using (var svc = ActivatorUtilities.CreateInstance<DefaultBackgroundTaskService>(s_serviceProvider, options)) {
+                Assert.ThrowsException<InvalidOperationException>(() => svc.QueueBackgroundWorkItem(ct => {
+                    // No-op
+                }));
+
+                Assert.AreEqual(0, svc.QueuedItemCount);
+            }
+
+        }
+
+
+        [TestMethod]
+        public async Task TaskShouldRunOnDefaultService() {
             var value = 0;
 
             using (var semaphore = new SemaphoreSlim(0)) {
@@ -60,9 +80,13 @@ namespace IntelligentPlant.BackgroundTasks.Tests {
         public async Task TaskShouldRun() {
             var value = 0;
 
+            var options = new BackgroundTaskServiceOptions() {
+                AllowWorkItemRegistrationWhileStopped = true,
+            };
+
+            using (var svc = ActivatorUtilities.CreateInstance<DefaultBackgroundTaskService>(s_serviceProvider, options))
             using (var semaphore = new SemaphoreSlim(0))
-            using (var ctSource = new CancellationTokenSource())
-            using (var svc = new DefaultBackgroundTaskService(null, s_serviceProvider.GetRequiredService<ILogger<DefaultBackgroundTaskService>>())) {
+            using (var ctSource = new CancellationTokenSource()) {
                 svc.QueueBackgroundWorkItem(ct => {
                     value = 1;
                     semaphore.Release();
@@ -92,13 +116,14 @@ namespace IntelligentPlant.BackgroundTasks.Tests {
             using (var semaphore = new SemaphoreSlim(0))
             using (var ctSource = new CancellationTokenSource()) {
                 var options = new BackgroundTaskServiceOptions() {
+                    AllowWorkItemRegistrationWhileStopped = true,
                     OnError = (error, workItem) => {
                         value = 1;
                         semaphore.Release();
                     }
                 };
 
-                var svc = new DefaultBackgroundTaskService(options, s_serviceProvider.GetRequiredService<ILogger<DefaultBackgroundTaskService>>());
+                var svc = ActivatorUtilities.CreateInstance<DefaultBackgroundTaskService>(s_serviceProvider, options);
                 try {
                     svc.QueueBackgroundWorkItem(ct => throw new InvalidOperationException());
 
@@ -126,10 +151,14 @@ namespace IntelligentPlant.BackgroundTasks.Tests {
         public async Task TaskShouldObeyAdditionalCancellatonTokens() {
             var value = 0;
 
+            var options = new BackgroundTaskServiceOptions() {
+                AllowWorkItemRegistrationWhileStopped = true,
+            };
+
+            using (var svc = ActivatorUtilities.CreateInstance<DefaultBackgroundTaskService>(s_serviceProvider, options))
             using (var semaphore = new SemaphoreSlim(0))
             using (var ctSource1 = new CancellationTokenSource())
-            using (var ctSource2 = new CancellationTokenSource())
-            using (var svc = new DefaultBackgroundTaskService(null, s_serviceProvider.GetRequiredService<ILogger<DefaultBackgroundTaskService>>())) {
+            using (var ctSource2 = new CancellationTokenSource()) {
                 svc.QueueBackgroundWorkItem(async ct => {
                     try {
                         await Task.Delay(Timeout.Infinite, ct);
@@ -163,11 +192,12 @@ namespace IntelligentPlant.BackgroundTasks.Tests {
             string? descriptionActual;
 
             var options = new BackgroundTaskServiceOptions() {
-                OnQueued = item => descriptionActual = item.Description
+                AllowWorkItemRegistrationWhileStopped = true,
+                OnEnqueued = item => descriptionActual = item.Description
             };
 
-            using (var ctSource1 = new CancellationTokenSource())
-            using (var svc = new DefaultBackgroundTaskService(options, s_serviceProvider.GetRequiredService<ILogger<DefaultBackgroundTaskService>>())) {
+            using (var svc = ActivatorUtilities.CreateInstance<DefaultBackgroundTaskService>(s_serviceProvider, options))
+            using (var ctSource1 = new CancellationTokenSource()) {
                 Action<CancellationToken> func = ct => { };
 
                 // Test when queuing with no additional cancellation tokens.
@@ -190,11 +220,12 @@ namespace IntelligentPlant.BackgroundTasks.Tests {
             string? descriptionActual;
 
             var options = new BackgroundTaskServiceOptions() {
-                OnQueued = item => descriptionActual = item.Description
+                AllowWorkItemRegistrationWhileStopped = true,
+                OnEnqueued = item => descriptionActual = item.Description
             };
 
-            using (var ctSource1 = new CancellationTokenSource())
-            using (var svc = new DefaultBackgroundTaskService(options, s_serviceProvider.GetRequiredService<ILogger<DefaultBackgroundTaskService>>())) {
+            using (var svc = ActivatorUtilities.CreateInstance<DefaultBackgroundTaskService>(s_serviceProvider, options))
+            using (var ctSource1 = new CancellationTokenSource()) {
                 Func<CancellationToken, Task> func = ct => Task.CompletedTask;
 
                 // Test when queuing with no additional cancellation tokens.
@@ -217,11 +248,12 @@ namespace IntelligentPlant.BackgroundTasks.Tests {
             string? descriptionActual;
 
             var options = new BackgroundTaskServiceOptions() {
-                OnQueued = item => descriptionActual = item.Description
+                AllowWorkItemRegistrationWhileStopped = true,
+                OnEnqueued = item => descriptionActual = item.Description
             };
 
-            using (var ctSource1 = new CancellationTokenSource())
-            using (var svc = new DefaultBackgroundTaskService(options, s_serviceProvider.GetRequiredService<ILogger<DefaultBackgroundTaskService>>())) {
+            using (var svc = ActivatorUtilities.CreateInstance<DefaultBackgroundTaskService>(s_serviceProvider, options))
+            using (var ctSource1 = new CancellationTokenSource()) {
                 Action<CancellationToken> func = ct => { };
 
                 // Test when queuing with no additional cancellation tokens.
@@ -244,11 +276,12 @@ namespace IntelligentPlant.BackgroundTasks.Tests {
             string? descriptionActual;
 
             var options = new BackgroundTaskServiceOptions() {
-                OnQueued = item => descriptionActual = item.Description
+                AllowWorkItemRegistrationWhileStopped = true,
+                OnEnqueued = item => descriptionActual = item.Description
             };
 
-            using (var ctSource1 = new CancellationTokenSource())
-            using (var svc = new DefaultBackgroundTaskService(options, s_serviceProvider.GetRequiredService<ILogger<DefaultBackgroundTaskService>>())) {
+            using (var svc = ActivatorUtilities.CreateInstance<DefaultBackgroundTaskService>(s_serviceProvider, options))
+            using (var ctSource1 = new CancellationTokenSource()) {
                 Func<CancellationToken, Task> func = ct => Task.CompletedTask;
 
                 // Test when queuing with no additional cancellation tokens.

@@ -21,7 +21,7 @@ namespace IntelligentPlant.BackgroundTasks.AspNetCore {
         ///   this logger.
         /// </param>
         public AspNetCoreBackgroundTaskService(
-            BackgroundTaskServiceOptions? options, 
+            BackgroundTaskServiceOptions options, 
             ILogger<AspNetCoreBackgroundTaskService>? logger
         ) : base(options, logger) { }
 

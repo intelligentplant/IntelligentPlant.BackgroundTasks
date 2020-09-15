@@ -123,8 +123,13 @@ namespace IntelligentPlant.BackgroundTasks {
         public void QueueBackgroundWorkItem(BackgroundWorkItem workItem) {
             ThrowIfDisposed();
 
+            if (!_options.AllowWorkItemRegistrationWhileStopped && !IsRunning) {
+                throw new InvalidOperationException(Resources.Error_CannotRegisterWorkItemsWhileStopped);
+            }
+
             if (workItem.WorkItem == null && workItem.WorkItemAsync == null) {
                 // Default value; we'll ignore the item.
+                return;
             }
 
             _queue.Enqueue(workItem);
@@ -209,7 +214,7 @@ namespace IntelligentPlant.BackgroundTasks {
 
 
         /// <summary>
-        /// Invokes the <see cref="BackgroundTaskServiceOptions.OnQueued"/> callback provided when 
+        /// Invokes the <see cref="BackgroundTaskServiceOptions.OnEnqueued"/> callback provided when 
         /// the service was registered.
         /// </summary>
         /// <param name="workItem">
@@ -217,11 +222,13 @@ namespace IntelligentPlant.BackgroundTasks {
         /// </param>
         protected virtual void OnQueued(BackgroundWorkItem workItem) {
             try {
-                LogItemEnqueued(_logger, workItem);
-                _options.OnQueued?.Invoke(workItem);
+                LogItemEnqueued(_logger, workItem, IsRunning);
+                _options.OnEnqueued?.Invoke(workItem);
             }
+#pragma warning disable CA1031 // Do not catch general exception types
             catch (Exception e) {
-                _logger.LogError(e, Resources.Log_ErrorInCallback, nameof(BackgroundTaskServiceOptions.OnQueued));
+#pragma warning restore CA1031 // Do not catch general exception types
+                _logger.LogError(e, Resources.Log_ErrorInCallback, nameof(BackgroundTaskServiceOptions.OnEnqueued));
             }
         }
 
@@ -238,7 +245,9 @@ namespace IntelligentPlant.BackgroundTasks {
                 LogItemDequeued(_logger, workItem);
                 _options.OnDequeued?.Invoke(workItem);
             }
+#pragma warning disable CA1031 // Do not catch general exception types
             catch (Exception e) {
+#pragma warning restore CA1031 // Do not catch general exception types
                 _logger.LogError(e, Resources.Log_ErrorInCallback, nameof(BackgroundTaskServiceOptions.OnDequeued));
             }
         }
@@ -256,7 +265,9 @@ namespace IntelligentPlant.BackgroundTasks {
                 LogItemRunning(_logger, workItem);
                 _options.OnRunning?.Invoke(workItem);
             }
+#pragma warning disable CA1031 // Do not catch general exception types
             catch (Exception e) {
+#pragma warning restore CA1031 // Do not catch general exception types
                 _logger.LogError(e, Resources.Log_ErrorInCallback, nameof(BackgroundTaskServiceOptions.OnRunning));
             }
         }
@@ -274,7 +285,9 @@ namespace IntelligentPlant.BackgroundTasks {
                 LogItemCompleted(_logger, workItem);
                 _options.OnCompleted?.Invoke(workItem);
             }
+#pragma warning disable CA1031 // Do not catch general exception types
             catch (Exception e) {
+#pragma warning restore CA1031 // Do not catch general exception types
                 _logger.LogError(e, Resources.Log_ErrorInCallback, nameof(BackgroundTaskServiceOptions.OnCompleted));
             }
         }
@@ -299,7 +312,9 @@ namespace IntelligentPlant.BackgroundTasks {
                 LogItemFaulted(_logger, workItem, err);
                 _options.OnError?.Invoke(workItem, err);
             }
+#pragma warning disable CA1031 // Do not catch general exception types
             catch (Exception e) {
+#pragma warning restore CA1031 // Do not catch general exception types
                 _logger.LogError(e, Resources.Log_ErrorInCallback, nameof(BackgroundTaskServiceOptions.OnError));
             }
         }

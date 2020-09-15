@@ -24,6 +24,12 @@ namespace IntelligentPlant.BackgroundTasks {
             LoggerMessage.Define<BackgroundWorkItem>(LogLevel.Trace, new EventId(3, "WorkItemEnqueued"), Resources.Log_ItemEnqueued);
 
         /// <summary>
+        /// Work item enqueued while stopped log delegate.
+        /// </summary>
+        private static readonly Action<ILogger, BackgroundWorkItem, Exception> s_onItemEnqueuedWhileStopped =
+            LoggerMessage.Define<BackgroundWorkItem>(LogLevel.Warning, new EventId(3, "WorkItemEnqueued"), Resources.Log_ItemEnqueuedWhileStopped);
+
+        /// <summary>
         /// Work item dequeued log delegate.
         /// </summary>
         private static readonly Action<ILogger, BackgroundWorkItem, Exception> s_onItemDequeued =
@@ -55,7 +61,7 @@ namespace IntelligentPlant.BackgroundTasks {
         ///   The logger.
         /// </param>
         private static void LogServiceRunning(ILogger logger) {
-            s_onServiceRunning(logger, null);
+            s_onServiceRunning(logger, null!);
         }
 
 
@@ -66,7 +72,7 @@ namespace IntelligentPlant.BackgroundTasks {
         ///   The logger.
         /// </param>
         private static void LogServiceStopped(ILogger logger) {
-            s_onServiceStopped(logger, null);
+            s_onServiceStopped(logger, null!);
         }
 
 
@@ -79,8 +85,17 @@ namespace IntelligentPlant.BackgroundTasks {
         /// <param name="workitem">
         ///   The work item.
         /// </param>
-        private static void LogItemEnqueued(ILogger logger, BackgroundWorkItem workitem) {
-            s_onItemEnqueued(logger, workitem, null);
+        /// <param name="isRunning">
+        ///   <see langword="true"/> if the background task service is currently running, or 
+        ///   <see langword="false"/> if it is stopped.
+        /// </param>
+        private static void LogItemEnqueued(ILogger logger, BackgroundWorkItem workitem, bool isRunning) {
+            if (isRunning) {
+                s_onItemEnqueued(logger, workitem, null!);
+            }
+            else {
+                s_onItemEnqueuedWhileStopped(logger, workitem, null!);
+            }
         }
 
 
@@ -94,7 +109,7 @@ namespace IntelligentPlant.BackgroundTasks {
         ///   The work item.
         /// </param>
         private static void LogItemDequeued(ILogger logger, BackgroundWorkItem workitem) {
-            s_onItemDequeued(logger, workitem, null);
+            s_onItemDequeued(logger, workitem, null!);
         }
 
 
@@ -108,7 +123,7 @@ namespace IntelligentPlant.BackgroundTasks {
         ///   The work item.
         /// </param>
         private static void LogItemRunning(ILogger logger, BackgroundWorkItem workitem) {
-            s_onItemRunning(logger, workitem, null);
+            s_onItemRunning(logger, workitem, null!);
         }
 
 
@@ -122,7 +137,7 @@ namespace IntelligentPlant.BackgroundTasks {
         ///   The work item.
         /// </param>
         private static void LogItemCompleted(ILogger logger, BackgroundWorkItem workitem) {
-            s_onItemCompleted(logger, workitem, null);
+            s_onItemCompleted(logger, workitem, null!);
         }
 
 

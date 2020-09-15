@@ -97,6 +97,15 @@ namespace IntelligentPlant.BackgroundTasks {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Work items cannot be enqueued while the service is stopped..
+        /// </summary>
+        internal static string Error_CannotRegisterWorkItemsWhileStopped {
+            get {
+                return ResourceManager.GetString("Error_CannotRegisterWorkItemsWhileStopped", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The service is already running..
         /// </summary>
         internal static string Error_ServiceIsAlreadyRunning {
@@ -147,6 +156,15 @@ namespace IntelligentPlant.BackgroundTasks {
         internal static string Log_ItemEnqueued {
             get {
                 return ResourceManager.GetString("Log_ItemEnqueued", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Work item enqueued while background task service is stopped: {WorkItem}. This work item will not be processed until the service is started..
+        /// </summary>
+        internal static string Log_ItemEnqueuedWhileStopped {
+            get {
+                return ResourceManager.GetString("Log_ItemEnqueuedWhileStopped", resourceCulture);
             }
         }
         

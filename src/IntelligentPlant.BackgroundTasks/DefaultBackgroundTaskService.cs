@@ -37,7 +37,9 @@ namespace IntelligentPlant.BackgroundTasks {
                         workItem.WorkItem(cancellationToken);
                         OnCompleted(workItem);
                     }
+#pragma warning disable CA1031 // Do not catch general exception types
                     catch (Exception e) {
+#pragma warning restore CA1031 // Do not catch general exception types
                         OnError(workItem, e);
                     }
                 }, cancellationToken);
@@ -49,7 +51,9 @@ namespace IntelligentPlant.BackgroundTasks {
                         await workItem.WorkItemAsync(cancellationToken).ConfigureAwait(false);
                         OnCompleted(workItem);
                     }
+#pragma warning disable CA1031 // Do not catch general exception types
                     catch (Exception e) {
+#pragma warning restore CA1031 // Do not catch general exception types
                         OnError(workItem, e);
                     }
                 }, cancellationToken);

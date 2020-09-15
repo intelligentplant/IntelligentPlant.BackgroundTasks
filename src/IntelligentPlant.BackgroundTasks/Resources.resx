@@ -132,6 +132,9 @@
 {1} - async/sync/undefined
 {2} - description</comment>
   </data>
+  <data name="Error_CannotRegisterWorkItemsWhileStopped" xml:space="preserve">
+    <value>Work items cannot be enqueued while the service is stopped.</value>
+  </data>
   <data name="Error_ServiceIsAlreadyRunning" xml:space="preserve">
     <value>The service is already running.</value>
   </data>
@@ -149,6 +152,9 @@
   </data>
   <data name="Log_ItemEnqueued" xml:space="preserve">
     <value>Work item enqueued: {WorkItem}</value>
+  </data>
+  <data name="Log_ItemEnqueuedWhileStopped" xml:space="preserve">
+    <value>Work item enqueued while background task service is stopped: {WorkItem}. This work item will not be processed until the service is started.</value>
   </data>
   <data name="Log_ItemFaulted" xml:space="preserve">
     <value>Work item faulted: {WorkItem}</value>
