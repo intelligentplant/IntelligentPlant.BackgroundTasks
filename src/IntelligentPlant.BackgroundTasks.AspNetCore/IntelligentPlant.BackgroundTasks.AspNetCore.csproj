@@ -16,6 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\IntelligentPlant.BackgroundTasks.DependencyInjection\IntelligentPlant.BackgroundTasks.DependencyInjection.csproj" />
     <ProjectReference Include="..\IntelligentPlant.BackgroundTasks\IntelligentPlant.BackgroundTasks.csproj" />
   </ItemGroup>
 

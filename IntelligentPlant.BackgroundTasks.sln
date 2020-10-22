@@ -35,6 +35,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{7CC55D6F
 		build\version.json = build\version.json
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IntelligentPlant.BackgroundTasks.DependencyInjection", "src\IntelligentPlant.BackgroundTasks.DependencyInjection\IntelligentPlant.BackgroundTasks.DependencyInjection.csproj", "{247B7055-F26D-4F0B-9729-9B04C03D12A5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -57,6 +59,10 @@ Global
 		{A6CD8E2A-3907-4D0E-91E2-FF1EC8B6DCEC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A6CD8E2A-3907-4D0E-91E2-FF1EC8B6DCEC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A6CD8E2A-3907-4D0E-91E2-FF1EC8B6DCEC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{247B7055-F26D-4F0B-9729-9B04C03D12A5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{247B7055-F26D-4F0B-9729-9B04C03D12A5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{247B7055-F26D-4F0B-9729-9B04C03D12A5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{247B7055-F26D-4F0B-9729-9B04C03D12A5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -66,6 +72,7 @@ Global
 		{59BE620A-0FEB-41C8-992A-C8D860B003A0} = {3CB681C0-51F0-4E1C-B2C5-6EEFF358D2EF}
 		{38A0717B-2107-400C-BF1E-61426F7C856F} = {39CA7941-627C-42BA-A8C0-1454D01AA2EA}
 		{A6CD8E2A-3907-4D0E-91E2-FF1EC8B6DCEC} = {6DC775D5-B084-4215-A680-BACDD7F90523}
+		{247B7055-F26D-4F0B-9729-9B04C03D12A5} = {3CB681C0-51F0-4E1C-B2C5-6EEFF358D2EF}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {E93F7E4D-A117-4B72-9562-E3CCAE7C0CD2}

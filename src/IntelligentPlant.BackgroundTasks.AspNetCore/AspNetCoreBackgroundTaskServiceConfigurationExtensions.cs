@@ -26,7 +26,11 @@ namespace Microsoft.Extensions.DependencyInjection {
         /// <exception cref="ArgumentNullException">
         ///   <paramref name="services"/> is <see langword="null"/>.
         /// </exception>
-        public static IServiceCollection AddBackgroundTaskService(
+        /// <remarks>
+        ///   This method also registers an <see cref="Hosting.IHostedService"/> that will 
+        ///   initialise the <see cref="IBackgroundTaskService"/> when the host is initialised.
+        /// </remarks>
+        public static IServiceCollection AddAspNetCoreBackgroundTaskService(
             this IServiceCollection services, 
             Action<BackgroundTaskServiceOptions>? configure = null
         ) {
@@ -34,10 +38,7 @@ namespace Microsoft.Extensions.DependencyInjection {
                 throw new ArgumentNullException(nameof(services));
             }
 
-            var options = new BackgroundTaskServiceOptions();
-            configure?.Invoke(options);
-            services.AddSingleton(options);
-            services.AddSingleton<IBackgroundTaskService, AspNetCoreBackgroundTaskService>();
+            services.AddBackgroundTaskService<AspNetCoreBackgroundTaskService>(configure);
             services.AddHostedService<AspNetCoreBackgroundTaskServiceRunner>();
 
             return services;

@@ -19,6 +19,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\src\IntelligentPlant.BackgroundTasks.AspNetCore\IntelligentPlant.BackgroundTasks.AspNetCore.csproj" />
+    <ProjectReference Include="..\..\src\IntelligentPlant.BackgroundTasks.DependencyInjection\IntelligentPlant.BackgroundTasks.DependencyInjection.csproj" />
     <ProjectReference Include="..\..\src\IntelligentPlant.BackgroundTasks\IntelligentPlant.BackgroundTasks.csproj" />
   </ItemGroup>
 
