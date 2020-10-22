@@ -13,6 +13,7 @@
     <PackageProjectUrl>https://github.com/intelligentplant/IntelligentPlant.BackgroundTasks</PackageProjectUrl>
     <PackageOutputPath>$(MSBuildThisFileDirectory)artifacts\packages\$(Configuration)</PackageOutputPath>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <NeutralLanguage>en</NeutralLanguage>
   </PropertyGroup>
 
   <Choose>
