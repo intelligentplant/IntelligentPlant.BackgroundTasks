@@ -13,6 +13,8 @@ Specifies if the "Clean" target should be run prior to the "Build" target.
 Produce NuGet packages.
 .PARAMETER Sign
 Sign assemblies and NuGet packages (requires additional configuration not provided by this script).
+.PARAMETER CI
+Sets the MSBuild "ContinuousIntegrationBuild" property to "true".
 .PARAMETER Verbosity
 MSBuild verbosity: q[uiet], m[inimal], n[ormal], d[etailed], and diag[nostic]
 .PARAMETER MSBuildArguments
@@ -30,6 +32,8 @@ param(
     [switch]$Pack,
 
     [switch]$Sign,
+
+    [switch]$CI,
     
     [string]$Verbosity = 'minimal',
 
@@ -95,6 +99,10 @@ if ([string]::IsNullOrEmpty($Version.PreRelease)) {
 $MSBuildArguments += "/p:""AssemblyVersion=$($AssemblyVersion)"""
 $MSBuildArguments += "/p:""FileVersion=$($FileVersion)"""
 $MSBuildArguments += "/p:""Version=$($PackageVersion)"""
+
+if ($CI) {
+    $MSBuildArguments += "/p:ContinuousIntegrationBuild=true"
+}
 
 $local:exit_code = $null
 try {

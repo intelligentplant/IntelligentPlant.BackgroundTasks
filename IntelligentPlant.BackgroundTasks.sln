@@ -14,6 +14,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "common", "common", "{447F10
 		.editorconfig = .editorconfig
 		.gitattributes = .gitattributes
 		.gitignore = .gitignore
+		build.ps1 = build.ps1
 		Directory.Build.props = Directory.Build.props
 		Directory.Build.targets = Directory.Build.targets
 		LICENSE = LICENSE
@@ -35,7 +36,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{7CC55D6F
 		build\version.json = build\version.json
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IntelligentPlant.BackgroundTasks.DependencyInjection", "src\IntelligentPlant.BackgroundTasks.DependencyInjection\IntelligentPlant.BackgroundTasks.DependencyInjection.csproj", "{247B7055-F26D-4F0B-9729-9B04C03D12A5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IntelligentPlant.BackgroundTasks.DependencyInjection", "src\IntelligentPlant.BackgroundTasks.DependencyInjection\IntelligentPlant.BackgroundTasks.DependencyInjection.csproj", "{247B7055-F26D-4F0B-9729-9B04C03D12A5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
