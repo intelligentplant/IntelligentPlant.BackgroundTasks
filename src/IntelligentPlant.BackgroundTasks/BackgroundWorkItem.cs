@@ -151,7 +151,7 @@ namespace IntelligentPlant.BackgroundTasks {
 
         /// <inheritdoc/>
         public override int GetHashCode() {
-#if NETSTANDARD2_0
+#if NETSTANDARD2_1 == null
             // Implementation from https://stackoverflow.com/questions/263400/what-is-the-best-algorithm-for-overriding-gethashcode/263416#263416
             unchecked {
                 var hash = (int) 2166136261;

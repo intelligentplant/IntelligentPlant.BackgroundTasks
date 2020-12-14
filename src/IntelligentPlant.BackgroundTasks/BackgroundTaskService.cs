@@ -336,8 +336,8 @@ namespace IntelligentPlant.BackgroundTasks {
                 _disposedCancellationTokenSource.Cancel();
                 _disposedCancellationTokenSource.Dispose();
                 _queueSignal.Dispose();
-#if NETSTANDARD2_0
-                // .NET Standard 2.0 doesn't have a Clear() method on ConcurrentQueue<T>, so we'll 
+#if !NETSTANDARD2_1
+                // .NET Framework 4.6.1 / .NET Standard 2.0 don't have a Clear() method on ConcurrentQueue<T>, so we'll 
                 // empty it ourselves.
                 while (_queue.TryDequeue(out var _)) { }
 #else
