@@ -8,6 +8,11 @@ namespace IntelligentPlant.BackgroundTasks {
     public class BackgroundTaskServiceOptions {
 
         /// <summary>
+        /// Gets or sets a name for the <see cref="BackgroundTaskService"/>.
+        /// </summary>
+        public string? Name { get; set; } = nameof(BackgroundTaskService);
+
+        /// <summary>
         /// When <see langword="false"/>, attempting to register a work item while the service is 
         /// stopped will throw an exception.
         /// </summary>

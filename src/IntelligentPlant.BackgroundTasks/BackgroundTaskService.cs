@@ -17,7 +17,9 @@ namespace IntelligentPlant.BackgroundTasks {
         /// The default background task service.
         /// </summary>
         private static readonly Lazy<IBackgroundTaskService> s_default = new Lazy<IBackgroundTaskService>(() => {
-            var result = new DefaultBackgroundTaskService(null, null);
+            var result = new DefaultBackgroundTaskService(new BackgroundTaskServiceOptions() { 
+                Name = "Default"
+            }, null);
             _ = result.RunAsync(default);
             return result;
         }, LazyThreadSafetyMode.ExecutionAndPublication);
@@ -93,6 +95,11 @@ namespace IntelligentPlant.BackgroundTasks {
         /// </summary>
         private readonly SemaphoreSlim _queueSignal = new SemaphoreSlim(0);
 
+        /// <summary>
+        /// The name for the service.
+        /// </summary>
+        public string Name { get; }
+
         /// <inheritdoc/>
         public bool IsRunning { get { return _isRunning != 0; } }
 
@@ -103,6 +110,9 @@ namespace IntelligentPlant.BackgroundTasks {
         /// <summary>
         /// Creates a new <see cref="BackgroundTaskService"/> object.
         /// </summary>
+        /// <param name="name">
+        ///   The name for the service.
+        /// </param>
         /// <param name="options">
         ///   The options for the service..
         /// </param>
@@ -114,6 +124,7 @@ namespace IntelligentPlant.BackgroundTasks {
             ILogger? logger
         ) {
             _options = options ?? new BackgroundTaskServiceOptions();
+            Name = _options.Name ?? string.Empty;
             _disposedCancellationTokenSource = new CancellationTokenSource();
             _disposedCancellationToken = _disposedCancellationTokenSource.Token;
             _logger = logger ?? Microsoft.Extensions.Logging.Abstractions.NullLogger.Instance;
@@ -144,7 +155,7 @@ namespace IntelligentPlant.BackgroundTasks {
             }
 
             _queue.Enqueue(workItem);
-            EventSource.WorkItemEnqueued(workItem.Id, workItem.Description, _queue.Count);
+            EventSource.WorkItemEnqueued(Name, workItem.Id, workItem.Description, _queue.Count);
             LogItemEnqueued(_logger, workItem, IsRunning);
             OnQueued(workItem);
             _queueSignal.Release();
@@ -175,7 +186,7 @@ namespace IntelligentPlant.BackgroundTasks {
             }
 
             try {
-                EventSource.ServiceRunning();
+                EventSource.ServiceRunning(Name);
                 LogServiceRunning(_logger);
                 using (var compositeSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _disposedCancellationToken)) {
                     var compositeToken = compositeSource.Token;
@@ -202,7 +213,7 @@ namespace IntelligentPlant.BackgroundTasks {
                             continue;
                         }
 
-                        EventSource.WorkItemDequeued(item.Id, item.Description, _queue.Count);
+                        EventSource.WorkItemDequeued(Name, item.Id, item.Description, _queue.Count);
                         LogItemDequeued(_logger, item);
                         OnDequeued(item);
 
@@ -211,7 +222,7 @@ namespace IntelligentPlant.BackgroundTasks {
                 }
             }
             finally {
-                EventSource.ServiceStopped();
+                EventSource.ServiceStopped(Name);
                 LogServiceStopped(_logger);
                 _isRunning = 0;
             }
@@ -277,7 +288,7 @@ namespace IntelligentPlant.BackgroundTasks {
         /// </param>
         protected virtual void OnRunning(BackgroundWorkItem workItem) {
             try {
-                EventSource.WorkItemRunning(workItem.Id, workItem.Description);
+                EventSource.WorkItemRunning(Name, workItem.Id, workItem.Description);
                 LogItemRunning(_logger, workItem);
                 _options.OnRunning?.Invoke(workItem);
             }
@@ -301,7 +312,7 @@ namespace IntelligentPlant.BackgroundTasks {
         /// </param>
         protected virtual void OnCompleted(BackgroundWorkItem workItem, TimeSpan elapsed) {
             try {
-                EventSource.WorkItemCompleted(workItem.Id, workItem.Description, elapsed.ToString());
+                EventSource.WorkItemCompleted(Name, workItem.Id, workItem.Description, elapsed.TotalSeconds);
                 LogItemCompleted(_logger, workItem);
                 _options.OnCompleted?.Invoke(workItem);
             }
@@ -332,7 +343,7 @@ namespace IntelligentPlant.BackgroundTasks {
             }
 
             try {
-                EventSource.WorkItemFaulted(workItem.Id, workItem.Description, elapsed.ToString());
+                EventSource.WorkItemFaulted(Name, workItem.Id, workItem.Description, elapsed.TotalSeconds);
                 LogItemFaulted(_logger, workItem, err);
                 _options.OnError?.Invoke(workItem, err);
             }

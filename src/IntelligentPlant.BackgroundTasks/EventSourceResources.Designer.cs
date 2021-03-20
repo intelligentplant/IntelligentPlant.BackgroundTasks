@@ -61,7 +61,151 @@ namespace IntelligentPlant.BackgroundTasks {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Background task service is running..
+        ///   Looks up a localized string similar to Completed Work Items.
+        /// </summary>
+        internal static string Counter_CompletedWorkItems_DisplayName {
+            get {
+                return ResourceManager.GetString("Counter_CompletedWorkItems_DisplayName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to completed-work-items.
+        /// </summary>
+        internal static string Counter_CompletedWorkItems_Name {
+            get {
+                return ResourceManager.GetString("Counter_CompletedWorkItems_Name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Faulted Work Items.
+        /// </summary>
+        internal static string Counter_FaultedWorkItems_DisplayName {
+            get {
+                return ResourceManager.GetString("Counter_FaultedWorkItems_DisplayName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to faulted-work-items.
+        /// </summary>
+        internal static string Counter_FaultedWorkItems_Name {
+            get {
+                return ResourceManager.GetString("Counter_FaultedWorkItems_Name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Number of Pending Work Items.
+        /// </summary>
+        internal static string Counter_QueueSize_DisplayName {
+            get {
+                return ResourceManager.GetString("Counter_QueueSize_DisplayName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to queue-size.
+        /// </summary>
+        internal static string Counter_QueueSize_Name {
+            get {
+                return ResourceManager.GetString("Counter_QueueSize_Name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Number of Running Work Items.
+        /// </summary>
+        internal static string Counter_RunningWorkItems_DisplayName {
+            get {
+                return ResourceManager.GetString("Counter_RunningWorkItems_DisplayName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to running-work-items.
+        /// </summary>
+        internal static string Counter_RunningWorkItems_Name {
+            get {
+                return ResourceManager.GetString("Counter_RunningWorkItems_Name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Successfully Completed Work Items.
+        /// </summary>
+        internal static string Counter_SuccessfulWorkItems_DisplayName {
+            get {
+                return ResourceManager.GetString("Counter_SuccessfulWorkItems_DisplayName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to successful-work-items.
+        /// </summary>
+        internal static string Counter_SuccessfulWorkItems_Name {
+            get {
+                return ResourceManager.GetString("Counter_SuccessfulWorkItems_Name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Total Number of Completed Work Items.
+        /// </summary>
+        internal static string Counter_TotalCompletedWorkItems_DisplayName {
+            get {
+                return ResourceManager.GetString("Counter_TotalCompletedWorkItems_DisplayName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to total-completed-work-items.
+        /// </summary>
+        internal static string Counter_TotalCompletedWorkItems_Name {
+            get {
+                return ResourceManager.GetString("Counter_TotalCompletedWorkItems_Name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Total Number of Faulted Work Items.
+        /// </summary>
+        internal static string Counter_TotalFaultedWorkItems_DisplayName {
+            get {
+                return ResourceManager.GetString("Counter_TotalFaultedWorkItems_DisplayName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to total-faulted-work-items.
+        /// </summary>
+        internal static string Counter_TotalFaultedWorkItems_Name {
+            get {
+                return ResourceManager.GetString("Counter_TotalFaultedWorkItems_Name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Total Number of Successfully Completed Work Items.
+        /// </summary>
+        internal static string Counter_TotalSuccessfulWorkItems_DisplayName {
+            get {
+                return ResourceManager.GetString("Counter_TotalSuccessfulWorkItems_DisplayName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to total-successful-work-items.
+        /// </summary>
+        internal static string Counter_TotalSuccessfulWorkItems_Name {
+            get {
+                return ResourceManager.GetString("Counter_TotalSuccessfulWorkItems_Name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Background task service &apos;{0}&apos; is running..
         /// </summary>
         internal static string event_ServiceRunning {
             get {
@@ -70,7 +214,7 @@ namespace IntelligentPlant.BackgroundTasks {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Background task service has stopped..
+        ///   Looks up a localized string similar to Background task service &apos;{0}&apos; has stopped..
         /// </summary>
         internal static string event_ServiceStopped {
             get {
@@ -79,7 +223,7 @@ namespace IntelligentPlant.BackgroundTasks {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Work item completed. ID: &apos;{0}&apos;, description: &apos;{1}&apos;, elapsed time: {2}.
+        ///   Looks up a localized string similar to Work item completed. Service: &apos;{0}&apos;, item: &apos;{1}&apos;, description: &apos;{2}&apos;, elapsed time: {3} seconds.
         /// </summary>
         internal static string event_WorkItemCompleted {
             get {
@@ -88,7 +232,7 @@ namespace IntelligentPlant.BackgroundTasks {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Work item dequeued: ID: &apos;{0}&apos;, description: &apos;{1}&apos;, queue size: {2} items.
+        ///   Looks up a localized string similar to Work item dequeued. Service: &apos;{0}&apos;, item: &apos;{1}&apos;, description: &apos;{2}&apos;, queue size: {3} items.
         /// </summary>
         internal static string event_WorkItemDequeued {
             get {
@@ -97,7 +241,7 @@ namespace IntelligentPlant.BackgroundTasks {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Work item enqueued: ID: &apos;{0}&apos;, description: &apos;{1}&apos;, queue size: {2} items.
+        ///   Looks up a localized string similar to Work item enqueued. Service: &apos;{0}&apos;, item: &apos;{1}&apos;, description: &apos;{2}&apos;, queue size: {3} items.
         /// </summary>
         internal static string event_WorkItemEnqueued {
             get {
@@ -106,7 +250,7 @@ namespace IntelligentPlant.BackgroundTasks {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Work item faulted. ID: &apos;{0}&apos;, description: &apos;{1}&apos;, elapsed time: {2}.
+        ///   Looks up a localized string similar to Work item faulted. Service: &apos;{0}&apos;, item: &apos;{1}&apos;, description: &apos;{2}&apos;, elapsed time: {3} seconds.
         /// </summary>
         internal static string event_WorkItemFaulted {
             get {
@@ -115,7 +259,7 @@ namespace IntelligentPlant.BackgroundTasks {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Work item running: ID: &apos;{0}&apos;, description: &apos;{1}&apos;.
+        ///   Looks up a localized string similar to Work item running: Service: &apos;{0}&apos;, item: &apos;{1}&apos;, description: &apos;{2}&apos;.
         /// </summary>
         internal static string event_WorkItemRunning {
             get {

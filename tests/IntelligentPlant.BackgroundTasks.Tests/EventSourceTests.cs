@@ -31,6 +31,7 @@ namespace IntelligentPlant.BackgroundTasks.Tests {
         public async Task ShouldEmitServiceRunningEvent() {
             var options = new BackgroundTaskServiceOptions() {
                 AllowWorkItemRegistrationWhileStopped = true,
+                Name = TestContext.TestName
             };
 
             using (var svc = ActivatorUtilities.CreateInstance<DefaultBackgroundTaskService>(s_serviceProvider, options))
@@ -54,6 +55,7 @@ namespace IntelligentPlant.BackgroundTasks.Tests {
         public async Task ShouldEmitServiceStoppedEvent() {
             var options = new BackgroundTaskServiceOptions() {
                 AllowWorkItemRegistrationWhileStopped = true,
+                Name = TestContext.TestName
             };
 
             using (var svc = ActivatorUtilities.CreateInstance<DefaultBackgroundTaskService>(s_serviceProvider, options))
@@ -83,6 +85,7 @@ namespace IntelligentPlant.BackgroundTasks.Tests {
         public async Task ShouldEmitCompletedWorkItemLifecycleEvents(int eventCode) {
             var options = new BackgroundTaskServiceOptions() {
                 AllowWorkItemRegistrationWhileStopped = true,
+                Name = TestContext.TestName + "_" + eventCode
             };
 
             using (var svc = ActivatorUtilities.CreateInstance<DefaultBackgroundTaskService>(s_serviceProvider, options))
@@ -111,6 +114,7 @@ namespace IntelligentPlant.BackgroundTasks.Tests {
         public async Task ShouldEmitFaultedWorkItemLifecycleEvents(int eventCode) {
             var options = new BackgroundTaskServiceOptions() {
                 AllowWorkItemRegistrationWhileStopped = true,
+                Name = TestContext.TestName + "_" + eventCode
             };
 
             using (var svc = ActivatorUtilities.CreateInstance<DefaultBackgroundTaskService>(s_serviceProvider, options))

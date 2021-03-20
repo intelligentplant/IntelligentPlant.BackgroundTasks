@@ -38,7 +38,10 @@ namespace Microsoft.Extensions.DependencyInjection {
                 throw new ArgumentNullException(nameof(services));
             }
 
-            services.AddBackgroundTaskService<AspNetCoreBackgroundTaskService>(configure);
+            services.AddBackgroundTaskService<AspNetCoreBackgroundTaskService>(options => {
+                options.Name = nameof(AspNetCoreBackgroundTaskService);
+                configure?.Invoke(options);
+            });
             services.AddHostedService<AspNetCoreBackgroundTaskServiceRunner>();
 
             return services;
