@@ -5,9 +5,9 @@ namespace IntelligentPlant.BackgroundTasks {
     partial class BackgroundTaskService {
 
         /// <summary>
-        /// Contains event codes for use in log messages and <see cref="EventSource"/> events.
+        /// Contains event IDs for use in log messages and <see cref="EventSource"/> events.
         /// </summary>
-        public static class EventCodes {
+        public static class EventIds {
 
             /// <summary>
             /// Service is running.
@@ -181,31 +181,31 @@ namespace IntelligentPlant.BackgroundTasks {
 
 
             /// <summary>
-            /// Writes an <see cref="EventCodes.ServiceRunning"/> event.
+            /// Writes an <see cref="EventIds.ServiceRunning"/> event.
             /// </summary>
             /// <param name="serviceName">
             ///   The name of the service.
             /// </param>
-            [Event(EventCodes.ServiceRunning, Level = EventLevel.LogAlways)]
+            [Event(EventIds.ServiceRunning, Level = EventLevel.LogAlways)]
             public void ServiceRunning(string serviceName) {
-                WriteEvent(EventCodes.ServiceRunning, serviceName);
+                WriteEvent(EventIds.ServiceRunning, serviceName);
             }
 
 
             /// <summary>
-            /// Writes an <see cref="EventCodes.ServiceStopped"/> event.
+            /// Writes an <see cref="EventIds.ServiceStopped"/> event.
             /// </summary>
             /// <param name="serviceName">
             ///   The name of the service.
             /// </param>
-            [Event(EventCodes.ServiceStopped, Level = EventLevel.LogAlways)]
+            [Event(EventIds.ServiceStopped, Level = EventLevel.LogAlways)]
             public void ServiceStopped(string serviceName) {
-                WriteEvent(EventCodes.ServiceStopped, serviceName);
+                WriteEvent(EventIds.ServiceStopped, serviceName);
             }
 
 
             /// <summary>
-            /// Writes an <see cref="EventCodes.WorkItemEnqueued"/> event.
+            /// Writes an <see cref="EventIds.WorkItemEnqueued"/> event.
             /// </summary>
             /// <param name="serviceName">
             ///   The name of the service.
@@ -219,17 +219,17 @@ namespace IntelligentPlant.BackgroundTasks {
             /// <param name="queueSize">
             ///   The size of the work item queue.
             /// </param>
-            [Event(EventCodes.WorkItemEnqueued, Level = EventLevel.Informational)]
+            [Event(EventIds.WorkItemEnqueued, Level = EventLevel.Informational)]
             public void WorkItemEnqueued(string serviceName, Guid id, string? description, int queueSize) {
 #if NETSTANDARD2_1
                 ++_queueSize;
 #endif
-                WriteEvent(EventCodes.WorkItemEnqueued, serviceName, id, description, queueSize);
+                WriteEvent(EventIds.WorkItemEnqueued, serviceName, id, description, queueSize);
             }
 
 
             /// <summary>
-            /// Writes an <see cref="EventCodes.WorkItemDequeued"/> event.
+            /// Writes an <see cref="EventIds.WorkItemDequeued"/> event.
             /// </summary>
             /// <param name="serviceName">
             ///   The name of the service.
@@ -243,17 +243,17 @@ namespace IntelligentPlant.BackgroundTasks {
             /// <param name="queueSize">
             ///   The size of the work item queue.
             /// </param>
-            [Event(EventCodes.WorkItemDequeued, Level = EventLevel.Informational)]
+            [Event(EventIds.WorkItemDequeued, Level = EventLevel.Informational)]
             public void WorkItemDequeued(string serviceName, Guid id, string? description, int queueSize) {
 #if NETSTANDARD2_1
                 --_queueSize;
 #endif
-                WriteEvent(EventCodes.WorkItemDequeued, serviceName, id, description, queueSize);
+                WriteEvent(EventIds.WorkItemDequeued, serviceName, id, description, queueSize);
             }
 
 
             /// <summary>
-            /// Writes an <see cref="EventCodes.WorkItemRunning"/> event.
+            /// Writes an <see cref="EventIds.WorkItemRunning"/> event.
             /// </summary>
             /// <param name="serviceName">
             ///   The name of the service.
@@ -264,17 +264,17 @@ namespace IntelligentPlant.BackgroundTasks {
             /// <param name="description">
             ///   The work item description.
             /// </param>
-            [Event(EventCodes.WorkItemRunning, Level = EventLevel.Informational)]
+            [Event(EventIds.WorkItemRunning, Level = EventLevel.Informational)]
             public void WorkItemRunning(string serviceName, Guid id, string? description) {
 #if NETSTANDARD2_1
                 ++_workItemsRunning;
 #endif
-                WriteEvent(EventCodes.WorkItemRunning, serviceName, id, description);
+                WriteEvent(EventIds.WorkItemRunning, serviceName, id, description);
             }
 
 
             /// <summary>
-            /// Writes an <see cref="EventCodes.WorkItemCompleted"/> event.
+            /// Writes an <see cref="EventIds.WorkItemCompleted"/> event.
             /// </summary>
             /// <param name="serviceName">
             ///   The name of the service.
@@ -288,19 +288,19 @@ namespace IntelligentPlant.BackgroundTasks {
             /// <param name="elapsed">
             ///   The elapsed time for the work item in seconds.
             /// </param>
-            [Event(EventCodes.WorkItemCompleted, Level = EventLevel.Informational)]
+            [Event(EventIds.WorkItemCompleted, Level = EventLevel.Informational)]
             public void WorkItemCompleted(string serviceName, Guid id, string? description, double elapsed) {
 #if NETSTANDARD2_1
                 --_workItemsRunning;
                 ++_totalWorkItemsCompleted;
                 ++_totalSuccessfulWorkItems;
 #endif
-                WriteEvent(EventCodes.WorkItemCompleted, serviceName, id, description, elapsed);
+                WriteEvent(EventIds.WorkItemCompleted, serviceName, id, description, elapsed);
             }
 
 
             /// <summary>
-            /// Writes an <see cref="EventCodes.WorkItemFaulted"/> event.
+            /// Writes an <see cref="EventIds.WorkItemFaulted"/> event.
             /// </summary>
             /// <param name="serviceName">
             ///   The name of the service.
@@ -314,14 +314,14 @@ namespace IntelligentPlant.BackgroundTasks {
             /// <param name="elapsed">
             ///   The elapsed time for the work item in seconds.
             /// </param>
-            [Event(EventCodes.WorkItemFaulted, Level = EventLevel.Warning)]
+            [Event(EventIds.WorkItemFaulted, Level = EventLevel.Warning)]
             public void WorkItemFaulted(string serviceName, Guid id, string? description, double elapsed) {
 #if NETSTANDARD2_1
                 --_workItemsRunning;
                 ++_totalWorkItemsCompleted;
                 ++_totalWorkItemsFaulted;
 #endif
-                WriteEvent(EventCodes.WorkItemFaulted, serviceName, id, description, elapsed);
+                WriteEvent(EventIds.WorkItemFaulted, serviceName, id, description, elapsed);
             }
 
         }

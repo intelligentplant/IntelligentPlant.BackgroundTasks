@@ -40,7 +40,7 @@ namespace IntelligentPlant.BackgroundTasks.Tests {
                 ctSource.Token.Register(() => tcs.TrySetCanceled());
 
                 using (var listener = new Listener(eventData => { 
-                    if (eventData.EventId == BackgroundTaskService.EventCodes.ServiceRunning) {
+                    if (eventData.EventId == BackgroundTaskService.EventIds.ServiceRunning) {
                         tcs.TrySetResult(0);
                     }
                 })) {
@@ -65,7 +65,7 @@ namespace IntelligentPlant.BackgroundTasks.Tests {
                 ctSource.Token.Register(() => tcs.TrySetCanceled());
 
                 using (var listener = new Listener(eventData => {
-                    if (eventData.EventId == BackgroundTaskService.EventCodes.ServiceStopped) {
+                    if (eventData.EventId == BackgroundTaskService.EventIds.ServiceStopped) {
                         tcs.TrySetResult(0);
                     }
                 })) {
@@ -78,10 +78,10 @@ namespace IntelligentPlant.BackgroundTasks.Tests {
 
 
         [DataTestMethod]
-        [DataRow(BackgroundTaskService.EventCodes.WorkItemEnqueued)]
-        [DataRow(BackgroundTaskService.EventCodes.WorkItemDequeued)]
-        [DataRow(BackgroundTaskService.EventCodes.WorkItemRunning)]
-        [DataRow(BackgroundTaskService.EventCodes.WorkItemCompleted)]
+        [DataRow(BackgroundTaskService.EventIds.WorkItemEnqueued)]
+        [DataRow(BackgroundTaskService.EventIds.WorkItemDequeued)]
+        [DataRow(BackgroundTaskService.EventIds.WorkItemRunning)]
+        [DataRow(BackgroundTaskService.EventIds.WorkItemCompleted)]
         public async Task ShouldEmitCompletedWorkItemLifecycleEvents(int eventCode) {
             var options = new BackgroundTaskServiceOptions() {
                 AllowWorkItemRegistrationWhileStopped = true,
@@ -107,10 +107,10 @@ namespace IntelligentPlant.BackgroundTasks.Tests {
 
 
         [DataTestMethod]
-        [DataRow(BackgroundTaskService.EventCodes.WorkItemEnqueued)]
-        [DataRow(BackgroundTaskService.EventCodes.WorkItemDequeued)]
-        [DataRow(BackgroundTaskService.EventCodes.WorkItemRunning)]
-        [DataRow(BackgroundTaskService.EventCodes.WorkItemFaulted)]
+        [DataRow(BackgroundTaskService.EventIds.WorkItemEnqueued)]
+        [DataRow(BackgroundTaskService.EventIds.WorkItemDequeued)]
+        [DataRow(BackgroundTaskService.EventIds.WorkItemRunning)]
+        [DataRow(BackgroundTaskService.EventIds.WorkItemFaulted)]
         public async Task ShouldEmitFaultedWorkItemLifecycleEvents(int eventCode) {
             var options = new BackgroundTaskServiceOptions() {
                 AllowWorkItemRegistrationWhileStopped = true,
