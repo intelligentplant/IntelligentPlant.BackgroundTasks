@@ -1,14 +1,14 @@
 # IntelligentPlant.BackgroundTasks
 
-Simplifies the registration of fire-and-forget background tasks in ASP.NET Core.
+Simplifies the registration of fire-and-forget background tasks in .NET applications.
 
 
 # Getting Started
 
-Add a reference to the [IntelligentPlant.BackgroundTasks.AspNetCore](https://www.nuget.org/packages/IntelligentPlant.BackgroundTasks.AspNetCore/) NuGet package and register the services in your application's `Startup.cs` file:
+For ASP.NET Core, add a reference to the [IntelligentPlant.BackgroundTasks.AspNetCore](https://www.nuget.org/packages/IntelligentPlant.BackgroundTasks.AspNetCore/) NuGet package and register the services in your application's `Startup.cs` file:
 
 ```csharp
-services.AddBackgroundTaskService();
+services.AddAspNetCoreBackgroundTaskService();
 ```
 
 Logging is automatically added for all events related to work items (enqueueing, dequeueing, running, completion, errors).
@@ -78,3 +78,13 @@ public class MyClass : IDisposable {
 
 }
 ```
+
+
+# EventSource
+
+The `IntelligentPlant.BackgroundTasks` event source emits events when background work items are enqueued, dequeued, started, and completed. See [here](https://docs.microsoft.com/en-us/dotnet/api/system.diagnostics.tracing.eventsource) for more information about event sources.
+
+
+# EventCounters
+
+When running on .NET Core 3.0 or later, event counters are available via the `IntelligentPlant.BackgroundTasks` event source. See [here](https://docs.microsoft.com/en-us/dotnet/core/diagnostics/event-counters) for more information about .NET event counters.
