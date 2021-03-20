@@ -9,49 +9,49 @@ namespace IntelligentPlant.BackgroundTasks {
         /// Service running log delegate.
         /// </summary>
         private static readonly Action<ILogger, Exception> s_onServiceRunning =
-            LoggerMessage.Define(LogLevel.Information, new EventId(1, "ServiceRunning"), Resources.Log_ServiceRunning);
+            LoggerMessage.Define(LogLevel.Information, new EventId(EventCodes.ServiceRunning, nameof(EventCodes.ServiceRunning)), Resources.Log_ServiceRunning);
 
         /// <summary>
         /// Service stopped log delegate.
         /// </summary>
         private static readonly Action<ILogger, Exception> s_onServiceStopped =
-            LoggerMessage.Define(LogLevel.Information, new EventId(2, "ServiceStopped"), Resources.Log_ServiceStopped);
+            LoggerMessage.Define(LogLevel.Information, new EventId(EventCodes.ServiceStopped, nameof(EventCodes.ServiceStopped)), Resources.Log_ServiceStopped);
 
         /// <summary>
         /// Work item enqueued log delegate.
         /// </summary>
         private static readonly Action<ILogger, BackgroundWorkItem, Exception> s_onItemEnqueued =
-            LoggerMessage.Define<BackgroundWorkItem>(LogLevel.Trace, new EventId(3, "WorkItemEnqueued"), Resources.Log_ItemEnqueued);
+            LoggerMessage.Define<BackgroundWorkItem>(LogLevel.Trace, new EventId(EventCodes.WorkItemEnqueued, nameof(EventCodes.WorkItemEnqueued)), Resources.Log_ItemEnqueued);
 
         /// <summary>
         /// Work item enqueued while stopped log delegate.
         /// </summary>
         private static readonly Action<ILogger, BackgroundWorkItem, Exception> s_onItemEnqueuedWhileStopped =
-            LoggerMessage.Define<BackgroundWorkItem>(LogLevel.Warning, new EventId(3, "WorkItemEnqueued"), Resources.Log_ItemEnqueuedWhileStopped);
+            LoggerMessage.Define<BackgroundWorkItem>(LogLevel.Warning, new EventId(EventCodes.WorkItemEnqueued, nameof(EventCodes.WorkItemEnqueued)), Resources.Log_ItemEnqueuedWhileStopped);
 
         /// <summary>
         /// Work item dequeued log delegate.
         /// </summary>
         private static readonly Action<ILogger, BackgroundWorkItem, Exception> s_onItemDequeued =
-            LoggerMessage.Define<BackgroundWorkItem>(LogLevel.Trace, new EventId(4, "WorkItemDequeued"), Resources.Log_ItemDequeued);
+            LoggerMessage.Define<BackgroundWorkItem>(LogLevel.Trace, new EventId(EventCodes.WorkItemDequeued, nameof(EventCodes.WorkItemDequeued)), Resources.Log_ItemDequeued);
 
         /// <summary>
         /// Work item running log delegate.
         /// </summary>
         private static readonly Action<ILogger, BackgroundWorkItem, Exception> s_onItemRunning =
-            LoggerMessage.Define<BackgroundWorkItem>(LogLevel.Trace, new EventId(5, "WorkItemRunning"), Resources.Log_ItemRunning);
+            LoggerMessage.Define<BackgroundWorkItem>(LogLevel.Trace, new EventId(EventCodes.WorkItemRunning, nameof(EventCodes.WorkItemRunning)), Resources.Log_ItemRunning);
 
         /// <summary>
         /// Work item completed log delegate.
         /// </summary>
         private static readonly Action<ILogger, BackgroundWorkItem, Exception> s_onItemCompleted =
-            LoggerMessage.Define<BackgroundWorkItem>(LogLevel.Trace, new EventId(6, "WorkItemQueued"), Resources.Log_ItemCompleted);
+            LoggerMessage.Define<BackgroundWorkItem>(LogLevel.Trace, new EventId(EventCodes.WorkItemCompleted, nameof(EventCodes.WorkItemCompleted)), Resources.Log_ItemCompleted);
 
         /// <summary>
         /// Work item faulted log delegate.
         /// </summary>
         private static readonly Action<ILogger, BackgroundWorkItem, Exception> s_onItemFaulted =
-            LoggerMessage.Define<BackgroundWorkItem>(LogLevel.Trace, new EventId(7, "WorkItemQueued"), Resources.Log_ItemFaulted);
+            LoggerMessage.Define<BackgroundWorkItem>(LogLevel.Trace, new EventId(EventCodes.WorkItemFaulted, nameof(EventCodes.WorkItemFaulted)), Resources.Log_ItemFaulted);
 
 
         /// <summary>

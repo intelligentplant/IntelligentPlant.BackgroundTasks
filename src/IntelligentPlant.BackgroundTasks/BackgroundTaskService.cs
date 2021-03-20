@@ -133,6 +133,8 @@ namespace IntelligentPlant.BackgroundTasks {
             }
 
             _queue.Enqueue(workItem);
+            EventSource.Instance.WorkItemEnqueued(workItem, _queue.Count);
+            LogItemEnqueued(_logger, workItem, IsRunning);
             OnQueued(workItem);
             _queueSignal.Release();
         }
@@ -162,6 +164,7 @@ namespace IntelligentPlant.BackgroundTasks {
             }
 
             try {
+                EventSource.Instance.ServiceRunning();
                 LogServiceRunning(_logger);
                 using (var compositeSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _disposedCancellationToken)) {
                     var compositeToken = compositeSource.Token;
@@ -188,6 +191,8 @@ namespace IntelligentPlant.BackgroundTasks {
                             continue;
                         }
 
+                        EventSource.Instance.WorkItemDequeued(item, _queue.Count);
+                        LogItemDequeued(_logger, item);
                         OnDequeued(item);
 
                         RunBackgroundWorkItem(item, compositeToken);
@@ -195,6 +200,7 @@ namespace IntelligentPlant.BackgroundTasks {
                 }
             }
             finally {
+                EventSource.Instance.ServiceStopped();
                 LogServiceStopped(_logger);
                 _isRunning = 0;
             }
@@ -222,7 +228,6 @@ namespace IntelligentPlant.BackgroundTasks {
         /// </param>
         protected virtual void OnQueued(BackgroundWorkItem workItem) {
             try {
-                LogItemEnqueued(_logger, workItem, IsRunning);
                 _options.OnEnqueued?.Invoke(workItem);
             }
 #pragma warning disable CA1031 // Do not catch general exception types
@@ -242,7 +247,6 @@ namespace IntelligentPlant.BackgroundTasks {
         /// </param>
         protected virtual void OnDequeued(BackgroundWorkItem workItem) {
             try {
-                LogItemDequeued(_logger, workItem);
                 _options.OnDequeued?.Invoke(workItem);
             }
 #pragma warning disable CA1031 // Do not catch general exception types
@@ -262,6 +266,7 @@ namespace IntelligentPlant.BackgroundTasks {
         /// </param>
         protected virtual void OnRunning(BackgroundWorkItem workItem) {
             try {
+                EventSource.Instance.WorkItemRunning(workItem);
                 LogItemRunning(_logger, workItem);
                 _options.OnRunning?.Invoke(workItem);
             }
@@ -280,8 +285,12 @@ namespace IntelligentPlant.BackgroundTasks {
         /// <param name="workItem">
         ///   The work item that completed.
         /// </param>
-        protected virtual void OnCompleted(BackgroundWorkItem workItem) {
+        /// <param name="elapsed">
+        ///   The elapsed time for the work item.
+        /// </param>
+        protected virtual void OnCompleted(BackgroundWorkItem workItem, TimeSpan elapsed) {
             try {
+                EventSource.Instance.WorkItemCompleted(workItem, elapsed);
                 LogItemCompleted(_logger, workItem);
                 _options.OnCompleted?.Invoke(workItem);
             }
@@ -303,12 +312,16 @@ namespace IntelligentPlant.BackgroundTasks {
         /// <param name="err">
         ///   The error that occurred.
         /// </param>
-        protected virtual void OnError(BackgroundWorkItem workItem, Exception err) {
+        /// <param name="elapsed">
+        ///   The elapsed time for the work item.
+        /// </param>
+        protected virtual void OnError(BackgroundWorkItem workItem, Exception err, TimeSpan elapsed) {
             if (err == null) {
                 err = new Exception(Resources.Error_UnspecifiedError);
             }
 
             try {
+                EventSource.Instance.WorkItemFaulted(workItem, elapsed);
                 LogItemFaulted(_logger, workItem, err);
                 _options.OnError?.Invoke(workItem, err);
             }

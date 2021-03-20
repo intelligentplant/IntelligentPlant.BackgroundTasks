@@ -14,6 +14,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "common", "common", "{447F10
 		.editorconfig = .editorconfig
 		.gitattributes = .gitattributes
 		.gitignore = .gitignore
+		build.cake = build.cake
 		build.ps1 = build.ps1
 		Directory.Build.props = Directory.Build.props
 		Directory.Build.targets = Directory.Build.targets
@@ -31,8 +32,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IntelligentPlant.Background
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{7CC55D6F-17E8-4127-AD84-19CE3E0CDBF6}"
 	ProjectSection(SolutionItems) = preProject
-		build\increment-version.ps1 = build\increment-version.ps1
-		build\tools.ps1 = build\tools.ps1
+		build\build-state.cake = build\build-state.cake
+		build\build-utilities.cake = build\build-utilities.cake
 		build\version.json = build\version.json
 	EndProjectSection
 EndProject
