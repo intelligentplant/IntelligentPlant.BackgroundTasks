@@ -79,7 +79,7 @@ namespace IntelligentPlant.BackgroundTasks {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Work item completed: {0}. Elapsed time: {1}.
+        ///   Looks up a localized string similar to Work item completed. ID: &apos;{0}&apos;, description: &apos;{1}&apos;, elapsed time: {2}.
         /// </summary>
         internal static string event_WorkItemCompleted {
             get {
@@ -88,7 +88,7 @@ namespace IntelligentPlant.BackgroundTasks {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Work item dequeued: {0}. Queue size: {1} items..
+        ///   Looks up a localized string similar to Work item dequeued: ID: &apos;{0}&apos;, description: &apos;{1}&apos;, queue size: {2} items.
         /// </summary>
         internal static string event_WorkItemDequeued {
             get {
@@ -97,7 +97,7 @@ namespace IntelligentPlant.BackgroundTasks {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Work item enqueued: {0}. Queue size: {1} items..
+        ///   Looks up a localized string similar to Work item enqueued: ID: &apos;{0}&apos;, description: &apos;{1}&apos;, queue size: {2} items.
         /// </summary>
         internal static string event_WorkItemEnqueued {
             get {
@@ -106,7 +106,7 @@ namespace IntelligentPlant.BackgroundTasks {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Work item faulted: {0}. Elapsed time: {1}.
+        ///   Looks up a localized string similar to Work item faulted. ID: &apos;{0}&apos;, description: &apos;{1}&apos;, elapsed time: {2}.
         /// </summary>
         internal static string event_WorkItemFaulted {
             get {
@@ -115,7 +115,7 @@ namespace IntelligentPlant.BackgroundTasks {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Work item running: {0}.
+        ///   Looks up a localized string similar to Work item running: ID: &apos;{0}&apos;, description: &apos;{1}&apos;.
         /// </summary>
         internal static string event_WorkItemRunning {
             get {

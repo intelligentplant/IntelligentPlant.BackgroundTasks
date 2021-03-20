@@ -124,18 +124,18 @@
     <value>Background task service has stopped.</value>
   </data>
   <data name="event_WorkItemCompleted" xml:space="preserve">
-    <value>Work item completed: {0}. Elapsed time: {1}</value>
+    <value>Work item completed. ID: '{0}', description: '{1}', elapsed time: {2}</value>
   </data>
   <data name="event_WorkItemDequeued" xml:space="preserve">
-    <value>Work item dequeued: {0}. Queue size: {1} items.</value>
+    <value>Work item dequeued: ID: '{0}', description: '{1}', queue size: {2} items</value>
   </data>
   <data name="event_WorkItemEnqueued" xml:space="preserve">
-    <value>Work item enqueued: {0}. Queue size: {1} items.</value>
+    <value>Work item enqueued: ID: '{0}', description: '{1}', queue size: {2} items</value>
   </data>
   <data name="event_WorkItemFaulted" xml:space="preserve">
-    <value>Work item faulted: {0}. Elapsed time: {1}</value>
+    <value>Work item faulted. ID: '{0}', description: '{1}', elapsed time: {2}</value>
   </data>
   <data name="event_WorkItemRunning" xml:space="preserve">
-    <value>Work item running: {0}</value>
+    <value>Work item running: ID: '{0}', description: '{1}'</value>
   </data>
 </root>

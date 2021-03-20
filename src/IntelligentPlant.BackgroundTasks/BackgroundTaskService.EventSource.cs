@@ -7,7 +7,7 @@ namespace IntelligentPlant.BackgroundTasks {
         /// <summary>
         /// Contains event codes for use in log messages and <see cref="EventSource"/> events.
         /// </summary>
-        private static class EventCodes {
+        public static class EventCodes {
 
             /// <summary>
             /// Service is running.
@@ -54,18 +54,12 @@ namespace IntelligentPlant.BackgroundTasks {
             Name = "IntelligentPlant.BackgroundTasks", 
             LocalizationResources = "IntelligentPlant.BackgroundTasks.EventSourceResources"
         )]
-        private class EventSource : System.Diagnostics.Tracing.EventSource {
+        public class BackgroundTaskServiceEventSource : EventSource {
 
             /// <summary>
-            /// Singleton instance.
+            /// Creates a new <see cref="BackgroundTaskServiceEventSource"/> object.
             /// </summary>
-            public static EventSource Instance { get; } = new EventSource();
-
-
-            /// <summary>
-            /// Creates a new <see cref="EventSource"/> object.
-            /// </summary>
-            private EventSource() { }
+            internal BackgroundTaskServiceEventSource() { }
 
 
             /// <summary>
@@ -89,72 +83,87 @@ namespace IntelligentPlant.BackgroundTasks {
             /// <summary>
             /// Writes an <see cref="EventCodes.WorkItemEnqueued"/> event.
             /// </summary>
-            /// <param name="item">
-            ///   The work item that was enqueued.
+            /// <param name="id">
+            ///   The work item ID.
+            /// </param>
+            /// <param name="description">
+            ///   The work item description.
             /// </param>
             /// <param name="queueSize">
             ///   The size of the work item queue.
             /// </param>
             [Event(EventCodes.WorkItemEnqueued, Level = EventLevel.Informational)]
-            public void WorkItemEnqueued(BackgroundWorkItem item, int queueSize) {
-                WriteEvent(EventCodes.WorkItemEnqueued, item, queueSize);
+            public void WorkItemEnqueued(Guid id, string? description, int queueSize) {
+                WriteEvent(EventCodes.WorkItemEnqueued, id, description, queueSize);
             }
 
 
             /// <summary>
             /// Writes an <see cref="EventCodes.WorkItemDequeued"/> event.
             /// </summary>
-            /// <param name="item">
-            ///   The work item that was dequeued.
+            /// <param name="id">
+            ///   The work item ID.
+            /// </param>
+            /// <param name="description">
+            ///   The work item description.
             /// </param>
             /// <param name="queueSize">
             ///   The size of the work item queue.
             /// </param>
             [Event(EventCodes.WorkItemDequeued, Level = EventLevel.Informational)]
-            public void WorkItemDequeued(BackgroundWorkItem item, int queueSize) {
-                WriteEvent(EventCodes.WorkItemDequeued, item, queueSize);
+            public void WorkItemDequeued(Guid id, string? description, int queueSize) {
+                WriteEvent(EventCodes.WorkItemDequeued, id, description, queueSize);
             }
 
 
             /// <summary>
             /// Writes an <see cref="EventCodes.WorkItemRunning"/> event.
             /// </summary>
-            /// <param name="item">
-            ///   The work item that is being run.
+            /// <param name="id">
+            ///   The work item ID.
+            /// </param>
+            /// <param name="description">
+            ///   The work item description.
             /// </param>
             [Event(EventCodes.WorkItemRunning, Level = EventLevel.Informational)]
-            public void WorkItemRunning(BackgroundWorkItem item) {
-                WriteEvent(EventCodes.WorkItemRunning, item);
+            public void WorkItemRunning(Guid id, string? description) {
+                WriteEvent(EventCodes.WorkItemRunning, id, description);
             }
 
 
             /// <summary>
             /// Writes an <see cref="EventCodes.WorkItemCompleted"/> event.
             /// </summary>
-            /// <param name="item">
-            ///   The work item that was completed.
+            /// <param name="id">
+            ///   The work item ID.
+            /// </param>
+            /// <param name="description">
+            ///   The work item description.
             /// </param>
             /// <param name="elapsed">
             ///   The elapsed time for the work item.
             /// </param>
             [Event(EventCodes.WorkItemCompleted, Level = EventLevel.Informational)]
-            public void WorkItemCompleted(BackgroundWorkItem item, TimeSpan elapsed) {
-                WriteEvent(EventCodes.WorkItemCompleted, item, elapsed);
+            public void WorkItemCompleted(Guid id, string? description, string elapsed) {
+                WriteEvent(EventCodes.WorkItemCompleted, id, description, elapsed);
             }
 
 
             /// <summary>
             /// Writes an <see cref="EventCodes.WorkItemFaulted"/> event.
             /// </summary>
-            /// <param name="item">
-            ///   The work item that faulted.
+            /// <param name="id">
+            ///   The work item ID.
+            /// </param>
+            /// <param name="description">
+            ///   The work item description.
             /// </param>
             /// <param name="elapsed">
             ///   The elapsed time for the work item.
             /// </param>
             [Event(EventCodes.WorkItemFaulted, Level = EventLevel.Warning)]
-            public void WorkItemFaulted(BackgroundWorkItem item, TimeSpan elapsed) {
-                WriteEvent(EventCodes.WorkItemFaulted, item, elapsed);
+            public void WorkItemFaulted(Guid id, string? description, string elapsed) {
+                WriteEvent(EventCodes.WorkItemFaulted, id, description, elapsed);
             }
 
         }
