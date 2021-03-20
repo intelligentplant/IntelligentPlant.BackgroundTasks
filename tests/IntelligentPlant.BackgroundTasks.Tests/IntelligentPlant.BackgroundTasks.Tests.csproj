@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
-
+    <IsSignable>false</IsSignable>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 

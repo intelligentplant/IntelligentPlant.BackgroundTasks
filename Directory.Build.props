@@ -7,7 +7,7 @@
   <Import Project="$(ParentProject)" Condition=" '$(ParentProject)' != '' " /> 
   
   <PropertyGroup>
-    <LangVersion>8.0</LangVersion>
+    <LangVersion>9.0</LangVersion>
     <Nullable>enable</Nullable>
     <Authors>Intelligent Plant</Authors>
     <PackageProjectUrl>https://github.com/intelligentplant/IntelligentPlant.BackgroundTasks</PackageProjectUrl>
