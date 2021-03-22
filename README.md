@@ -16,7 +16,7 @@ Logging is automatically added for all events related to work items (enqueueing,
 You can also configure the [BackgroundTaskServiceOptions](./src/IntelligentPlant.BackgroundTasks/BackgroundTaskServiceOptions.cs) passed to the service to perform additional event handling as follows:
 
 ```csharp
-services.AddBackgroundTaskService(options => {
+services.AddAspNetCoreBackgroundTaskService(options => {
     options.OnRunning = (workItem) => {
         // Add custom logic here...
     };
