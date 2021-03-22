@@ -88,3 +88,24 @@ The `IntelligentPlant.BackgroundTasks` event source emits events when background
 # EventCounters
 
 When running on .NET Core 3.0 or later, event counters are available via the `IntelligentPlant.BackgroundTasks` event source. See [here](https://docs.microsoft.com/en-us/dotnet/core/diagnostics/event-counters) for more information about .NET event counters.
+
+
+# OpenTelemetry
+
+The `IntelligentPlant.BackgroundTasks` activity source is used to generate [OpenTelemetry](https://github.com/open-telemetry)-compatible instrumentation for background work items via the [System.Diagnostics.DiagnosticSource](https://www.nuget.org/packages/System.Diagnostics.DiagnosticSource) NuGet package.
+
+To configure OpenTelemetry instrumentation for an ASP.NET Core application:
+
+1. Follow the instructions for enabling ASP.NET Core OpenTelemetry instrumentation [here](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/src/OpenTelemetry.Instrumentation.AspNetCore/README.md).
+2. Add a reference to the [IntelligentPlant.BackgroundTasks.OpenTelemetry](https://www.nuget.org/packages/IntelligentPlant.BackgroundTasks.OpenTelemetry) NuGet package.
+3. In your `ConfigureServices` method in your `Startup.cs` file, enable instrumentation for `IntelligentPlant.BackgroundTasks`:
+
+```csharp
+services.AddOpenTelemetryTracing(builder => {
+    builder
+        .AddAspNetCoreInstrumentation()
+        .AddIntelligentPlantBackgroundTasksInstrumentation()
+        // Your exporters here e.g.
+        .AddConsoleExporter();
+});
+```
