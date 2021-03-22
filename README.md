@@ -35,6 +35,9 @@ Inject the [IBackgroundTaskService](./src/IntelligentPlant.BackgroundTasks/IBack
 
 ```csharp
 public class EmailNotifier {
+
+    private static readonly ActivitySource s_activitySource { get; } = new ActivitySource("MyCompany.EmailNotifier", "1.0.0");
+
     private readonly IBackgroundTaskService _backgroundTaskService;
 
 
@@ -44,13 +47,20 @@ public class EmailNotifier {
 
 
     public void SendEmail(string recipient, string subject, string content) {
-        _backgroundTaskService.QueueBackgroundWorkItem(async ct => {
-            // The provided cancellation token will fire when the application is shutting down.
-            await SendEmailInternal(recipient, subject, content, ct);
+        _backgroundTaskService.QueueBackgroundWorkItem(async (activity, ct) => {
+            // Create a child activity associated with the parent activity we were passed.
+            using (var childActivity = s_activitySource.StartActivity("send_email", ActivityKind.Client, activity?.Id)) {
+                childActivity?.SetTag("recipient", recipient);
+
+                // The provided cancellation token will fire when the application is shutting down.
+                await SendEmailInternal(recipient, subject, content, ct);
+            }
         });
     }
 }
 ```
+
+Note that our work item delegate accepts a `System.Diagnostics.Activity?` parameter. When this is non-null, we can use it to provide trace information to the host application.
 
 By default, the `CancellationToken` provided to the work item will fire when the application is shutting down. The [BackgroundTaskServiceExtensions](./src/IntelligentPlant.BackgroundTasks/BackgroundTaskServiceExtensions.cs) class contains extension methods that allow you to specify additional `CancellationToken` instances for the work item. In these scenarios, a composite of the master token and all of the additional tokens is passed to the work item. Examples of when you might want to use this functionality include starting a long-running background task from an object that should stop when the object is disposed, e.g.
 
@@ -63,11 +73,12 @@ public class MyClass : IDisposable {
         backgroundTaskService.QueueBackgroundWorkItem(LongRunningTask, _shutdownSource.Token);
     }
 
-    private async Task LongRunningTask(CancellationToken cancellationToken) {
+    private async Task LongRunningTask(Activity? activity, CancellationToken cancellationToken) {
         while (!cancellationToken.IsCancellationRequested) {
             // Do long-running work. The cancellation token will fire when either 
             // _shutdownSource is cancelled, or the IBackgroundTaskService is shut 
-            // down.
+            // down. If the 'activity' parameter is non-null, you can use it to provide trace 
+            // information about the operation.
         }
     }
 
