@@ -57,7 +57,7 @@ namespace IntelligentPlant.BackgroundTasks {
         ///   rather than a single instance.
         /// </remarks>
         [EventSource(
-            Name = "IntelligentPlant.BackgroundTasks", 
+            Name = DiagnosticsSourceName, 
             LocalizationResources = "IntelligentPlant.BackgroundTasks.EventSourceResources"
         )]
         public class BackgroundTaskServiceEventSource : EventSource {
@@ -220,7 +220,7 @@ namespace IntelligentPlant.BackgroundTasks {
             ///   The size of the work item queue.
             /// </param>
             [Event(EventIds.WorkItemEnqueued, Level = EventLevel.Informational)]
-            public void WorkItemEnqueued(string serviceName, Guid id, string? description, int queueSize) {
+            public void WorkItemEnqueued(string serviceName, string id, string? description, int queueSize) {
 #if NETSTANDARD2_1
                 ++_queueSize;
 #endif
@@ -244,7 +244,7 @@ namespace IntelligentPlant.BackgroundTasks {
             ///   The size of the work item queue.
             /// </param>
             [Event(EventIds.WorkItemDequeued, Level = EventLevel.Informational)]
-            public void WorkItemDequeued(string serviceName, Guid id, string? description, int queueSize) {
+            public void WorkItemDequeued(string serviceName, string id, string? description, int queueSize) {
 #if NETSTANDARD2_1
                 --_queueSize;
 #endif
@@ -265,7 +265,7 @@ namespace IntelligentPlant.BackgroundTasks {
             ///   The work item description.
             /// </param>
             [Event(EventIds.WorkItemRunning, Level = EventLevel.Informational)]
-            public void WorkItemRunning(string serviceName, Guid id, string? description) {
+            public void WorkItemRunning(string serviceName, string id, string? description) {
 #if NETSTANDARD2_1
                 ++_workItemsRunning;
 #endif
@@ -289,7 +289,7 @@ namespace IntelligentPlant.BackgroundTasks {
             ///   The elapsed time for the work item in seconds.
             /// </param>
             [Event(EventIds.WorkItemCompleted, Level = EventLevel.Informational)]
-            public void WorkItemCompleted(string serviceName, Guid id, string? description, double elapsed) {
+            public void WorkItemCompleted(string serviceName, string id, string? description, double elapsed) {
 #if NETSTANDARD2_1
                 --_workItemsRunning;
                 ++_totalWorkItemsCompleted;
@@ -315,7 +315,7 @@ namespace IntelligentPlant.BackgroundTasks {
             ///   The elapsed time for the work item in seconds.
             /// </param>
             [Event(EventIds.WorkItemFaulted, Level = EventLevel.Warning)]
-            public void WorkItemFaulted(string serviceName, Guid id, string? description, double elapsed) {
+            public void WorkItemFaulted(string serviceName, string id, string? description, double elapsed) {
 #if NETSTANDARD2_1
                 --_workItemsRunning;
                 ++_totalWorkItemsCompleted;

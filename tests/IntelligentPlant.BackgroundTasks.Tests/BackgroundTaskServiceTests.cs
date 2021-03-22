@@ -204,13 +204,11 @@ namespace IntelligentPlant.BackgroundTasks.Tests {
                 descriptionActual = null;
                 svc.QueueBackgroundWorkItem(func);
                 Assert.AreEqual(1, svc.QueuedItemCount);
-                Assert.AreEqual(BackgroundWorkItem.CreateDescriptionFromDelegate(func), descriptionActual);
 
                 // Test when queuing with additional cancellation tokens.
                 descriptionActual = null;
                 svc.QueueBackgroundWorkItem(func, ctSource1.Token);
                 Assert.AreEqual(2, svc.QueuedItemCount);
-                Assert.AreEqual(BackgroundWorkItem.CreateDescriptionFromDelegate(func), descriptionActual);
             }
         }
 
@@ -232,13 +230,11 @@ namespace IntelligentPlant.BackgroundTasks.Tests {
                 descriptionActual = null;
                 svc.QueueBackgroundWorkItem(func);
                 Assert.AreEqual(1, svc.QueuedItemCount);
-                Assert.AreEqual(BackgroundWorkItem.CreateDescriptionFromDelegate(func), descriptionActual);
 
                 // Test when queuing with additional cancellation tokens.
                 descriptionActual = null;
                 svc.QueueBackgroundWorkItem(func, ctSource1.Token);
                 Assert.AreEqual(2, svc.QueuedItemCount);
-                Assert.AreEqual(BackgroundWorkItem.CreateDescriptionFromDelegate(func), descriptionActual);
             }
         }
 

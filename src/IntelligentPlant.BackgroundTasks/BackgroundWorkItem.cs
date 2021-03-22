@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
@@ -6,14 +7,31 @@ using System.Threading.Tasks;
 namespace IntelligentPlant.BackgroundTasks {
 
     /// <summary>
-    /// Describes a work item that has been added to a <see cref="BackgroundTaskService"/> queue.
+    /// Describes a work item that has been added to an <see cref="IBackgroundTaskService"/> queue.
     /// </summary>
-    public struct BackgroundWorkItem : IEquatable<BackgroundWorkItem> {
+    /// <remarks>
+    /// 
+    /// <para>
+    ///   Although <see cref="BackgroundWorkItem"/> implements <see cref="IDisposable"/>, you 
+    ///   should not disposed of any instances you create yourself. The <see cref="IBackgroundTaskService"/> 
+    ///   will dispose of work items once they have run to completion of have faulted.
+    /// </para>
+    /// 
+    /// <para>
+    ///   Both <see cref="WorkItem"/> and <see cref="WorkItemAsync"/> accept an <see cref="System.Diagnostics.Activity"/> 
+    ///   parameter. This can be used to create OpenTelemetry-compatible activities inside the 
+    ///   work item, or to augment the work item activity with tags, events and so on. Note that 
+    ///   the parameter value will be <see langword="null"/> if there are no listeners for the 
+    ///   <see cref="BackgroundTaskService.ActivitySource"/> source.
+    /// </para>
+    /// 
+    /// </remarks>
+    public struct BackgroundWorkItem : IEquatable<BackgroundWorkItem>, IDisposable {
 
         /// <summary>
         /// Gets the unique identifier for the work item.
         /// </summary>
-        public Guid Id { get; }
+        public string Id { get; }
 
         /// <summary>
         /// Gets the optional description for the work item.
@@ -24,13 +42,20 @@ namespace IntelligentPlant.BackgroundTasks {
         /// The synchronous work item. The value will be <see langword="null"/> if an asynchronous 
         /// work item was enqueued.
         /// </summary>
-        public Action<CancellationToken>? WorkItem { get; }
+        public Action<Activity?, CancellationToken>? WorkItem { get; }
 
         /// <summary>
         /// The asynchronous work item. The value will be <see langword="null"/> if a synchronous 
         /// work item was enqueued.
         /// </summary>
-        public Func<CancellationToken, Task>? WorkItemAsync { get; }
+        public Func<Activity?, CancellationToken, Task>? WorkItemAsync { get; }
+
+        /// <summary>
+        /// The <see cref="System.Diagnostics.Activity"/> associated with the work item. Use this 
+        /// activity as the parent when creating new child activities inside the <see cref="WorkItem"/> 
+        /// or <see cref="WorkItemAsync"/> delegate.
+        /// </summary>
+        public Activity? Activity { get; }
 
 
         /// <summary>
@@ -47,16 +72,16 @@ namespace IntelligentPlant.BackgroundTasks {
         /// <exception cref="ArgumentNullException">
         ///   <paramref name="workItem"/> is <see langword="null"/>.
         /// </exception>
-        public BackgroundWorkItem(Action<CancellationToken> workItem, string? description = null) {
-            Id = Guid.NewGuid();
+        public BackgroundWorkItem(Action<Activity?, CancellationToken> workItem, string? description = null) {
+            Activity = BackgroundTaskService.ActivitySource.StartActivity("background_task_sync");
+            Id = Activity?.Id ?? Guid.NewGuid().ToString();
             WorkItem = workItem ?? throw new ArgumentNullException(nameof(workItem));
             WorkItemAsync = null;
-
-            if (string.IsNullOrWhiteSpace(description)) {
-                description = CreateDescriptionFromDelegate(workItem);
-            }
-
             Description = description;
+
+            if (!string.IsNullOrWhiteSpace(description)) {
+                Activity?.AddTag(BackgroundTaskService.GetOpenTelemetryTagName("description"), description);
+            }
         }
 
 
@@ -74,62 +99,16 @@ namespace IntelligentPlant.BackgroundTasks {
         /// <exception cref="ArgumentNullException">
         ///   <paramref name="workItem"/> is <see langword="null"/>.
         /// </exception>
-        public BackgroundWorkItem(Func<CancellationToken, Task> workItem, string? description = null) {
-            Id = Guid.NewGuid();
+        public BackgroundWorkItem(Func<Activity?, CancellationToken, Task> workItem, string? description = null) {
+            Activity = BackgroundTaskService.ActivitySource.StartActivity("background_task_async");
+            Id = Activity?.Id ?? Guid.NewGuid().ToString();
             WorkItem = null;
             WorkItemAsync = workItem ?? throw new ArgumentNullException(nameof(workItem));
-
-            if (string.IsNullOrWhiteSpace(description)) {
-                description = CreateDescriptionFromDelegate(workItem);
-            }
-
             Description = description;
-        }
 
-
-        /// <summary>
-        /// Creates a description for a <see cref="BackgroundWorkItem"/> using the 
-        /// <see cref="MethodInfo"/> associated with the specified delegate.
-        /// </summary>
-        /// <param name="workItem">
-        ///   The delegate.
-        /// </param>
-        /// <returns>
-        ///   A description that can be used when creating a new <see cref="BackgroundWorkItem"/>.
-        /// </returns>
-        /// <exception cref="ArgumentNullException">
-        ///   <paramref name="workItem"/> is <see langword="null"/>.
-        /// </exception>
-        public static string CreateDescriptionFromDelegate(Action<CancellationToken> workItem) {
-            if (workItem == null) {
-                throw new ArgumentNullException(nameof(workItem));
+            if (!string.IsNullOrWhiteSpace(description)) {
+                Activity?.AddTag(BackgroundTaskService.GetOpenTelemetryTagName("description"), description);
             }
-
-            var methodInfo = workItem.GetMethodInfo();
-            return string.Concat(methodInfo.ReflectedType.FullName, ".", methodInfo.Name);
-        }
-
-
-        /// <summary>
-        /// Creates a description for a <see cref="BackgroundWorkItem"/> using the 
-        /// <see cref="MethodInfo"/> associated with the specified delegate.
-        /// </summary>
-        /// <param name="workItem">
-        ///   The delegate.
-        /// </param>
-        /// <returns>
-        ///   A description that can be used when creating a new <see cref="BackgroundWorkItem"/>.
-        /// </returns>
-        /// <exception cref="ArgumentNullException">
-        ///   <paramref name="workItem"/> is <see langword="null"/>.
-        /// </exception>
-        public static string CreateDescriptionFromDelegate(Func<CancellationToken, Task> workItem) {
-            if (workItem == null) {
-                throw new ArgumentNullException(nameof(workItem));
-            }
-
-            var methodInfo = workItem.GetMethodInfo();
-            return string.Concat(methodInfo.ReflectedType.FullName, ".", methodInfo.Name);
         }
 
 
@@ -183,10 +162,16 @@ namespace IntelligentPlant.BackgroundTasks {
 
         /// <inheritdoc/>
         public bool Equals(BackgroundWorkItem other) {
-            return other.Id.Equals(Id) && 
+            return other.Id.Equals(Id, StringComparison.Ordinal) && 
                 string.Equals(other.Description, Description, StringComparison.Ordinal) && 
                 other.WorkItem == WorkItem && 
                 other.WorkItemAsync == WorkItemAsync;
+        }
+
+
+        /// <inheritdoc/>
+        public void Dispose() {
+            Activity?.Stop();
         }
 
 

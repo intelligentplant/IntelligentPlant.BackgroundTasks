@@ -41,7 +41,7 @@ namespace IntelligentPlant.BackgroundTasks {
                     var elapsedBefore = _stopwatch.Elapsed;
                     try {
                         OnRunning(workItem);
-                        workItem.WorkItem(cancellationToken);
+                        workItem.WorkItem(workItem.Activity, cancellationToken);
                         OnCompleted(workItem, _stopwatch.Elapsed - elapsedBefore);
                     }
 #pragma warning disable CA1031 // Do not catch general exception types
@@ -56,7 +56,7 @@ namespace IntelligentPlant.BackgroundTasks {
                     var elapsedBefore = _stopwatch.Elapsed;
                     try {
                         OnRunning(workItem);
-                        await workItem.WorkItemAsync(cancellationToken).ConfigureAwait(false);
+                        await workItem.WorkItemAsync(workItem.Activity, cancellationToken).ConfigureAwait(false);
                         OnCompleted(workItem, _stopwatch.Elapsed - elapsedBefore);
                     }
 #pragma warning disable CA1031 // Do not catch general exception types

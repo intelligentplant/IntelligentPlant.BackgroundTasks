@@ -4,6 +4,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
+using OpenTelemetry.Trace;
+
 namespace IntelligentPlant.BackgroundTasks.ExampleApp {
     public class Startup {
         public Startup(IConfiguration configuration) {
@@ -16,6 +18,13 @@ namespace IntelligentPlant.BackgroundTasks.ExampleApp {
         public void ConfigureServices(IServiceCollection services) {
             services.AddAspNetCoreBackgroundTaskService();
             services.AddControllers();
+
+            services.AddOpenTelemetryTracing(builder => {
+                builder
+                    .AddAspNetCoreInstrumentation()
+                    .AddIntelligentPlantBackgroundTasksInstrumentation()
+                    .AddConsoleExporter();
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -12,6 +14,21 @@ namespace IntelligentPlant.BackgroundTasks {
     /// method to start the service.
     /// </summary>
     public abstract partial class BackgroundTaskService : IBackgroundTaskService, IDisposable {
+
+        /// <summary>
+        /// The name used by the <see cref="System.Diagnostics.ActivitySource"/> and 
+        /// <see cref="System.Diagnostics.Tracing.EventSource"/> associated with the background 
+        /// task service.
+        /// </summary>
+        public const string DiagnosticsSourceName = "IntelligentPlant.BackgroundTasks";
+
+        /// <summary>
+        /// <see cref="System.Diagnostics.ActivitySource"/> for the library.
+        /// </summary>
+        public static ActivitySource ActivitySource { get; } = new ActivitySource(
+            DiagnosticsSourceName,
+            typeof(BackgroundTaskService).Assembly.GetName().Version.ToString(3)
+        );
 
         /// <summary>
         /// The default background task service.
@@ -132,6 +149,20 @@ namespace IntelligentPlant.BackgroundTasks {
 
 
         /// <summary>
+        /// Gets the qualified OpenTelemetry tag name to use for the specified unqualified name.
+        /// </summary>
+        /// <param name="unqualifiedName">
+        ///   The unqualified tag name.
+        /// </param>
+        /// <returns>
+        ///   The qualified tag name.
+        /// </returns>
+        internal static string GetOpenTelemetryTagName(string unqualifiedName) {
+            return string.Concat("ipbt.", unqualifiedName);
+        }
+
+
+        /// <summary>
         /// Throws an <see cref="ObjectDisposedException"/> if the task service has been disposed.
         /// </summary>
         protected void ThrowIfDisposed() {
@@ -155,9 +186,7 @@ namespace IntelligentPlant.BackgroundTasks {
             }
 
             _queue.Enqueue(workItem);
-            EventSource.WorkItemEnqueued(Name, workItem.Id, workItem.Description, _queue.Count);
-            LogItemEnqueued(_logger, workItem, IsRunning);
-            OnQueued(workItem);
+            OnQueuedInternal(workItem);
             _queueSignal.Release();
         }
 
@@ -209,15 +238,12 @@ namespace IntelligentPlant.BackgroundTasks {
                             break;
                         }
 
-                        if (!_queue.TryDequeue(out var item)) {
+                        if (!_queue.TryDequeue(out var workItem)) {
                             continue;
                         }
 
-                        EventSource.WorkItemDequeued(Name, item.Id, item.Description, _queue.Count);
-                        LogItemDequeued(_logger, item);
-                        OnDequeued(item);
-
-                        RunBackgroundWorkItem(item, compositeToken);
+                        OnDequeuedInternal(workItem);
+                        RunBackgroundWorkItem(workItem, compositeToken);
                     }
                 }
             }
@@ -242,6 +268,27 @@ namespace IntelligentPlant.BackgroundTasks {
 
 
         /// <summary>
+        /// Called when a work item is enqueued.
+        /// </summary>
+        /// <param name="workItem">
+        ///   The work item.
+        /// </param>
+        private void OnQueuedInternal(BackgroundWorkItem workItem) {
+            var queueSize = _queue.Count;
+
+            if (workItem.Activity != null) {
+                workItem.Activity.AddEvent(new ActivityEvent(nameof(EventIds.WorkItemEnqueued), tags: new ActivityTagsCollection(new Dictionary<string, object?>() {
+                    ["event_id"] = EventIds.WorkItemEnqueued,
+                    ["queue_size"] = queueSize
+                })));
+            }
+            EventSource.WorkItemEnqueued(Name, workItem.Id, workItem.Description, queueSize);
+            LogItemEnqueued(_logger, workItem, IsRunning);
+            OnQueued(workItem);
+        }
+
+
+        /// <summary>
         /// Invokes the <see cref="BackgroundTaskServiceOptions.OnEnqueued"/> callback provided when 
         /// the service was registered.
         /// </summary>
@@ -252,11 +299,30 @@ namespace IntelligentPlant.BackgroundTasks {
             try {
                 _options.OnEnqueued?.Invoke(workItem);
             }
-#pragma warning disable CA1031 // Do not catch general exception types
             catch (Exception e) {
-#pragma warning restore CA1031 // Do not catch general exception types
                 _logger.LogError(e, Resources.Log_ErrorInCallback, nameof(BackgroundTaskServiceOptions.OnEnqueued));
             }
+        }
+
+
+        /// <summary>
+        /// Called when a work item is dequeued.
+        /// </summary>
+        /// <param name="workItem">
+        ///   The work item.
+        /// </param>
+        private void OnDequeuedInternal(BackgroundWorkItem workItem) {
+            var queueSize = _queue.Count;
+
+            if (workItem.Activity != null) {
+                workItem.Activity.AddEvent(new ActivityEvent(nameof(EventIds.WorkItemDequeued), tags: new ActivityTagsCollection(new Dictionary<string, object?>() {
+                    ["event_id"] = EventIds.WorkItemDequeued,
+                    ["queue_size"] = queueSize
+                })));
+            }
+            EventSource.WorkItemDequeued(Name, workItem.Id, workItem.Description, queueSize);
+            LogItemDequeued(_logger, workItem);
+            OnDequeued(workItem);
         }
 
 
@@ -271,11 +337,27 @@ namespace IntelligentPlant.BackgroundTasks {
             try {
                 _options.OnDequeued?.Invoke(workItem);
             }
-#pragma warning disable CA1031 // Do not catch general exception types
             catch (Exception e) {
-#pragma warning restore CA1031 // Do not catch general exception types
                 _logger.LogError(e, Resources.Log_ErrorInCallback, nameof(BackgroundTaskServiceOptions.OnDequeued));
             }
+        }
+
+
+        /// <summary>
+        /// Called when the background task service starts running a work item.
+        /// </summary>
+        /// <param name="workItem">
+        ///   The work item.
+        /// </param>
+        private void OnRunningInternal(BackgroundWorkItem workItem) {
+            if (workItem.Activity != null) {
+                workItem.Activity.AddEvent(new ActivityEvent(nameof(EventIds.WorkItemRunning), tags: new ActivityTagsCollection(new Dictionary<string, object?>() {
+                    ["event_id"] = EventIds.WorkItemRunning
+                })));
+            }
+
+            EventSource.WorkItemRunning(Name, workItem.Id, workItem.Description);
+            LogItemRunning(_logger, workItem);
         }
 
 
@@ -288,15 +370,39 @@ namespace IntelligentPlant.BackgroundTasks {
         /// </param>
         protected virtual void OnRunning(BackgroundWorkItem workItem) {
             try {
-                EventSource.WorkItemRunning(Name, workItem.Id, workItem.Description);
-                LogItemRunning(_logger, workItem);
+                OnRunningInternal(workItem);
                 _options.OnRunning?.Invoke(workItem);
             }
-#pragma warning disable CA1031 // Do not catch general exception types
             catch (Exception e) {
-#pragma warning restore CA1031 // Do not catch general exception types
                 _logger.LogError(e, Resources.Log_ErrorInCallback, nameof(BackgroundTaskServiceOptions.OnRunning));
             }
+        }
+
+
+        /// <summary>
+        /// Called when a work item completes successfully.
+        /// </summary>
+        /// <param name="workItem">
+        ///   The work item.
+        /// </param>
+        /// <param name="elapsed">
+        ///   The elapsed time that the work item ran for, as measured by the background task 
+        ///   service.
+        /// </param>
+        private void OnCompletedInternal(BackgroundWorkItem workItem, TimeSpan elapsed) {
+            if (workItem.Activity != null) {
+                workItem.Activity.AddEvent(new ActivityEvent(nameof(EventIds.WorkItemCompleted), tags: new ActivityTagsCollection(new Dictionary<string, object?>() {
+                    ["event_id"] = EventIds.WorkItemCompleted,
+                    ["elapsed_ms"] = elapsed.TotalMilliseconds
+                })));
+
+                // Add OpenTelemetry tags specifying that the item completed successfully.
+                // https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/src/OpenTelemetry.Api/README.md#setting-status
+                workItem.Activity.SetTag("otel.status_code", "OK");
+            }
+
+            EventSource.WorkItemCompleted(Name, workItem.Id, workItem.Description, elapsed.TotalSeconds);
+            LogItemCompleted(_logger, workItem);
         }
 
 
@@ -312,15 +418,46 @@ namespace IntelligentPlant.BackgroundTasks {
         /// </param>
         protected virtual void OnCompleted(BackgroundWorkItem workItem, TimeSpan elapsed) {
             try {
-                EventSource.WorkItemCompleted(Name, workItem.Id, workItem.Description, elapsed.TotalSeconds);
-                LogItemCompleted(_logger, workItem);
+                OnCompletedInternal(workItem, elapsed);
                 _options.OnCompleted?.Invoke(workItem);
             }
-#pragma warning disable CA1031 // Do not catch general exception types
             catch (Exception e) {
-#pragma warning restore CA1031 // Do not catch general exception types
                 _logger.LogError(e, Resources.Log_ErrorInCallback, nameof(BackgroundTaskServiceOptions.OnCompleted));
             }
+            finally {
+                workItem.Dispose();
+            }
+        }
+
+
+        /// <summary>
+        /// Called when a work item completes with an error.
+        /// </summary>
+        /// <param name="workItem">
+        ///   The work item.
+        /// </param>
+        /// <param name="err">
+        ///   The error.
+        /// </param>
+        /// <param name="elapsed">
+        ///   The elapsed time that the work item ran for, as measured by the background task 
+        ///   service.
+        /// </param>
+        private void OnErrorInternal(BackgroundWorkItem workItem, Exception err, TimeSpan elapsed) {
+            if (workItem.Activity != null) {
+                workItem.Activity.AddEvent(new ActivityEvent(nameof(EventIds.WorkItemFaulted), tags: new ActivityTagsCollection(new Dictionary<string, object?>() {
+                    ["event_id"] = EventIds.WorkItemFaulted,
+                    ["elapsed_ms"] = elapsed.TotalMilliseconds
+                })));
+
+                // Add OpenTelemetry tags specifying that the item faulted.
+                // https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/src/OpenTelemetry.Api/README.md#setting-status
+                workItem.Activity.SetTag("otel.status_code", "ERROR");
+                workItem.Activity.SetTag("otel.status_description", err.Message);
+            }
+
+            EventSource.WorkItemFaulted(Name, workItem.Id, workItem.Description, elapsed.TotalSeconds);
+            LogItemFaulted(_logger, workItem, err);
         }
 
 
@@ -343,14 +480,14 @@ namespace IntelligentPlant.BackgroundTasks {
             }
 
             try {
-                EventSource.WorkItemFaulted(Name, workItem.Id, workItem.Description, elapsed.TotalSeconds);
-                LogItemFaulted(_logger, workItem, err);
+                OnErrorInternal(workItem, err, elapsed);
                 _options.OnError?.Invoke(workItem, err);
             }
-#pragma warning disable CA1031 // Do not catch general exception types
             catch (Exception e) {
-#pragma warning restore CA1031 // Do not catch general exception types
                 _logger.LogError(e, Resources.Log_ErrorInCallback, nameof(BackgroundTaskServiceOptions.OnError));
+            }
+            finally {
+                workItem.Dispose();
             }
         }
 
