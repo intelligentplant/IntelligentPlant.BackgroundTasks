@@ -66,13 +66,19 @@ namespace IntelligentPlant.BackgroundTasks {
         /// </param>
         /// <param name="activity">
         ///   The optional <see cref="System.Diagnostics.Activity"/> to associated with the work 
-        ///   item. This will be passed to the <paramref name="workItem"/> when it is executed. 
-        ///   Note that the activity will be disposed when the <see cref="BackgroundWorkItem"/> 
-        ///   is disposed!
+        ///   item. This will be passed to the <paramref name="workItem"/> when it is executed.
+        ///   If you specify a non-<see langword="null"/> value for the <paramref name="activity"/> 
+        ///   parameter, note that it will be disposed when the <see cref="BackgroundWorkItem"/> 
+        ///   is disposed.
         /// </param>
         /// <exception cref="ArgumentNullException">
         ///   <paramref name="workItem"/> is <see langword="null"/>.
         /// </exception>
+        /// <remarks>
+        ///   If you specify a non-<see langword="null"/> value for the <paramref name="activity"/> 
+        ///   parameter, note that it will be disposed when the <see cref="BackgroundWorkItem"/> 
+        ///   is disposed.
+        /// </remarks>
         public BackgroundWorkItem(Action<Activity?, CancellationToken> workItem, Activity? activity = null) {
             Activity = activity;
             Id = Activity?.Id ?? Guid.NewGuid().ToString();
@@ -89,13 +95,19 @@ namespace IntelligentPlant.BackgroundTasks {
         /// </param>
         /// <param name="activity">
         ///   The optional <see cref="System.Diagnostics.Activity"/> to associated with the work 
-        ///   item. This will be passed to the <paramref name="workItem"/> when it is executed. 
-        ///   Note that the activity will be disposed when the <see cref="BackgroundWorkItem"/> 
-        ///   is disposed!
+        ///   item. This will be passed to the <paramref name="workItem"/> when it is executed.
+        ///   If you specify a non-<see langword="null"/> value for the <paramref name="activity"/> 
+        ///   parameter, note that it will be disposed when the <see cref="BackgroundWorkItem"/> 
+        ///   is disposed.
         /// </param>
         /// <exception cref="ArgumentNullException">
         ///   <paramref name="workItem"/> is <see langword="null"/>.
         /// </exception>
+        /// <remarks>
+        ///   If you specify a non-<see langword="null"/> value for the <paramref name="activity"/> 
+        ///   parameter, note that it will be disposed when the <see cref="BackgroundWorkItem"/> 
+        ///   is disposed.
+        /// </remarks>
         public BackgroundWorkItem(Func<Activity?, CancellationToken, Task> workItem, Activity? activity = null) {
             Activity = activity;
             Id = Activity?.Id ?? Guid.NewGuid().ToString();
@@ -163,7 +175,7 @@ namespace IntelligentPlant.BackgroundTasks {
 
         /// <inheritdoc/>
         public void Dispose() {
-            Activity?.Stop();
+            Activity?.Dispose();
         }
 
 
