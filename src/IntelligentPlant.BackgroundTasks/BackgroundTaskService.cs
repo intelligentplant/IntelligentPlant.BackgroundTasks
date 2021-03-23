@@ -141,16 +141,16 @@ namespace IntelligentPlant.BackgroundTasks {
 
 
         /// <summary>
-        /// Gets the qualified OpenTelemetry tag name to use for the specified unqualified name.
+        /// Gets the qualified OpenTelemetry name to use for the specified unqualified name.
         /// </summary>
-        /// <param name="unqualifiedName">
-        ///   The unqualified tag name.
+        /// <param name="parts">
+        ///   The unqualified name parts.
         /// </param>
         /// <returns>
-        ///   The qualified tag name.
+        ///   The qualified name.
         /// </returns>
-        internal static string GetOpenTelemetryTagName(string unqualifiedName) {
-            return string.Concat("ip.", unqualifiedName);
+        internal static string GetOpenTelemetryName(params string[] parts) {
+            return string.Concat("intelligentplant.backgroundtasks.", string.Join(".",parts));
         }
 
 
@@ -269,8 +269,8 @@ namespace IntelligentPlant.BackgroundTasks {
             var queueSize = _queue.Count;
 
             if (workItem.Activity != null) {
-                workItem.Activity.AddEvent(new ActivityEvent(nameof(EventIds.WorkItemEnqueued), tags: new ActivityTagsCollection(new Dictionary<string, object?>() {
-                    ["queue_size"] = queueSize
+                workItem.Activity.AddEvent(new ActivityEvent(GetOpenTelemetryName(nameof(EventIds.WorkItemEnqueued)), tags: new ActivityTagsCollection(new Dictionary<string, object?>() {
+                    [GetOpenTelemetryName("queue_size")] = queueSize
                 })));
             }
             EventSource.WorkItemEnqueued(Name, workItem.Id, workItem.DisplayName, queueSize);
@@ -306,8 +306,8 @@ namespace IntelligentPlant.BackgroundTasks {
             var queueSize = _queue.Count;
 
             if (workItem.Activity != null) {
-                workItem.Activity.AddEvent(new ActivityEvent(nameof(EventIds.WorkItemDequeued), tags: new ActivityTagsCollection(new Dictionary<string, object?>() {
-                    ["queue_size"] = queueSize
+                workItem.Activity.AddEvent(new ActivityEvent(GetOpenTelemetryName(nameof(EventIds.WorkItemDequeued)), tags: new ActivityTagsCollection(new Dictionary<string, object?>() {
+                    [GetOpenTelemetryName("queue_size")] = queueSize
                 })));
             }
             EventSource.WorkItemDequeued(Name, workItem.Id, workItem.DisplayName, queueSize);
@@ -341,7 +341,7 @@ namespace IntelligentPlant.BackgroundTasks {
         /// </param>
         private void OnRunningInternal(BackgroundWorkItem workItem) {
             if (workItem.Activity != null) {
-                workItem.Activity.AddEvent(new ActivityEvent(nameof(EventIds.WorkItemRunning)));
+                workItem.Activity.AddEvent(new ActivityEvent(GetOpenTelemetryName(nameof(EventIds.WorkItemRunning))));
             }
 
             EventSource.WorkItemRunning(Name, workItem.Id, workItem.DisplayName);
@@ -379,9 +379,7 @@ namespace IntelligentPlant.BackgroundTasks {
         /// </param>
         private void OnCompletedInternal(BackgroundWorkItem workItem, TimeSpan elapsed) {
             if (workItem.Activity != null) {
-                workItem.Activity.AddEvent(new ActivityEvent(nameof(EventIds.WorkItemCompleted), tags: new ActivityTagsCollection(new Dictionary<string, object?>() {
-                    ["elapsed_ms"] = elapsed.TotalMilliseconds
-                })));
+                workItem.Activity.AddEvent(new ActivityEvent(GetOpenTelemetryName(nameof(EventIds.WorkItemCompleted))));
             }
 
             EventSource.WorkItemCompleted(Name, workItem.Id, workItem.DisplayName, elapsed.TotalSeconds);
@@ -428,13 +426,10 @@ namespace IntelligentPlant.BackgroundTasks {
         /// </param>
         private void OnErrorInternal(BackgroundWorkItem workItem, Exception err, TimeSpan elapsed) {
             if (workItem.Activity != null) {
-                workItem.Activity.AddEvent(new ActivityEvent(nameof(EventIds.WorkItemFaulted), tags: new ActivityTagsCollection(new Dictionary<string, object?>() {
-                    ["elapsed_ms"] = elapsed.TotalMilliseconds
-                })));
+                workItem.Activity.AddEvent(new ActivityEvent(GetOpenTelemetryName(nameof(EventIds.WorkItemFaulted))));
 
-                // Add OpenTelemetry tags specifying that the item faulted.
+                // Add an OpenTelemetry tag warning that the item faulted.
                 // https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/src/OpenTelemetry.Api/README.md#setting-status
-                workItem.Activity.SetTag("otel.status_code", "ERROR");
                 workItem.Activity.SetTag("otel.status_description", err.Message);
             }
 
