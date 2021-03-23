@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -186,6 +187,100 @@ namespace IntelligentPlant.BackgroundTasks.Tests {
             }
         }
 
+
+        [TestMethod]
+        public async Task ActivityShouldBeSetInSyncDelegate() {
+            var value = 0;
+
+            var options = new BackgroundTaskServiceOptions() {
+                AllowWorkItemRegistrationWhileStopped = true,
+            };
+
+            using (var activitySourceListener = new ActivityListener() { 
+                ShouldListenTo = x => true,
+                SampleUsingParentId = (ref ActivityCreationOptions<string> activityOptions) => ActivitySamplingResult.AllData,
+                Sample = (ref ActivityCreationOptions<ActivityContext> activityOptions) => ActivitySamplingResult.AllData
+            })
+            using (var activitySource = new ActivitySource(TestContext.TestName))
+            using (var svc = ActivatorUtilities.CreateInstance<DefaultBackgroundTaskService>(s_serviceProvider, options))
+            using (var semaphore = new SemaphoreSlim(0))
+            using (var ctSource = new CancellationTokenSource()) {
+                ActivitySource.AddActivityListener(activitySourceListener);
+
+                using (var parentActivity = activitySource.StartActivity("Parent")) {
+                    svc.QueueBackgroundWorkItem(ct => {
+                        if (Activity.Current == null || !string.Equals(Activity.Current.DisplayName, TestContext.TestName, StringComparison.Ordinal)) {
+                            value = 0;
+                        }
+                        else {
+                            value = 1;
+                        }
+                        semaphore.Release();
+                    }, activitySource.StartActivity(TestContext.TestName));
+
+                    Assert.AreEqual(1, svc.QueuedItemCount);
+
+                    var run = svc.RunAsync(ctSource.Token);
+
+                    var lockObtained = await semaphore.WaitAsync(5000);
+
+                    Assert.IsTrue(lockObtained);
+                    Assert.AreEqual(0, svc.QueuedItemCount);
+                    Assert.AreEqual(1, value);
+
+                    ctSource.Cancel();
+                    await run;
+                }
+            }
+        }
+
+
+        [TestMethod]
+        public async Task ActivityShouldBeSetInAsyncDelegate() {
+            var value = 0;
+
+            var options = new BackgroundTaskServiceOptions() {
+                AllowWorkItemRegistrationWhileStopped = true,
+            };
+
+            using (var activitySourceListener = new ActivityListener() {
+                ShouldListenTo = x => true,
+                SampleUsingParentId = (ref ActivityCreationOptions<string> activityOptions) => ActivitySamplingResult.AllData,
+                Sample = (ref ActivityCreationOptions<ActivityContext> activityOptions) => ActivitySamplingResult.AllData
+            })
+            using (var activitySource = new ActivitySource(TestContext.TestName))
+            using (var svc = ActivatorUtilities.CreateInstance<DefaultBackgroundTaskService>(s_serviceProvider, options))
+            using (var semaphore = new SemaphoreSlim(0))
+            using (var ctSource = new CancellationTokenSource()) {
+                ActivitySource.AddActivityListener(activitySourceListener);
+
+                using (var parentActivity = activitySource.StartActivity("Parent")) {
+                    svc.QueueBackgroundWorkItem(ct => {
+                        if (Activity.Current == null || !string.Equals(Activity.Current.DisplayName, TestContext.TestName, StringComparison.Ordinal)) {
+                            value = 0;
+                        }
+                        else {
+                            value = 1;
+                        }
+                        semaphore.Release();
+                        return Task.CompletedTask;
+                    }, activitySource.StartActivity(TestContext.TestName));
+
+                    Assert.AreEqual(1, svc.QueuedItemCount);
+
+                    var run = svc.RunAsync(ctSource.Token);
+
+                    var lockObtained = await semaphore.WaitAsync(5000);
+
+                    Assert.IsTrue(lockObtained);
+                    Assert.AreEqual(0, svc.QueuedItemCount);
+                    Assert.AreEqual(1, value);
+
+                    ctSource.Cancel();
+                    await run;
+                }
+            }
+        }
 
     }
 }
