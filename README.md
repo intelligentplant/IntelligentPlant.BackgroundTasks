@@ -105,12 +105,12 @@ When running on .NET Core 3.0 or later, event counters are available via the `In
 
 # OpenTelemetry
 
-[OpenTelemetry](https://github.com/open-telemetry)-compatible instrumentation for background work items is emitted via the `ActivitySource` type in the [System.Diagnostics.DiagnosticSource](https://www.nuget.org/packages/System.Diagnostics.DiagnosticSource) NuGet package.
+[OpenTelemetry](https://github.com/open-telemetry)-compatible instrumentation for background work items is emitted via the `Activity` objects specified when registering background work items. The `ActivitySource` type in the [System.Diagnostics.DiagnosticSource](https://www.nuget.org/packages/System.Diagnostics.DiagnosticSource) NuGet package is used to create these `Activity` instances.
 
 To enable OpenTelemetry instrumentation in an ASP.NET Core application:
 
 1. Follow the instructions for enabling ASP.NET Core OpenTelemetry instrumentation [here](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/src/OpenTelemetry.Instrumentation.AspNetCore/README.md).
-2. In your `ConfigureServices` method in your `Startup.cs` file, enable instrumentation for the `ActivitySource` instances you want to record:
+2. In your `ConfigureServices` method in your `Startup.cs` file, enable instrumentation for the custom `ActivitySource` instances you want to record:
 
 ```csharp
 services.AddOpenTelemetryTracing(builder => {
