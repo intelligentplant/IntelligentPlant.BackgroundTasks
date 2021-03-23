@@ -17,7 +17,7 @@ namespace IntelligentPlant.BackgroundTasks {
         /// <summary>
         /// Adds a synchronous work item to the queue.
         /// </summary>
-        /// <param name="scheduler">
+        /// <param name="backgroundTaskService">
         ///   The <see cref="IBackgroundTaskService"/>.
         /// </param>
         /// <param name="workItem">
@@ -34,25 +34,25 @@ namespace IntelligentPlant.BackgroundTasks {
         ///   The unique identifier for the queued work item.
         /// </returns>
         /// <exception cref="ArgumentNullException">
-        ///   <paramref name="scheduler"/> is <see langword="null"/>.
+        ///   <paramref name="backgroundTaskService"/> is <see langword="null"/>.
         /// </exception>
         /// <exception cref="ArgumentNullException">
         ///   <paramref name="workItem"/> is <see langword="null"/>.
         /// </exception>
-        public static string QueueBackgroundWorkItem(this IBackgroundTaskService scheduler, Action<Activity?, CancellationToken> workItem, Activity? activity = null, CancellationToken cancellationToken = default) {
-            if (scheduler == null) {
-                throw new ArgumentNullException(nameof(scheduler));
+        public static string QueueBackgroundWorkItem(this IBackgroundTaskService backgroundTaskService, Action<Activity?, CancellationToken> workItem, Activity? activity = null, CancellationToken cancellationToken = default) {
+            if (backgroundTaskService == null) {
+                throw new ArgumentNullException(nameof(backgroundTaskService));
             }
             if (workItem == null) {
                 throw new ArgumentNullException(nameof(workItem));
             }
 
             if (cancellationToken != default) {
-                return scheduler.QueueBackgroundWorkItem(workItem, activity, new[] { cancellationToken });
+                return backgroundTaskService.QueueBackgroundWorkItem(workItem, activity, new[] { cancellationToken });
             }
 
             var item = new BackgroundWorkItem(workItem, activity);
-            scheduler.QueueBackgroundWorkItem(item);
+            backgroundTaskService.QueueBackgroundWorkItem(item);
 
             return item.Id;
         }
@@ -61,7 +61,7 @@ namespace IntelligentPlant.BackgroundTasks {
         /// <summary>
         /// Adds an asynchronous work item to the queue.
         /// </summary>
-        /// <param name="scheduler">
+        /// <param name="backgroundTaskService">
         ///   The <see cref="IBackgroundTaskService"/>.
         /// </param>
         /// <param name="workItem">
@@ -78,25 +78,25 @@ namespace IntelligentPlant.BackgroundTasks {
         ///   The unique identifier for the queued work item.
         /// </returns>
         /// <exception cref="ArgumentNullException">
-        ///   <paramref name="scheduler"/> is <see langword="null"/>.
+        ///   <paramref name="backgroundTaskService"/> is <see langword="null"/>.
         /// </exception>
         /// <exception cref="ArgumentNullException">
         ///   <paramref name="workItem"/> is <see langword="null"/>.
         /// </exception>
-        public static string QueueBackgroundWorkItem(this IBackgroundTaskService scheduler, Func<Activity?, CancellationToken, Task> workItem, Activity? activity = null, CancellationToken cancellationToken = default) {
-            if (scheduler == null) {
-                throw new ArgumentNullException(nameof(scheduler));
+        public static string QueueBackgroundWorkItem(this IBackgroundTaskService backgroundTaskService, Func<Activity?, CancellationToken, Task> workItem, Activity? activity = null, CancellationToken cancellationToken = default) {
+            if (backgroundTaskService == null) {
+                throw new ArgumentNullException(nameof(backgroundTaskService));
             }
             if (workItem == null) {
                 throw new ArgumentNullException(nameof(workItem));
             }
 
             if (cancellationToken != default) {
-                return scheduler.QueueBackgroundWorkItem(workItem, activity, new[] { cancellationToken });
+                return backgroundTaskService.QueueBackgroundWorkItem(workItem, activity, new[] { cancellationToken });
             }
 
             var item = new BackgroundWorkItem(workItem, activity);
-            scheduler.QueueBackgroundWorkItem(item);
+            backgroundTaskService.QueueBackgroundWorkItem(item);
 
             return item.Id;
         }
@@ -108,7 +108,7 @@ namespace IntelligentPlant.BackgroundTasks {
         /// <summary>
         /// Adds a synchronous work item to the queue.
         /// </summary>
-        /// <param name="scheduler">
+        /// <param name="backgroundTaskService">
         ///   The <see cref="IBackgroundTaskService"/>.
         /// </param>
         /// <param name="workItem">
@@ -125,25 +125,25 @@ namespace IntelligentPlant.BackgroundTasks {
         ///   The unique identifier for the queued work item.
         /// </returns>
         /// <exception cref="ArgumentNullException">
-        ///   <paramref name="scheduler"/> is <see langword="null"/>.
+        ///   <paramref name="backgroundTaskService"/> is <see langword="null"/>.
         /// </exception>
         /// <exception cref="ArgumentNullException">
         ///   <paramref name="workItem"/> is <see langword="null"/>.
         /// </exception>
-        public static string QueueBackgroundWorkItem(this IBackgroundTaskService scheduler, Action<CancellationToken> workItem, Activity? activity = null, CancellationToken cancellationToken = default) {
-            if (scheduler == null) {
-                throw new ArgumentNullException(nameof(scheduler));
+        public static string QueueBackgroundWorkItem(this IBackgroundTaskService backgroundTaskService, Action<CancellationToken> workItem, Activity? activity = null, CancellationToken cancellationToken = default) {
+            if (backgroundTaskService == null) {
+                throw new ArgumentNullException(nameof(backgroundTaskService));
             }
             if (workItem == null) {
                 throw new ArgumentNullException(nameof(workItem));
             }
 
             if (cancellationToken != default) {
-                return scheduler.QueueBackgroundWorkItem(workItem, activity, new[] { cancellationToken });
+                return backgroundTaskService.QueueBackgroundWorkItem(workItem, activity, new[] { cancellationToken });
             }
 
             var item = new BackgroundWorkItem((a, ct) => workItem(ct), activity);
-            scheduler.QueueBackgroundWorkItem(item);
+            backgroundTaskService.QueueBackgroundWorkItem(item);
 
             return item.Id;
         }
@@ -152,7 +152,7 @@ namespace IntelligentPlant.BackgroundTasks {
         /// <summary>
         /// Adds an asynchronous work item to the queue.
         /// </summary>
-        /// <param name="scheduler">
+        /// <param name="backgroundTaskService">
         ///   The <see cref="IBackgroundTaskService"/>.
         /// </param>
         /// <param name="workItem">
@@ -169,25 +169,25 @@ namespace IntelligentPlant.BackgroundTasks {
         ///   The unique identifier for the queued work item.
         /// </returns>
         /// <exception cref="ArgumentNullException">
-        ///   <paramref name="scheduler"/> is <see langword="null"/>.
+        ///   <paramref name="backgroundTaskService"/> is <see langword="null"/>.
         /// </exception>
         /// <exception cref="ArgumentNullException">
         ///   <paramref name="workItem"/> is <see langword="null"/>.
         /// </exception>
-        public static string QueueBackgroundWorkItem(this IBackgroundTaskService scheduler, Func<CancellationToken, Task> workItem, Activity? activity = null, CancellationToken cancellationToken = default) {
-            if (scheduler == null) {
-                throw new ArgumentNullException(nameof(scheduler));
+        public static string QueueBackgroundWorkItem(this IBackgroundTaskService backgroundTaskService, Func<CancellationToken, Task> workItem, Activity? activity = null, CancellationToken cancellationToken = default) {
+            if (backgroundTaskService == null) {
+                throw new ArgumentNullException(nameof(backgroundTaskService));
             }
             if (workItem == null) {
                 throw new ArgumentNullException(nameof(workItem));
             }
 
             if (cancellationToken != default) {
-                return scheduler.QueueBackgroundWorkItem(workItem, activity, new[] { cancellationToken });
+                return backgroundTaskService.QueueBackgroundWorkItem(workItem, activity, new[] { cancellationToken });
             }
 
             var item = new BackgroundWorkItem((a, ct) => workItem(ct), activity);
-            scheduler.QueueBackgroundWorkItem(item);
+            backgroundTaskService.QueueBackgroundWorkItem(item);
 
             return item.Id;
         }
@@ -199,7 +199,7 @@ namespace IntelligentPlant.BackgroundTasks {
         /// <summary>
         /// Adds a synchronous work item to the queue.
         /// </summary>
-        /// <param name="scheduler">
+        /// <param name="backgroundTaskService">
         ///   The <see cref="IBackgroundTaskService"/>.
         /// </param>
         /// <param name="workItem">
@@ -218,20 +218,20 @@ namespace IntelligentPlant.BackgroundTasks {
         ///   The unique identifier for the queued work item.
         /// </returns>
         /// <exception cref="ArgumentNullException">
-        ///   <paramref name="scheduler"/> is <see langword="null"/>.
+        ///   <paramref name="backgroundTaskService"/> is <see langword="null"/>.
         /// </exception>
         /// <exception cref="ArgumentNullException">
         ///   <paramref name="workItem"/> is <see langword="null"/>.
         /// </exception>
-        public static string QueueBackgroundWorkItem(this IBackgroundTaskService scheduler, Action<Activity?, CancellationToken> workItem, Activity? activity, params CancellationToken[] tokens) {
-            return QueueBackgroundWorkItem(scheduler, workItem, activity, (IEnumerable<CancellationToken>) tokens);
+        public static string QueueBackgroundWorkItem(this IBackgroundTaskService backgroundTaskService, Action<Activity?, CancellationToken> workItem, Activity? activity, params CancellationToken[] tokens) {
+            return QueueBackgroundWorkItem(backgroundTaskService, workItem, activity, (IEnumerable<CancellationToken>) tokens);
         }
 
 
         /// <summary>
         /// Adds a synchronous work item to the queue.
         /// </summary>
-        /// <param name="scheduler">
+        /// <param name="backgroundTaskService">
         ///   The <see cref="IBackgroundTaskService"/>.
         /// </param>
         /// <param name="workItem">
@@ -250,14 +250,14 @@ namespace IntelligentPlant.BackgroundTasks {
         ///   The unique identifier for the queued work item.
         /// </returns>
         /// <exception cref="ArgumentNullException">
-        ///   <paramref name="scheduler"/> is <see langword="null"/>.
+        ///   <paramref name="backgroundTaskService"/> is <see langword="null"/>.
         /// </exception>
         /// <exception cref="ArgumentNullException">
         ///   <paramref name="workItem"/> is <see langword="null"/>.
         /// </exception>
-        public static string QueueBackgroundWorkItem(this IBackgroundTaskService scheduler, Action<Activity?, CancellationToken> workItem, Activity? activity, IEnumerable<CancellationToken> tokens) {
-            if (scheduler == null) {
-                throw new ArgumentNullException(nameof(scheduler));
+        public static string QueueBackgroundWorkItem(this IBackgroundTaskService backgroundTaskService, Action<Activity?, CancellationToken> workItem, Activity? activity, IEnumerable<CancellationToken> tokens) {
+            if (backgroundTaskService == null) {
+                throw new ArgumentNullException(nameof(backgroundTaskService));
             }
             if (workItem == null) {
                 throw new ArgumentNullException(nameof(workItem));
@@ -265,7 +265,7 @@ namespace IntelligentPlant.BackgroundTasks {
 
             if (tokens == null || !tokens.Any()) {
                 // No additional tokens; just queue the work item as normal.
-                return scheduler.QueueBackgroundWorkItem(workItem, activity);
+                return backgroundTaskService.QueueBackgroundWorkItem(workItem, activity);
             }
 
             // We're constructing a new delegate to allow us to listen to multiple cancellation 
@@ -273,7 +273,7 @@ namespace IntelligentPlant.BackgroundTasks {
             // original delegate provided to us, or the auto-generated description will reference 
             // this method instead of the original delegate.
 
-            return scheduler.QueueBackgroundWorkItem((a, ct) => {
+            return backgroundTaskService.QueueBackgroundWorkItem((a, ct) => {
                 using (var compositeTokenSource = CancellationTokenSource.CreateLinkedTokenSource(new[] { ct }.Concat(tokens).ToArray())) {
                     workItem(a, compositeTokenSource.Token);
                 }
@@ -284,7 +284,7 @@ namespace IntelligentPlant.BackgroundTasks {
         /// <summary>
         /// Adds an asynchronous work item to the queue.
         /// </summary>
-        /// <param name="scheduler">
+        /// <param name="backgroundTaskService">
         ///   The <see cref="IBackgroundTaskService"/>.
         /// </param>
         /// <param name="workItem">
@@ -303,20 +303,20 @@ namespace IntelligentPlant.BackgroundTasks {
         ///   The unique identifier for the queued work item.
         /// </returns>
         /// <exception cref="ArgumentNullException">
-        ///   <paramref name="scheduler"/> is <see langword="null"/>.
+        ///   <paramref name="backgroundTaskService"/> is <see langword="null"/>.
         /// </exception>
         /// <exception cref="ArgumentNullException">
         ///   <paramref name="workItem"/> is <see langword="null"/>.
         /// </exception>
-        public static string QueueBackgroundWorkItem(this IBackgroundTaskService scheduler, Func<Activity?, CancellationToken, Task> workItem, Activity? activity, params CancellationToken[] tokens) {
-            return QueueBackgroundWorkItem(scheduler, workItem, activity, (IEnumerable<CancellationToken>) tokens);
+        public static string QueueBackgroundWorkItem(this IBackgroundTaskService backgroundTaskService, Func<Activity?, CancellationToken, Task> workItem, Activity? activity, params CancellationToken[] tokens) {
+            return QueueBackgroundWorkItem(backgroundTaskService, workItem, activity, (IEnumerable<CancellationToken>) tokens);
         }
 
 
         /// <summary>
         /// Adds an asynchronous work item to the queue.
         /// </summary>
-        /// <param name="scheduler">
+        /// <param name="backgroundTaskService">
         ///   The <see cref="IBackgroundTaskService"/>.
         /// </param>
         /// <param name="workItem">
@@ -335,14 +335,14 @@ namespace IntelligentPlant.BackgroundTasks {
         ///   The unique identifier for the queued work item.
         /// </returns>
         /// <exception cref="ArgumentNullException">
-        ///   <paramref name="scheduler"/> is <see langword="null"/>.
+        ///   <paramref name="backgroundTaskService"/> is <see langword="null"/>.
         /// </exception>
         /// <exception cref="ArgumentNullException">
         ///   <paramref name="workItem"/> is <see langword="null"/>.
         /// </exception>
-        public static string QueueBackgroundWorkItem(this IBackgroundTaskService scheduler, Func<Activity?, CancellationToken, Task> workItem, Activity? activity, IEnumerable<CancellationToken> tokens) {
-            if (scheduler == null) {
-                throw new ArgumentNullException(nameof(scheduler));
+        public static string QueueBackgroundWorkItem(this IBackgroundTaskService backgroundTaskService, Func<Activity?, CancellationToken, Task> workItem, Activity? activity, IEnumerable<CancellationToken> tokens) {
+            if (backgroundTaskService == null) {
+                throw new ArgumentNullException(nameof(backgroundTaskService));
             }
             if (workItem == null) {
                 throw new ArgumentNullException(nameof(workItem));
@@ -350,7 +350,7 @@ namespace IntelligentPlant.BackgroundTasks {
 
             if (tokens == null || !tokens.Any()) {
                 // No additional tokens; just queue the work item as normal.
-                return scheduler.QueueBackgroundWorkItem(workItem, activity);
+                return backgroundTaskService.QueueBackgroundWorkItem(workItem, activity);
             }
 
             // We're constructing a new delegate to allow us to listen to multiple cancellation 
@@ -358,7 +358,7 @@ namespace IntelligentPlant.BackgroundTasks {
             // original delegate provided to us, or the auto-generated description will reference 
             // this method instead of the original delegate.
 
-            return scheduler.QueueBackgroundWorkItem(async (a, ct) => {
+            return backgroundTaskService.QueueBackgroundWorkItem(async (a, ct) => {
                 using (var compositeTokenSource = CancellationTokenSource.CreateLinkedTokenSource(new[] { ct }.Concat(tokens).ToArray())) {
                     await workItem(a, compositeTokenSource.Token).ConfigureAwait(false);
                 }
@@ -372,7 +372,7 @@ namespace IntelligentPlant.BackgroundTasks {
         /// <summary>
         /// Adds a synchronous work item to the queue.
         /// </summary>
-        /// <param name="scheduler">
+        /// <param name="backgroundTaskService">
         ///   The <see cref="IBackgroundTaskService"/>.
         /// </param>
         /// <param name="workItem">
@@ -391,20 +391,20 @@ namespace IntelligentPlant.BackgroundTasks {
         ///   The unique identifier for the queued work item.
         /// </returns>
         /// <exception cref="ArgumentNullException">
-        ///   <paramref name="scheduler"/> is <see langword="null"/>.
+        ///   <paramref name="backgroundTaskService"/> is <see langword="null"/>.
         /// </exception>
         /// <exception cref="ArgumentNullException">
         ///   <paramref name="workItem"/> is <see langword="null"/>.
         /// </exception>
-        public static string QueueBackgroundWorkItem(this IBackgroundTaskService scheduler, Action<CancellationToken> workItem, Activity? activity, params CancellationToken[] tokens) {
-            return QueueBackgroundWorkItem(scheduler, workItem, activity, (IEnumerable<CancellationToken>) tokens);
+        public static string QueueBackgroundWorkItem(this IBackgroundTaskService backgroundTaskService, Action<CancellationToken> workItem, Activity? activity, params CancellationToken[] tokens) {
+            return QueueBackgroundWorkItem(backgroundTaskService, workItem, activity, (IEnumerable<CancellationToken>) tokens);
         }
 
 
         /// <summary>
         /// Adds a synchronous work item to the queue.
         /// </summary>
-        /// <param name="scheduler">
+        /// <param name="backgroundTaskService">
         ///   The <see cref="IBackgroundTaskService"/>.
         /// </param>
         /// <param name="workItem">
@@ -423,14 +423,14 @@ namespace IntelligentPlant.BackgroundTasks {
         ///   The unique identifier for the queued work item.
         /// </returns>
         /// <exception cref="ArgumentNullException">
-        ///   <paramref name="scheduler"/> is <see langword="null"/>.
+        ///   <paramref name="backgroundTaskService"/> is <see langword="null"/>.
         /// </exception>
         /// <exception cref="ArgumentNullException">
         ///   <paramref name="workItem"/> is <see langword="null"/>.
         /// </exception>
-        public static string QueueBackgroundWorkItem(this IBackgroundTaskService scheduler, Action<CancellationToken> workItem, Activity? activity, IEnumerable<CancellationToken> tokens) {
-            if (scheduler == null) {
-                throw new ArgumentNullException(nameof(scheduler));
+        public static string QueueBackgroundWorkItem(this IBackgroundTaskService backgroundTaskService, Action<CancellationToken> workItem, Activity? activity, IEnumerable<CancellationToken> tokens) {
+            if (backgroundTaskService == null) {
+                throw new ArgumentNullException(nameof(backgroundTaskService));
             }
             if (workItem == null) {
                 throw new ArgumentNullException(nameof(workItem));
@@ -438,7 +438,7 @@ namespace IntelligentPlant.BackgroundTasks {
 
             if (tokens == null || !tokens.Any()) {
                 // No additional tokens; just queue the work item as normal.
-                return scheduler.QueueBackgroundWorkItem(workItem, activity);
+                return backgroundTaskService.QueueBackgroundWorkItem(workItem, activity);
             }
 
             // We're constructing a new delegate to allow us to listen to multiple cancellation 
@@ -446,7 +446,7 @@ namespace IntelligentPlant.BackgroundTasks {
             // original delegate provided to us, or the auto-generated description will reference 
             // this method instead of the original delegate.
 
-            return scheduler.QueueBackgroundWorkItem((a, ct) => {
+            return backgroundTaskService.QueueBackgroundWorkItem((a, ct) => {
                 using (var compositeTokenSource = CancellationTokenSource.CreateLinkedTokenSource(new[] { ct }.Concat(tokens).ToArray())) {
                     workItem(compositeTokenSource.Token);
                 }
@@ -457,7 +457,7 @@ namespace IntelligentPlant.BackgroundTasks {
         /// <summary>
         /// Adds an asynchronous work item to the queue.
         /// </summary>
-        /// <param name="scheduler">
+        /// <param name="backgroundTaskService">
         ///   The <see cref="IBackgroundTaskService"/>.
         /// </param>
         /// <param name="workItem">
@@ -476,20 +476,20 @@ namespace IntelligentPlant.BackgroundTasks {
         ///   The unique identifier for the queued work item.
         /// </returns>
         /// <exception cref="ArgumentNullException">
-        ///   <paramref name="scheduler"/> is <see langword="null"/>.
+        ///   <paramref name="backgroundTaskService"/> is <see langword="null"/>.
         /// </exception>
         /// <exception cref="ArgumentNullException">
         ///   <paramref name="workItem"/> is <see langword="null"/>.
         /// </exception>
-        public static string QueueBackgroundWorkItem(this IBackgroundTaskService scheduler, Func<CancellationToken, Task> workItem, Activity? activity, params CancellationToken[] tokens) {
-            return QueueBackgroundWorkItem(scheduler, workItem, activity, (IEnumerable<CancellationToken>) tokens);
+        public static string QueueBackgroundWorkItem(this IBackgroundTaskService backgroundTaskService, Func<CancellationToken, Task> workItem, Activity? activity, params CancellationToken[] tokens) {
+            return QueueBackgroundWorkItem(backgroundTaskService, workItem, activity, (IEnumerable<CancellationToken>) tokens);
         }
 
 
         /// <summary>
         /// Adds an asynchronous work item to the queue.
         /// </summary>
-        /// <param name="scheduler">
+        /// <param name="backgroundTaskService">
         ///   The <see cref="IBackgroundTaskService"/>.
         /// </param>
         /// <param name="workItem">
@@ -508,14 +508,14 @@ namespace IntelligentPlant.BackgroundTasks {
         ///   The unique identifier for the queued work item.
         /// </returns>
         /// <exception cref="ArgumentNullException">
-        ///   <paramref name="scheduler"/> is <see langword="null"/>.
+        ///   <paramref name="backgroundTaskService"/> is <see langword="null"/>.
         /// </exception>
         /// <exception cref="ArgumentNullException">
         ///   <paramref name="workItem"/> is <see langword="null"/>.
         /// </exception>
-        public static string QueueBackgroundWorkItem(this IBackgroundTaskService scheduler, Func<CancellationToken, Task> workItem, Activity? activity, IEnumerable<CancellationToken> tokens) {
-            if (scheduler == null) {
-                throw new ArgumentNullException(nameof(scheduler));
+        public static string QueueBackgroundWorkItem(this IBackgroundTaskService backgroundTaskService, Func<CancellationToken, Task> workItem, Activity? activity, IEnumerable<CancellationToken> tokens) {
+            if (backgroundTaskService == null) {
+                throw new ArgumentNullException(nameof(backgroundTaskService));
             }
             if (workItem == null) {
                 throw new ArgumentNullException(nameof(workItem));
@@ -523,7 +523,7 @@ namespace IntelligentPlant.BackgroundTasks {
 
             if (tokens == null || !tokens.Any()) {
                 // No additional tokens; just queue the work item as normal.
-                return scheduler.QueueBackgroundWorkItem(workItem, activity);
+                return backgroundTaskService.QueueBackgroundWorkItem(workItem, activity);
             }
 
             // We're constructing a new delegate to allow us to listen to multiple cancellation 
@@ -531,7 +531,7 @@ namespace IntelligentPlant.BackgroundTasks {
             // original delegate provided to us, or the auto-generated description will reference 
             // this method instead of the original delegate.
 
-            return scheduler.QueueBackgroundWorkItem(async (a, ct) => {
+            return backgroundTaskService.QueueBackgroundWorkItem(async (a, ct) => {
                 using (var compositeTokenSource = CancellationTokenSource.CreateLinkedTokenSource(new[] { ct }.Concat(tokens).ToArray())) {
                     await workItem(compositeTokenSource.Token).ConfigureAwait(false);
                 }
