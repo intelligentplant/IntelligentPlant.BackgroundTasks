@@ -16,19 +16,11 @@ namespace IntelligentPlant.BackgroundTasks {
     public abstract partial class BackgroundTaskService : IBackgroundTaskService, IDisposable {
 
         /// <summary>
-        /// The name used by the <see cref="System.Diagnostics.ActivitySource"/> and 
-        /// <see cref="System.Diagnostics.Tracing.EventSource"/> associated with the background 
-        /// task service.
+        /// The name used by the <see cref="System.Diagnostics.Tracing.EventSource"/> associated 
+        /// with the background task service.
         /// </summary>
         public const string DiagnosticsSourceName = "IntelligentPlant.BackgroundTasks";
 
-        /// <summary>
-        /// <see cref="System.Diagnostics.ActivitySource"/> for the library.
-        /// </summary>
-        public static ActivitySource ActivitySource { get; } = new ActivitySource(
-            DiagnosticsSourceName,
-            typeof(BackgroundTaskService).Assembly.GetName().Version.ToString(3)
-        );
 
         /// <summary>
         /// The default background task service.
@@ -158,7 +150,7 @@ namespace IntelligentPlant.BackgroundTasks {
         ///   The qualified tag name.
         /// </returns>
         internal static string GetOpenTelemetryTagName(string unqualifiedName) {
-            return string.Concat("ipbt.", unqualifiedName);
+            return string.Concat("ip.", unqualifiedName);
         }
 
 
@@ -278,11 +270,10 @@ namespace IntelligentPlant.BackgroundTasks {
 
             if (workItem.Activity != null) {
                 workItem.Activity.AddEvent(new ActivityEvent(nameof(EventIds.WorkItemEnqueued), tags: new ActivityTagsCollection(new Dictionary<string, object?>() {
-                    ["event_id"] = EventIds.WorkItemEnqueued,
                     ["queue_size"] = queueSize
                 })));
             }
-            EventSource.WorkItemEnqueued(Name, workItem.Id, workItem.Description, queueSize);
+            EventSource.WorkItemEnqueued(Name, workItem.Id, workItem.DisplayName, queueSize);
             LogItemEnqueued(_logger, workItem, IsRunning);
             OnQueued(workItem);
         }
@@ -316,11 +307,10 @@ namespace IntelligentPlant.BackgroundTasks {
 
             if (workItem.Activity != null) {
                 workItem.Activity.AddEvent(new ActivityEvent(nameof(EventIds.WorkItemDequeued), tags: new ActivityTagsCollection(new Dictionary<string, object?>() {
-                    ["event_id"] = EventIds.WorkItemDequeued,
                     ["queue_size"] = queueSize
                 })));
             }
-            EventSource.WorkItemDequeued(Name, workItem.Id, workItem.Description, queueSize);
+            EventSource.WorkItemDequeued(Name, workItem.Id, workItem.DisplayName, queueSize);
             LogItemDequeued(_logger, workItem);
             OnDequeued(workItem);
         }
@@ -351,12 +341,10 @@ namespace IntelligentPlant.BackgroundTasks {
         /// </param>
         private void OnRunningInternal(BackgroundWorkItem workItem) {
             if (workItem.Activity != null) {
-                workItem.Activity.AddEvent(new ActivityEvent(nameof(EventIds.WorkItemRunning), tags: new ActivityTagsCollection(new Dictionary<string, object?>() {
-                    ["event_id"] = EventIds.WorkItemRunning
-                })));
+                workItem.Activity.AddEvent(new ActivityEvent(nameof(EventIds.WorkItemRunning)));
             }
 
-            EventSource.WorkItemRunning(Name, workItem.Id, workItem.Description);
+            EventSource.WorkItemRunning(Name, workItem.Id, workItem.DisplayName);
             LogItemRunning(_logger, workItem);
         }
 
@@ -392,16 +380,11 @@ namespace IntelligentPlant.BackgroundTasks {
         private void OnCompletedInternal(BackgroundWorkItem workItem, TimeSpan elapsed) {
             if (workItem.Activity != null) {
                 workItem.Activity.AddEvent(new ActivityEvent(nameof(EventIds.WorkItemCompleted), tags: new ActivityTagsCollection(new Dictionary<string, object?>() {
-                    ["event_id"] = EventIds.WorkItemCompleted,
                     ["elapsed_ms"] = elapsed.TotalMilliseconds
                 })));
-
-                // Add OpenTelemetry tags specifying that the item completed successfully.
-                // https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/src/OpenTelemetry.Api/README.md#setting-status
-                workItem.Activity.SetTag("otel.status_code", "OK");
             }
 
-            EventSource.WorkItemCompleted(Name, workItem.Id, workItem.Description, elapsed.TotalSeconds);
+            EventSource.WorkItemCompleted(Name, workItem.Id, workItem.DisplayName, elapsed.TotalSeconds);
             LogItemCompleted(_logger, workItem);
         }
 
@@ -446,7 +429,6 @@ namespace IntelligentPlant.BackgroundTasks {
         private void OnErrorInternal(BackgroundWorkItem workItem, Exception err, TimeSpan elapsed) {
             if (workItem.Activity != null) {
                 workItem.Activity.AddEvent(new ActivityEvent(nameof(EventIds.WorkItemFaulted), tags: new ActivityTagsCollection(new Dictionary<string, object?>() {
-                    ["event_id"] = EventIds.WorkItemFaulted,
                     ["elapsed_ms"] = elapsed.TotalMilliseconds
                 })));
 
@@ -456,7 +438,7 @@ namespace IntelligentPlant.BackgroundTasks {
                 workItem.Activity.SetTag("otel.status_description", err.Message);
             }
 
-            EventSource.WorkItemFaulted(Name, workItem.Id, workItem.Description, elapsed.TotalSeconds);
+            EventSource.WorkItemFaulted(Name, workItem.Id, workItem.DisplayName, elapsed.TotalSeconds);
             LogItemFaulted(_logger, workItem, err);
         }
 

@@ -34,9 +34,9 @@ namespace IntelligentPlant.BackgroundTasks {
         public string Id { get; }
 
         /// <summary>
-        /// Gets the optional description for the work item.
+        /// Gets the display name for the work item.
         /// </summary>
-        public string? Description { get; }
+        public string? DisplayName => Activity?.DisplayName;
 
         /// <summary>
         /// The synchronous work item. The value will be <see langword="null"/> if an asynchronous 
@@ -64,24 +64,20 @@ namespace IntelligentPlant.BackgroundTasks {
         /// <param name="workItem">
         ///   The work item.
         /// </param>
-        /// <param name="description">
-        ///   The optional description for the work item. if no description is specified, a 
-        ///   description will be constructed using the <see cref="MethodInfo"/> for the 
-        ///   <paramref name="workItem"/>
+        /// <param name="activity">
+        ///   The optional <see cref="System.Diagnostics.Activity"/> to associated with the work 
+        ///   item. This will be passed to the <paramref name="workItem"/> when it is executed. 
+        ///   Note that the activity will be disposed when the <see cref="BackgroundWorkItem"/> 
+        ///   is disposed!
         /// </param>
         /// <exception cref="ArgumentNullException">
         ///   <paramref name="workItem"/> is <see langword="null"/>.
         /// </exception>
-        public BackgroundWorkItem(Action<Activity?, CancellationToken> workItem, string? description = null) {
-            Activity = BackgroundTaskService.ActivitySource.StartActivity("background_task_sync");
+        public BackgroundWorkItem(Action<Activity?, CancellationToken> workItem, Activity? activity = null) {
+            Activity = activity;
             Id = Activity?.Id ?? Guid.NewGuid().ToString();
             WorkItem = workItem ?? throw new ArgumentNullException(nameof(workItem));
             WorkItemAsync = null;
-            Description = description;
-
-            if (!string.IsNullOrWhiteSpace(description)) {
-                Activity?.AddTag(BackgroundTaskService.GetOpenTelemetryTagName("description"), description);
-            }
         }
 
 
@@ -91,24 +87,20 @@ namespace IntelligentPlant.BackgroundTasks {
         /// <param name="workItem">
         ///   The work item.
         /// </param>
-        /// <param name="description">
-        ///   The optional description for the work item. if no description is specified, a 
-        ///   description will be constructed using the <see cref="MethodInfo"/> for the 
-        ///   <paramref name="workItem"/>
+        /// <param name="activity">
+        ///   The optional <see cref="System.Diagnostics.Activity"/> to associated with the work 
+        ///   item. This will be passed to the <paramref name="workItem"/> when it is executed. 
+        ///   Note that the activity will be disposed when the <see cref="BackgroundWorkItem"/> 
+        ///   is disposed!
         /// </param>
         /// <exception cref="ArgumentNullException">
         ///   <paramref name="workItem"/> is <see langword="null"/>.
         /// </exception>
-        public BackgroundWorkItem(Func<Activity?, CancellationToken, Task> workItem, string? description = null) {
-            Activity = BackgroundTaskService.ActivitySource.StartActivity("background_task_async");
+        public BackgroundWorkItem(Func<Activity?, CancellationToken, Task> workItem, Activity? activity = null) {
+            Activity = activity;
             Id = Activity?.Id ?? Guid.NewGuid().ToString();
             WorkItem = null;
             WorkItemAsync = workItem ?? throw new ArgumentNullException(nameof(workItem));
-            Description = description;
-
-            if (!string.IsNullOrWhiteSpace(description)) {
-                Activity?.AddTag(BackgroundTaskService.GetOpenTelemetryTagName("description"), description);
-            }
         }
 
 
@@ -123,14 +115,14 @@ namespace IntelligentPlant.BackgroundTasks {
                     : WorkItemAsync != null
                         ? Resources.BackgroundWorkItem_ItemType_Async
                         : Resources.BackgroundWorkItem_ItemType_Undefined,
-                Description
+                DisplayName
             );
         }
 
 
         /// <inheritdoc/>
         public override int GetHashCode() {
-#if NETSTANDARD2_1 == null
+#if NETSTANDARD2_1 == false
             // Implementation from https://stackoverflow.com/questions/263400/what-is-the-best-algorithm-for-overriding-gethashcode/263416#263416
             unchecked {
                 var hash = (int) 2166136261;
@@ -141,13 +133,13 @@ namespace IntelligentPlant.BackgroundTasks {
                 if (WorkItemAsync != null) {
                     hash = (hash * 16777619) ^ WorkItemAsync.GetHashCode();
                 }
-                if (Description != null) {
-                    hash = (hash * 16777619) ^ Description.GetHashCode();
+                if (DisplayName != null) {
+                    hash = (hash * 16777619) ^ DisplayName.GetHashCode();
                 }
                 return hash;
             }
 #else
-            return HashCode.Combine(Id, WorkItem, WorkItemAsync, Description);
+            return HashCode.Combine(Id, WorkItem, WorkItemAsync, DisplayName);
 #endif
         }
 
@@ -163,7 +155,7 @@ namespace IntelligentPlant.BackgroundTasks {
         /// <inheritdoc/>
         public bool Equals(BackgroundWorkItem other) {
             return other.Id.Equals(Id, StringComparison.Ordinal) && 
-                string.Equals(other.Description, Description, StringComparison.Ordinal) && 
+                string.Equals(other.DisplayName, DisplayName, StringComparison.Ordinal) && 
                 other.WorkItem == WorkItem && 
                 other.WorkItemAsync == WorkItemAsync;
         }

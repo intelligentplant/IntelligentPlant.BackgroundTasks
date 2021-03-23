@@ -172,18 +172,18 @@
     <value>Background task service '{0}' has stopped.</value>
   </data>
   <data name="event_WorkItemCompleted" xml:space="preserve">
-    <value>Work item completed. Service: '{0}', item: '{1}', description: '{2}', elapsed time: {3} seconds</value>
+    <value>Work item completed. Service: '{0}', item: '{1}', display name: '{2}', elapsed time: {3} seconds</value>
   </data>
   <data name="event_WorkItemDequeued" xml:space="preserve">
-    <value>Work item dequeued. Service: '{0}', item: '{1}', description: '{2}', queue size: {3} items</value>
+    <value>Work item dequeued. Service: '{0}', item: '{1}', display name: '{2}', queue size: {3} items</value>
   </data>
   <data name="event_WorkItemEnqueued" xml:space="preserve">
-    <value>Work item enqueued. Service: '{0}', item: '{1}', description: '{2}', queue size: {3} items</value>
+    <value>Work item enqueued. Service: '{0}', item: '{1}', display name: '{2}', queue size: {3} items</value>
   </data>
   <data name="event_WorkItemFaulted" xml:space="preserve">
-    <value>Work item faulted. Service: '{0}', item: '{1}', description: '{2}', elapsed time: {3} seconds</value>
+    <value>Work item faulted. Service: '{0}', item: '{1}', display name: '{2}', elapsed time: {3} seconds</value>
   </data>
   <data name="event_WorkItemRunning" xml:space="preserve">
-    <value>Work item running: Service: '{0}', item: '{1}', description: '{2}'</value>
+    <value>Work item running: Service: '{0}', item: '{1}', display name: '{2}'</value>
   </data>
 </root>

@@ -22,7 +22,7 @@ namespace IntelligentPlant.BackgroundTasks.ExampleApp {
             services.AddOpenTelemetryTracing(builder => {
                 builder
                     .AddAspNetCoreInstrumentation()
-                    .AddIntelligentPlantBackgroundTasksInstrumentation()
+                    .AddSource(nameof(Controllers.TasksController))
                     .AddConsoleExporter();
             });
         }

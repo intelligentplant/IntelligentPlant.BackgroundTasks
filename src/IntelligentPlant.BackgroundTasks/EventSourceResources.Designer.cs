@@ -223,7 +223,7 @@ namespace IntelligentPlant.BackgroundTasks {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Work item completed. Service: &apos;{0}&apos;, item: &apos;{1}&apos;, description: &apos;{2}&apos;, elapsed time: {3} seconds.
+        ///   Looks up a localized string similar to Work item completed. Service: &apos;{0}&apos;, item: &apos;{1}&apos;, display name: &apos;{2}&apos;, elapsed time: {3} seconds.
         /// </summary>
         internal static string event_WorkItemCompleted {
             get {
@@ -232,7 +232,7 @@ namespace IntelligentPlant.BackgroundTasks {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Work item dequeued. Service: &apos;{0}&apos;, item: &apos;{1}&apos;, description: &apos;{2}&apos;, queue size: {3} items.
+        ///   Looks up a localized string similar to Work item dequeued. Service: &apos;{0}&apos;, item: &apos;{1}&apos;, display name: &apos;{2}&apos;, queue size: {3} items.
         /// </summary>
         internal static string event_WorkItemDequeued {
             get {
@@ -241,7 +241,7 @@ namespace IntelligentPlant.BackgroundTasks {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Work item enqueued. Service: &apos;{0}&apos;, item: &apos;{1}&apos;, description: &apos;{2}&apos;, queue size: {3} items.
+        ///   Looks up a localized string similar to Work item enqueued. Service: &apos;{0}&apos;, item: &apos;{1}&apos;, display name: &apos;{2}&apos;, queue size: {3} items.
         /// </summary>
         internal static string event_WorkItemEnqueued {
             get {
@@ -250,7 +250,7 @@ namespace IntelligentPlant.BackgroundTasks {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Work item faulted. Service: &apos;{0}&apos;, item: &apos;{1}&apos;, description: &apos;{2}&apos;, elapsed time: {3} seconds.
+        ///   Looks up a localized string similar to Work item faulted. Service: &apos;{0}&apos;, item: &apos;{1}&apos;, display name: &apos;{2}&apos;, elapsed time: {3} seconds.
         /// </summary>
         internal static string event_WorkItemFaulted {
             get {
@@ -259,7 +259,7 @@ namespace IntelligentPlant.BackgroundTasks {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Work item running: Service: &apos;{0}&apos;, item: &apos;{1}&apos;, description: &apos;{2}&apos;.
+        ///   Looks up a localized string similar to Work item running: Service: &apos;{0}&apos;, item: &apos;{1}&apos;, display name: &apos;{2}&apos;.
         /// </summary>
         internal static string event_WorkItemRunning {
             get {

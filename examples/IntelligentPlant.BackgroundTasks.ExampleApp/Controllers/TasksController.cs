@@ -17,6 +17,8 @@ namespace IntelligentPlant.BackgroundTasks.ExampleApp.Controllers {
 
         private static readonly Random s_rnd = new Random();
 
+        private static readonly ActivitySource s_activitySource = new ActivitySource(nameof(TasksController));
+
 
         public TasksController(IBackgroundTaskService backgroundTaskService, ILogger<TasksController> logger) {
             _backgroundTaskService = backgroundTaskService;
@@ -41,7 +43,7 @@ namespace IntelligentPlant.BackgroundTasks.ExampleApp.Controllers {
                         tcs.TrySetResult(0);
                     }
                 },
-                "Example task",
+                s_activitySource.StartActivity(GetType().FullName + "/" + nameof(CreateTask)),
                 cancellationToken
             );
 

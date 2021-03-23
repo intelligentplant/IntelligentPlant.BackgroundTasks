@@ -213,18 +213,18 @@ namespace IntelligentPlant.BackgroundTasks {
             /// <param name="id">
             ///   The work item ID.
             /// </param>
-            /// <param name="description">
-            ///   The work item description.
+            /// <param name="displayName">
+            ///   The work item display name.
             /// </param>
             /// <param name="queueSize">
             ///   The size of the work item queue.
             /// </param>
             [Event(EventIds.WorkItemEnqueued, Level = EventLevel.Informational)]
-            public void WorkItemEnqueued(string serviceName, string id, string? description, int queueSize) {
+            public void WorkItemEnqueued(string serviceName, string id, string? displayName, int queueSize) {
 #if NETSTANDARD2_1
                 ++_queueSize;
 #endif
-                WriteEvent(EventIds.WorkItemEnqueued, serviceName, id, description, queueSize);
+                WriteEvent(EventIds.WorkItemEnqueued, serviceName, id, displayName, queueSize);
             }
 
 
@@ -237,18 +237,18 @@ namespace IntelligentPlant.BackgroundTasks {
             /// <param name="id">
             ///   The work item ID.
             /// </param>
-            /// <param name="description">
-            ///   The work item description.
+            /// <param name="displayName">
+            ///   The work item display name.
             /// </param>
             /// <param name="queueSize">
             ///   The size of the work item queue.
             /// </param>
             [Event(EventIds.WorkItemDequeued, Level = EventLevel.Informational)]
-            public void WorkItemDequeued(string serviceName, string id, string? description, int queueSize) {
+            public void WorkItemDequeued(string serviceName, string id, string? displayName, int queueSize) {
 #if NETSTANDARD2_1
                 --_queueSize;
 #endif
-                WriteEvent(EventIds.WorkItemDequeued, serviceName, id, description, queueSize);
+                WriteEvent(EventIds.WorkItemDequeued, serviceName, id, displayName, queueSize);
             }
 
 
@@ -261,15 +261,15 @@ namespace IntelligentPlant.BackgroundTasks {
             /// <param name="id">
             ///   The work item ID.
             /// </param>
-            /// <param name="description">
-            ///   The work item description.
+            /// <param name="displayName">
+            ///   The work item display name.
             /// </param>
             [Event(EventIds.WorkItemRunning, Level = EventLevel.Informational)]
-            public void WorkItemRunning(string serviceName, string id, string? description) {
+            public void WorkItemRunning(string serviceName, string id, string? displayName) {
 #if NETSTANDARD2_1
                 ++_workItemsRunning;
 #endif
-                WriteEvent(EventIds.WorkItemRunning, serviceName, id, description);
+                WriteEvent(EventIds.WorkItemRunning, serviceName, id, displayName);
             }
 
 
@@ -282,20 +282,20 @@ namespace IntelligentPlant.BackgroundTasks {
             /// <param name="id">
             ///   The work item ID.
             /// </param>
-            /// <param name="description">
-            ///   The work item description.
+            /// <param name="displayName">
+            ///   The work item display name.
             /// </param>
             /// <param name="elapsed">
             ///   The elapsed time for the work item in seconds.
             /// </param>
             [Event(EventIds.WorkItemCompleted, Level = EventLevel.Informational)]
-            public void WorkItemCompleted(string serviceName, string id, string? description, double elapsed) {
+            public void WorkItemCompleted(string serviceName, string id, string? displayName, double elapsed) {
 #if NETSTANDARD2_1
                 --_workItemsRunning;
                 ++_totalWorkItemsCompleted;
                 ++_totalSuccessfulWorkItems;
 #endif
-                WriteEvent(EventIds.WorkItemCompleted, serviceName, id, description, elapsed);
+                WriteEvent(EventIds.WorkItemCompleted, serviceName, id, displayName, elapsed);
             }
 
 
@@ -308,20 +308,20 @@ namespace IntelligentPlant.BackgroundTasks {
             /// <param name="id">
             ///   The work item ID.
             /// </param>
-            /// <param name="description">
-            ///   The work item description.
+            /// <param name="displayName">
+            ///   The work item display name.
             /// </param>
             /// <param name="elapsed">
             ///   The elapsed time for the work item in seconds.
             /// </param>
             [Event(EventIds.WorkItemFaulted, Level = EventLevel.Warning)]
-            public void WorkItemFaulted(string serviceName, string id, string? description, double elapsed) {
+            public void WorkItemFaulted(string serviceName, string id, string? displayName, double elapsed) {
 #if NETSTANDARD2_1
                 --_workItemsRunning;
                 ++_totalWorkItemsCompleted;
                 ++_totalWorkItemsFaulted;
 #endif
-                WriteEvent(EventIds.WorkItemFaulted, serviceName, id, description, elapsed);
+                WriteEvent(EventIds.WorkItemFaulted, serviceName, id, displayName, elapsed);
             }
 
         }
