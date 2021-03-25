@@ -63,9 +63,6 @@ public class MyClass : IDisposable {
     public MyClass(IBackgroundTaskService backgroundTaskService) {
         backgroundTaskService.QueueBackgroundWorkItem(
             LongRunningTask, 
-            null, // display name
-            null, // activity factory (see OpenTelemetry section below)
-            false, // parent activity capture flag (see OpenTelemetry section below)
             _shutdownSource.Token
         );
     }
@@ -130,12 +127,14 @@ public class EmailNotifier {
 
     public void SendEmail(string recipient, string subject, string content) {
         _backgroundTaskService.QueueBackgroundWorkItem(async ct => {
-            Activity.Current?.SetTag("recipient", recipient);
-            // The provided cancellation token will fire when the application is shutting down.
-            await SendEmailInternal(recipient, subject, content, ct);
-        }, activityFactory: () => s_activitySource.StartActivity("send_email"), captureParentActivity: true);
+            using (s_activitySource.StartActivity("send_email")) {
+                Activity.Current?.SetTag("recipient", recipient);
+                // The provided cancellation token will fire when the application is shutting down.
+                await SendEmailInternal(recipient, subject, content, ct);
+            }
+        }, captureParentActivity: true);
     }
 }
 ```
 
-Note that we are passing a value for the `activityFactory` parameter into the `QueueBackgroundWorkItem` method, which is used to set the value of `Activity.Current` for our work item. Providing a value for this parameter allows us to generate an `Activity` for the work item that will be automatically stopped once the work item has finished. By setting the `captureParentActivity` parameter to `true`, we are saying that we want to attach the `Activity` associated with the work item as a child of the current activity when the `SendEmail` method is called. If we specified `false` for this parameter (the default behaviour), the `Activity` created for the work item would be the child of the of `Activity.Current` at the moment that the work item was run.
+By setting the `captureParentActivity` parameter to `true`, we are saying that we want to capture the value of `Activity.Current` at the moment we call `QueueBackgroundWorkItem`, and then restore it as the current activity when the work item is run. This means that the activity that we create inside the work item will be created as a child of the activity that we captured, rather than being created as a new top-level activity.

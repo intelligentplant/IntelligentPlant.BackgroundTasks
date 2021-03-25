@@ -140,8 +140,7 @@ namespace IntelligentPlant.BackgroundTasks {
                         }
                     }, 
                     workItem.Id, 
-                    workItem.DisplayName, 
-                    workItem.StartActivity, 
+                    workItem.DisplayName,
                     workItem.ParentActivity
                 );
             }
@@ -155,7 +154,6 @@ namespace IntelligentPlant.BackgroundTasks {
                     null,
                     workItem.Id,
                     workItem.DisplayName,
-                    workItem.StartActivity,
                     workItem.ParentActivity
                 );
             }

@@ -34,7 +34,7 @@ namespace IntelligentPlant.BackgroundTasks.Tests {
                     finally {
                         tcs.TrySetResult(0);
                     }
-                }, null, null, false, testTimeout.Token);
+                }, null, false, testTimeout.Token);
 
                 ctSource.CancelAfter(100);
                 await tcs.Task.ConfigureAwait(false);
@@ -62,16 +62,18 @@ namespace IntelligentPlant.BackgroundTasks.Tests {
 
                 using (var parentActivity = activitySource.StartActivity("Parent")) {
                     svc.QueueBackgroundWorkItem(ct => {
-                        try {
-                            Assert.AreEqual(TestContext.TestName, Activity.Current?.DisplayName);
-                            Assert.AreEqual(parentActivity!.DisplayName, Activity.Current?.Parent?.DisplayName);
+                        using (activitySource.StartActivity(TestContext.TestName)) {
+                            try {
+                                Assert.AreEqual(TestContext.TestName, Activity.Current?.DisplayName);
+                                Assert.AreEqual(parentActivity!.DisplayName, Activity.Current?.Parent?.DisplayName);
 
-                            tcs.TrySetResult(1);
+                                tcs.TrySetResult(1);
+                            }
+                            catch (Exception e) {
+                                tcs.TrySetException(e);
+                            }
                         }
-                        catch (Exception e) {
-                            tcs.TrySetException(e);
-                        }
-                    }, null, () => activitySource.StartActivity(TestContext.TestName), true);
+                    }, null, true);
 
                     ctSource.CancelAfter(5000);
                     var value = await tcs.Task;
@@ -104,16 +106,18 @@ namespace IntelligentPlant.BackgroundTasks.Tests {
 
                 using (var parentActivity = activitySource.StartActivity("Parent")) {
                     svc.QueueBackgroundWorkItem(ct => {
-                        try {
-                            Assert.AreEqual(TestContext.TestName, Activity.Current?.DisplayName);
-                            Assert.AreNotEqual(parentActivity!.DisplayName, Activity.Current?.Parent?.DisplayName);
+                        using (activitySource.StartActivity(TestContext.TestName)) {
+                            try {
+                                Assert.AreEqual(TestContext.TestName, Activity.Current?.DisplayName);
+                                Assert.AreNotEqual(parentActivity!.DisplayName, Activity.Current?.Parent?.DisplayName);
 
-                            tcs.TrySetResult(1);
+                                tcs.TrySetResult(1);
+                            }
+                            catch (Exception e) {
+                                tcs.TrySetException(e);
+                            }
                         }
-                        catch (Exception e) {
-                            tcs.TrySetException(e);
-                        }
-                    }, null, () => activitySource.StartActivity(TestContext.TestName), false);
+                    }, null, false);
 
                     ctSource.CancelAfter(5000);
                     var value = await tcs.Task;
@@ -146,17 +150,19 @@ namespace IntelligentPlant.BackgroundTasks.Tests {
 
                 using (var parentActivity = activitySource.StartActivity("Parent")) {
                     svc.QueueBackgroundWorkItem(async ct => {
-                        try {
-                            await Task.Yield();
-                            Assert.AreEqual(TestContext.TestName, Activity.Current?.DisplayName);
-                            Assert.AreEqual(parentActivity!.DisplayName, Activity.Current?.Parent?.DisplayName);
+                        using (activitySource.StartActivity(TestContext.TestName)) {
+                            try {
+                                await Task.Yield();
+                                Assert.AreEqual(TestContext.TestName, Activity.Current?.DisplayName);
+                                Assert.AreEqual(parentActivity!.DisplayName, Activity.Current?.Parent?.DisplayName);
 
-                            tcs.TrySetResult(1);
+                                tcs.TrySetResult(1);
+                            }
+                            catch (Exception e) {
+                                tcs.TrySetException(e);
+                            }
                         }
-                        catch (Exception e) {
-                            tcs.TrySetException(e);
-                        }
-                    }, null, () => activitySource.StartActivity(TestContext.TestName), true);
+                    }, null, true);
 
                     ctSource.CancelAfter(5000);
                     var value = await tcs.Task;
@@ -189,17 +195,19 @@ namespace IntelligentPlant.BackgroundTasks.Tests {
 
                 using (var parentActivity = activitySource.StartActivity("Parent")) {
                     svc.QueueBackgroundWorkItem(async ct => {
-                        try {
-                            await Task.Yield();
-                            Assert.AreEqual(TestContext.TestName, Activity.Current?.DisplayName);
-                            Assert.AreNotEqual(parentActivity!.DisplayName, Activity.Current?.Parent?.DisplayName);
+                        using (activitySource.StartActivity(TestContext.TestName)) {
+                            try {
+                                await Task.Yield();
+                                Assert.AreEqual(TestContext.TestName, Activity.Current?.DisplayName);
+                                Assert.AreNotEqual(parentActivity!.DisplayName, Activity.Current?.Parent?.DisplayName);
 
-                            tcs.TrySetResult(1);
+                                tcs.TrySetResult(1);
+                            }
+                            catch (Exception e) {
+                                tcs.TrySetException(e);
+                            }
                         }
-                        catch (Exception e) {
-                            tcs.TrySetException(e);
-                        }
-                    }, null, () => activitySource.StartActivity(TestContext.TestName), false);
+                    }, null, false);
 
                     ctSource.CancelAfter(5000);
                     var value = await tcs.Task;

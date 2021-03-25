@@ -169,7 +169,7 @@ namespace IntelligentPlant.BackgroundTasks.Tests {
                         value = 1;
                         semaphore.Release();
                     }
-                }, null, null, false, ctSource2.Token);
+                }, null, false, ctSource2.Token);
 
                 Assert.AreEqual(1, svc.QueuedItemCount);
 
@@ -210,16 +210,18 @@ namespace IntelligentPlant.BackgroundTasks.Tests {
 
                 using (var parentActivity = activitySource.StartActivity("Parent")) {
                     svc.QueueBackgroundWorkItem(ct => {
-                        try {
-                            Assert.AreEqual(TestContext.TestName, Activity.Current?.DisplayName);
-                            Assert.AreEqual(parentActivity!.DisplayName, Activity.Current?.Parent?.DisplayName);
+                        using (activitySource.StartActivity(TestContext.TestName)) {
+                            try {
+                                Assert.AreEqual(TestContext.TestName, Activity.Current?.DisplayName);
+                                Assert.AreEqual(parentActivity!.DisplayName, Activity.Current?.Parent?.DisplayName);
 
-                            value = 1;
+                                value = 1;
+                            }
+                            finally {
+                                semaphore.Release();
+                            }
                         }
-                        finally {
-                            semaphore.Release();
-                        }
-                    }, null, () => activitySource.StartActivity(TestContext.TestName), true);
+                    }, null, true);
 
                     Assert.AreEqual(1, svc.QueuedItemCount);
 
@@ -259,16 +261,18 @@ namespace IntelligentPlant.BackgroundTasks.Tests {
 
                 using (var parentActivity = activitySource.StartActivity("Parent")) {
                     svc.QueueBackgroundWorkItem(ct => {
-                        try {
-                            Assert.AreEqual(TestContext.TestName, Activity.Current?.DisplayName);
-                            Assert.AreNotEqual(parentActivity!.DisplayName, Activity.Current?.Parent?.DisplayName);
+                        using (activitySource.StartActivity(TestContext.TestName)) {
+                            try {
+                                Assert.AreEqual(TestContext.TestName, Activity.Current?.DisplayName);
+                                Assert.AreNotEqual(parentActivity!.DisplayName, Activity.Current?.Parent?.DisplayName);
 
-                            value = 1;
+                                value = 1;
+                            }
+                            finally {
+                                semaphore.Release();
+                            }
                         }
-                        finally {
-                            semaphore.Release();
-                        }
-                    }, null, () => activitySource.StartActivity(TestContext.TestName), false);
+                    }, null, false);
 
                     Assert.AreEqual(1, svc.QueuedItemCount);
 
@@ -308,17 +312,19 @@ namespace IntelligentPlant.BackgroundTasks.Tests {
 
                 using (var parentActivity = activitySource.StartActivity("Parent")) {
                     svc.QueueBackgroundWorkItem(async ct => {
-                        try {
-                            await Task.Yield();
-                            Assert.AreEqual(TestContext.TestName, Activity.Current?.DisplayName);
-                            Assert.AreEqual(parentActivity!.DisplayName, Activity.Current?.Parent?.DisplayName);
+                        using (activitySource.StartActivity(TestContext.TestName)) {
+                            try {
+                                await Task.Yield();
+                                Assert.AreEqual(TestContext.TestName, Activity.Current?.DisplayName);
+                                Assert.AreEqual(parentActivity!.DisplayName, Activity.Current?.Parent?.DisplayName);
 
-                            value = 1;
+                                value = 1;
+                            }
+                            finally {
+                                semaphore.Release();
+                            }
                         }
-                        finally {
-                            semaphore.Release();
-                        }
-                    }, null, () => activitySource.StartActivity(TestContext.TestName), true);
+                    }, null, true);
 
                     Assert.AreEqual(1, svc.QueuedItemCount);
 
@@ -358,17 +364,19 @@ namespace IntelligentPlant.BackgroundTasks.Tests {
 
                 using (var parentActivity = activitySource.StartActivity("Parent")) {
                     svc.QueueBackgroundWorkItem(async ct => {
-                        try {
-                            await Task.Yield();
-                            Assert.AreEqual(TestContext.TestName, Activity.Current?.DisplayName);
-                            Assert.AreNotEqual(parentActivity!.DisplayName, Activity.Current?.Parent?.DisplayName);
+                        using (activitySource.StartActivity(TestContext.TestName)) {
+                            try {
+                                await Task.Yield();
+                                Assert.AreEqual(TestContext.TestName, Activity.Current?.DisplayName);
+                                Assert.AreNotEqual(parentActivity!.DisplayName, Activity.Current?.Parent?.DisplayName);
 
-                            value = 1;
+                                value = 1;
+                            }
+                            finally {
+                                semaphore.Release();
+                            }
                         }
-                        finally {
-                            semaphore.Release();
-                        }
-                    }, null, () => activitySource.StartActivity(TestContext.TestName), false);
+                    }, null, false);
 
                     Assert.AreEqual(1, svc.QueuedItemCount);
 

@@ -33,18 +33,19 @@ namespace IntelligentPlant.BackgroundTasks.ExampleApp.Controllers {
 
             var taskId = _backgroundTaskService.QueueBackgroundWorkItem(
                 ct => {
-                    try {
-                        _logger.LogInformation("[BACKGROUND TASK] Running background task");
-                        if (s_rnd.Next(101) < 30) {
-                            throw new Exception("Failed");
+                    using (s_activitySource.StartActivity(GetType().FullName + "/" + nameof(CreateTask))) {
+                        try {
+                            _logger.LogInformation("[BACKGROUND TASK] Running background task");
+                            if (s_rnd.Next(101) < 30) {
+                                throw new Exception("Failed");
+                            }
                         }
-                    }
-                   finally {
-                        tcs.TrySetResult(0);
+                        finally {
+                            tcs.TrySetResult(0);
+                        }
                     }
                 },
                 null,
-                () => s_activitySource.StartActivity(GetType().FullName + "/" + nameof(CreateTask)),
                 true,
                 cancellationToken
             );

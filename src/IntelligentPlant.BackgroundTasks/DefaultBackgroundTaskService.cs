@@ -40,7 +40,7 @@ namespace IntelligentPlant.BackgroundTasks {
             if (workItem.WorkItem != null) {
                 _ = Task.Run(() => {
                     Activity? previousActivity = null;
-                    
+
                     try {
                         if (workItem.ParentActivity != null) {
                             // The work item has captured its parent activity. Store Activity.Current
@@ -49,19 +49,14 @@ namespace IntelligentPlant.BackgroundTasks {
                             Activity.Current = workItem.ParentActivity;
                         }
 
-                        using (var activity = workItem.StartActivity()) {
-                            var elapsedBefore = _stopwatch.Elapsed;
-                            try {
-                                OnRunning(workItem);
-                                workItem.WorkItem(cancellationToken);
-                                OnCompleted(workItem, _stopwatch.Elapsed - elapsedBefore);
-                            }
-                            catch (Exception e) {
-                                OnError(workItem, e, _stopwatch.Elapsed - elapsedBefore);
-                                // Add an OpenTelemetry tag warning that the item faulted.
-                                // https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/src/OpenTelemetry.Api/README.md#setting-status
-                                activity?.SetTag("otel.status_description", e.Message);
-                            }
+                        var elapsedBefore = _stopwatch.Elapsed;
+                        try {
+                            OnRunning(workItem);
+                            workItem.WorkItem(cancellationToken);
+                            OnCompleted(workItem, _stopwatch.Elapsed - elapsedBefore);
+                        }
+                        catch (Exception e) {
+                            OnError(workItem, e, _stopwatch.Elapsed - elapsedBefore);
                         }
                     }
                     finally {
@@ -83,19 +78,14 @@ namespace IntelligentPlant.BackgroundTasks {
                             Activity.Current = workItem.ParentActivity;
                         }
 
-                        using (var activity = workItem.StartActivity()) {
-                            var elapsedBefore = _stopwatch.Elapsed;
-                            try {
-                                OnRunning(workItem);
-                                await workItem.WorkItemAsync(cancellationToken).ConfigureAwait(false);
-                                OnCompleted(workItem, _stopwatch.Elapsed - elapsedBefore);
-                            }
-                            catch (Exception e) {
-                                OnError(workItem, e, _stopwatch.Elapsed - elapsedBefore);
-                                // Add an OpenTelemetry tag warning that the item faulted.
-                                // https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/src/OpenTelemetry.Api/README.md#setting-status
-                                activity?.SetTag("otel.status_description", e.Message);
-                            }
+                        var elapsedBefore = _stopwatch.Elapsed;
+                        try {
+                            OnRunning(workItem);
+                            await workItem.WorkItemAsync(cancellationToken).ConfigureAwait(false);
+                            OnCompleted(workItem, _stopwatch.Elapsed - elapsedBefore);
+                        }
+                        catch (Exception e) {
+                            OnError(workItem, e, _stopwatch.Elapsed - elapsedBefore);
                         }
                     }
                     finally {
