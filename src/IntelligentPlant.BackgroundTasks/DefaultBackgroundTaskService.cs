@@ -40,16 +40,22 @@ namespace IntelligentPlant.BackgroundTasks {
             if (workItem.WorkItem != null) {
                 _ = Task.Run(() => {
                     var previousActivity = Activity.Current;
-                    Activity.Current = workItem.Activity;
-
-                    var elapsedBefore = _stopwatch.Elapsed;
                     try {
-                        OnRunning(workItem);
-                        workItem.WorkItem(workItem.Activity, cancellationToken);
-                        OnCompleted(workItem, _stopwatch.Elapsed - elapsedBefore);
-                    }
-                    catch (Exception e) {
-                        OnError(workItem, e, _stopwatch.Elapsed - elapsedBefore);
+                        Activity.Current = workItem.ParentActivity;
+                        using (var activity = workItem.StartActivity()) {
+                            var elapsedBefore = _stopwatch.Elapsed;
+                            try {
+                                OnRunning(workItem);
+                                workItem.WorkItem(cancellationToken);
+                                OnCompleted(workItem, _stopwatch.Elapsed - elapsedBefore);
+                            }
+                            catch (Exception e) {
+                                OnError(workItem, e, _stopwatch.Elapsed - elapsedBefore);
+                                // Add an OpenTelemetry tag warning that the item faulted.
+                                // https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/src/OpenTelemetry.Api/README.md#setting-status
+                                activity?.SetTag("otel.status_description", e.Message);
+                            }
+                        }
                     }
                     finally {
                         Activity.Current = previousActivity;
@@ -59,16 +65,22 @@ namespace IntelligentPlant.BackgroundTasks {
             else if (workItem.WorkItemAsync != null) {
                 _ = Task.Run(async () => {
                     var previousActivity = Activity.Current;
-                    Activity.Current = workItem.Activity;
-
-                    var elapsedBefore = _stopwatch.Elapsed;
                     try {
-                        OnRunning(workItem);
-                        await workItem.WorkItemAsync(workItem.Activity, cancellationToken).ConfigureAwait(false);
-                        OnCompleted(workItem, _stopwatch.Elapsed - elapsedBefore);
-                    }
-                    catch (Exception e) {
-                        OnError(workItem, e, _stopwatch.Elapsed - elapsedBefore);
+                        Activity.Current = workItem.ParentActivity;
+                        using (var activity = workItem.StartActivity()) {
+                            var elapsedBefore = _stopwatch.Elapsed;
+                            try {
+                                OnRunning(workItem);
+                                await workItem.WorkItemAsync(cancellationToken).ConfigureAwait(false);
+                                OnCompleted(workItem, _stopwatch.Elapsed - elapsedBefore);
+                            }
+                            catch (Exception e) {
+                                OnError(workItem, e, _stopwatch.Elapsed - elapsedBefore);
+                                // Add an OpenTelemetry tag warning that the item faulted.
+                                // https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/src/OpenTelemetry.Api/README.md#setting-status
+                                activity?.SetTag("otel.status_description", e.Message);
+                            }
+                        }
                     }
                     finally {
                         Activity.Current = previousActivity;

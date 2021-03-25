@@ -266,14 +266,7 @@ namespace IntelligentPlant.BackgroundTasks {
         ///   The work item.
         /// </param>
         private void OnQueuedInternal(BackgroundWorkItem workItem) {
-            var queueSize = _queue.Count;
-
-            if (workItem.Activity != null) {
-                workItem.Activity.AddEvent(new ActivityEvent(GetOpenTelemetryName(nameof(EventIds.WorkItemEnqueued)), tags: new ActivityTagsCollection(new Dictionary<string, object?>() {
-                    [GetOpenTelemetryName("queue_size")] = queueSize
-                })));
-            }
-            EventSource.WorkItemEnqueued(Name, workItem.Id, workItem.DisplayName, queueSize);
+            EventSource.WorkItemEnqueued(Name, workItem.Id, workItem.DisplayName, _queue.Count);
             LogItemEnqueued(_logger, workItem, IsRunning);
             OnQueued(workItem);
         }
@@ -303,14 +296,7 @@ namespace IntelligentPlant.BackgroundTasks {
         ///   The work item.
         /// </param>
         private void OnDequeuedInternal(BackgroundWorkItem workItem) {
-            var queueSize = _queue.Count;
-
-            if (workItem.Activity != null) {
-                workItem.Activity.AddEvent(new ActivityEvent(GetOpenTelemetryName(nameof(EventIds.WorkItemDequeued)), tags: new ActivityTagsCollection(new Dictionary<string, object?>() {
-                    [GetOpenTelemetryName("queue_size")] = queueSize
-                })));
-            }
-            EventSource.WorkItemDequeued(Name, workItem.Id, workItem.DisplayName, queueSize);
+            EventSource.WorkItemDequeued(Name, workItem.Id, workItem.DisplayName, _queue.Count);
             LogItemDequeued(_logger, workItem);
             OnDequeued(workItem);
         }
@@ -340,10 +326,6 @@ namespace IntelligentPlant.BackgroundTasks {
         ///   The work item.
         /// </param>
         private void OnRunningInternal(BackgroundWorkItem workItem) {
-            if (workItem.Activity != null) {
-                workItem.Activity.AddEvent(new ActivityEvent(GetOpenTelemetryName(nameof(EventIds.WorkItemRunning))));
-            }
-
             EventSource.WorkItemRunning(Name, workItem.Id, workItem.DisplayName);
             LogItemRunning(_logger, workItem);
         }
@@ -378,10 +360,6 @@ namespace IntelligentPlant.BackgroundTasks {
         ///   service.
         /// </param>
         private void OnCompletedInternal(BackgroundWorkItem workItem, TimeSpan elapsed) {
-            if (workItem.Activity != null) {
-                workItem.Activity.AddEvent(new ActivityEvent(GetOpenTelemetryName(nameof(EventIds.WorkItemCompleted))));
-            }
-
             EventSource.WorkItemCompleted(Name, workItem.Id, workItem.DisplayName, elapsed.TotalSeconds);
             LogItemCompleted(_logger, workItem);
         }
@@ -405,9 +383,6 @@ namespace IntelligentPlant.BackgroundTasks {
             catch (Exception e) {
                 _logger.LogError(e, Resources.Log_ErrorInCallback, nameof(BackgroundTaskServiceOptions.OnCompleted));
             }
-            finally {
-                workItem.Dispose();
-            }
         }
 
 
@@ -425,14 +400,6 @@ namespace IntelligentPlant.BackgroundTasks {
         ///   service.
         /// </param>
         private void OnErrorInternal(BackgroundWorkItem workItem, Exception err, TimeSpan elapsed) {
-            if (workItem.Activity != null) {
-                workItem.Activity.AddEvent(new ActivityEvent(GetOpenTelemetryName(nameof(EventIds.WorkItemFaulted))));
-
-                // Add an OpenTelemetry tag warning that the item faulted.
-                // https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/src/OpenTelemetry.Api/README.md#setting-status
-                workItem.Activity.SetTag("otel.status_description", err.Message);
-            }
-
             EventSource.WorkItemFaulted(Name, workItem.Id, workItem.DisplayName, elapsed.TotalSeconds);
             LogItemFaulted(_logger, workItem, err);
         }
@@ -462,9 +429,6 @@ namespace IntelligentPlant.BackgroundTasks {
             }
             catch (Exception e) {
                 _logger.LogError(e, Resources.Log_ErrorInCallback, nameof(BackgroundTaskServiceOptions.OnError));
-            }
-            finally {
-                workItem.Dispose();
             }
         }
 

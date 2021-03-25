@@ -43,7 +43,8 @@ namespace IntelligentPlant.BackgroundTasks.ExampleApp.Controllers {
                         tcs.TrySetResult(0);
                     }
                 },
-                s_activitySource.StartActivity(GetType().FullName + "/" + nameof(CreateTask)),
+                null,
+                () => s_activitySource.StartActivity(GetType().FullName + "/" + nameof(CreateTask)),
                 cancellationToken
             );
 

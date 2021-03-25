@@ -28,7 +28,7 @@ namespace IntelligentPlant.BackgroundTasks.Tests {
                     finally {
                         tcs.TrySetResult(0);
                     }
-                }, cancellationToken: testTimeout.Token);
+                }, null, null, testTimeout.Token);
 
                 ctSource.CancelAfter(100);
                 await tcs.Task.ConfigureAwait(false);

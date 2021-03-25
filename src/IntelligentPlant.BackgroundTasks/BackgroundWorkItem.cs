@@ -9,24 +9,18 @@ namespace IntelligentPlant.BackgroundTasks {
     /// <summary>
     /// Describes a work item that has been added to an <see cref="IBackgroundTaskService"/> queue.
     /// </summary>
-    /// <remarks>
-    /// 
-    /// <para>
-    ///   Although <see cref="BackgroundWorkItem"/> implements <see cref="IDisposable"/>, you 
-    ///   should not disposed of any instances you create yourself. The <see cref="IBackgroundTaskService"/> 
-    ///   will dispose of work items once they have run to completion of have faulted.
-    /// </para>
-    /// 
-    /// <para>
-    ///   Both <see cref="WorkItem"/> and <see cref="WorkItemAsync"/> accept an <see cref="System.Diagnostics.Activity"/> 
-    ///   parameter. This can be used to create OpenTelemetry-compatible activities inside the 
-    ///   work item, or to augment the work item activity with tags, events and so on. Note that 
-    ///   the parameter value will be <see langword="null"/> if there are no listeners for the 
-    ///   <see cref="BackgroundTaskService.ActivitySource"/> source.
-    /// </para>
-    /// 
-    /// </remarks>
-    public struct BackgroundWorkItem : IEquatable<BackgroundWorkItem>, IDisposable {
+    public struct BackgroundWorkItem : IEquatable<BackgroundWorkItem> {
+
+        /// <summary>
+        /// The parent activity for the background work item.
+        /// </summary>
+        internal Activity? ParentActivity { get; }
+
+        /// <summary>
+        /// The factory function that will be used to create an <see cref="Activity"/> instance 
+        /// when the work item is run.
+        /// </summary>
+        private readonly Func<Activity?>? _activityFactory;
 
         /// <summary>
         /// Gets the unique identifier for the work item.
@@ -34,28 +28,21 @@ namespace IntelligentPlant.BackgroundTasks {
         public string Id { get; }
 
         /// <summary>
-        /// Gets the display name for the work item.
+        /// The display name for the work item.
         /// </summary>
-        public string? DisplayName => Activity?.DisplayName;
+        public string? DisplayName { get; }
 
         /// <summary>
         /// The synchronous work item. The value will be <see langword="null"/> if an asynchronous 
         /// work item was enqueued.
         /// </summary>
-        public Action<Activity?, CancellationToken>? WorkItem { get; }
+        public Action<CancellationToken>? WorkItem { get; }
 
         /// <summary>
         /// The asynchronous work item. The value will be <see langword="null"/> if a synchronous 
         /// work item was enqueued.
         /// </summary>
-        public Func<Activity?, CancellationToken, Task>? WorkItemAsync { get; }
-
-        /// <summary>
-        /// The <see cref="System.Diagnostics.Activity"/> associated with the work item. Use this 
-        /// activity as the parent when creating new child activities inside the <see cref="WorkItem"/> 
-        /// or <see cref="WorkItemAsync"/> delegate.
-        /// </summary>
-        public Activity? Activity { get; }
+        public Func<CancellationToken, Task>? WorkItemAsync { get; }
 
 
         /// <summary>
@@ -64,26 +51,25 @@ namespace IntelligentPlant.BackgroundTasks {
         /// <param name="workItem">
         ///   The work item.
         /// </param>
-        /// <param name="activity">
-        ///   The optional <see cref="System.Diagnostics.Activity"/> to associated with the work 
-        ///   item. This will be passed to the <paramref name="workItem"/> when it is executed.
-        ///   If you specify a non-<see langword="null"/> value for the <paramref name="activity"/> 
-        ///   parameter, note that it will be disposed when the <see cref="BackgroundWorkItem"/> 
-        ///   is disposed.
+        /// <param name="displayName">
+        ///   The display name for the work item.
+        /// </param>
+        /// <param name="activityFactory">
+        ///   A factory function that will be called by the <see cref="IBackgroundTaskService"/> 
+        ///   when the work item is run to generate an <see cref="Activity"/> to associate with 
+        ///   the work item.
         /// </param>
         /// <exception cref="ArgumentNullException">
         ///   <paramref name="workItem"/> is <see langword="null"/>.
         /// </exception>
-        /// <remarks>
-        ///   If you specify a non-<see langword="null"/> value for the <paramref name="activity"/> 
-        ///   parameter, note that it will be disposed when the <see cref="BackgroundWorkItem"/> 
-        ///   is disposed.
-        /// </remarks>
-        public BackgroundWorkItem(Action<Activity?, CancellationToken> workItem, Activity? activity = null) {
-            Activity = activity;
-            Id = Activity?.Id ?? Guid.NewGuid().ToString();
+        public BackgroundWorkItem(Action<CancellationToken> workItem, string? displayName = null, Func<Activity?>? activityFactory = null) {
             WorkItem = workItem ?? throw new ArgumentNullException(nameof(workItem));
             WorkItemAsync = null;
+
+            ParentActivity = Activity.Current;
+            _activityFactory = activityFactory;
+            Id = Guid.NewGuid().ToString();
+            DisplayName = displayName;
         }
 
 
@@ -93,26 +79,37 @@ namespace IntelligentPlant.BackgroundTasks {
         /// <param name="workItem">
         ///   The work item.
         /// </param>
-        /// <param name="activity">
-        ///   The optional <see cref="System.Diagnostics.Activity"/> to associated with the work 
-        ///   item. This will be passed to the <paramref name="workItem"/> when it is executed.
-        ///   If you specify a non-<see langword="null"/> value for the <paramref name="activity"/> 
-        ///   parameter, note that it will be disposed when the <see cref="BackgroundWorkItem"/> 
-        ///   is disposed.
+        /// <param name="displayName">
+        ///   The display name for the work item.
+        /// </param>
+        /// <param name="activityFactory">
+        ///   A factory function that will be called by the <see cref="IBackgroundTaskService"/> 
+        ///   when the work item is run to generate an <see cref="Activity"/> to associate with 
+        ///   the work item.
         /// </param>
         /// <exception cref="ArgumentNullException">
         ///   <paramref name="workItem"/> is <see langword="null"/>.
         /// </exception>
-        /// <remarks>
-        ///   If you specify a non-<see langword="null"/> value for the <paramref name="activity"/> 
-        ///   parameter, note that it will be disposed when the <see cref="BackgroundWorkItem"/> 
-        ///   is disposed.
-        /// </remarks>
-        public BackgroundWorkItem(Func<Activity?, CancellationToken, Task> workItem, Activity? activity = null) {
-            Activity = activity;
-            Id = Activity?.Id ?? Guid.NewGuid().ToString();
+        public BackgroundWorkItem(Func<CancellationToken, Task> workItem, string? displayName = null, Func<Activity?>? activityFactory = null) {
             WorkItem = null;
             WorkItemAsync = workItem ?? throw new ArgumentNullException(nameof(workItem));
+
+            ParentActivity = Activity.Current;
+            _activityFactory = activityFactory;
+            Id = Guid.NewGuid().ToString();
+            DisplayName = displayName;
+        }
+
+
+        /// <summary>
+        /// Starts an <see cref="Activity"/> associated with the work item.
+        /// </summary>
+        /// <returns>
+        ///   The <see cref="Activity"/> for the work item, or <see langword="null"/> if no 
+        ///   <see cref="Activity"/> is available.
+        /// </returns>
+        public Activity? StartActivity() {
+            return _activityFactory?.Invoke();
         }
 
 
@@ -170,12 +167,6 @@ namespace IntelligentPlant.BackgroundTasks {
                 string.Equals(other.DisplayName, DisplayName, StringComparison.Ordinal) && 
                 other.WorkItem == WorkItem && 
                 other.WorkItemAsync == WorkItemAsync;
-        }
-
-
-        /// <inheritdoc/>
-        public void Dispose() {
-            Activity?.Dispose();
         }
 
 

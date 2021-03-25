@@ -12,8 +12,6 @@ namespace IntelligentPlant.BackgroundTasks {
     /// </summary>
     public static class BackgroundTaskServiceExtensions {
 
-        #region [ Full Delegate with Activity ]
-
         /// <summary>
         /// Adds a synchronous work item to the queue.
         /// </summary>
@@ -23,12 +21,12 @@ namespace IntelligentPlant.BackgroundTasks {
         /// <param name="workItem">
         ///   The work item.
         /// </param>
-        /// <param name="activity">
-        ///   The optional <see cref="Activity"/> to assign to the work item. The <see cref="Activity"/> 
-        ///   will be disposed when the work item is completed.
+        /// <param name="displayName">
+        ///   The display name for the work item.
         /// </param>
-        /// <param name="cancellationToken">
-        ///   An optional additional cancellation token for the work item.
+        /// <param name="activityFactory">
+        ///   A factory function that can be used to start an <see cref="Activity"/> associated 
+        ///   with the work item when it is run.
         /// </param>
         /// <returns>
         ///   The unique identifier for the queued work item.
@@ -39,7 +37,12 @@ namespace IntelligentPlant.BackgroundTasks {
         /// <exception cref="ArgumentNullException">
         ///   <paramref name="workItem"/> is <see langword="null"/>.
         /// </exception>
-        public static string QueueBackgroundWorkItem(this IBackgroundTaskService backgroundTaskService, Action<Activity?, CancellationToken> workItem, Activity? activity = null, CancellationToken cancellationToken = default) {
+        public static string QueueBackgroundWorkItem(
+            this IBackgroundTaskService backgroundTaskService, 
+            Action<CancellationToken> workItem, 
+            string? displayName = null,
+            Func<Activity?>? activityFactory = null
+        ) {
             if (backgroundTaskService == null) {
                 throw new ArgumentNullException(nameof(backgroundTaskService));
             }
@@ -47,11 +50,7 @@ namespace IntelligentPlant.BackgroundTasks {
                 throw new ArgumentNullException(nameof(workItem));
             }
 
-            if (cancellationToken != default) {
-                return backgroundTaskService.QueueBackgroundWorkItem(workItem, activity, new[] { cancellationToken });
-            }
-
-            var item = new BackgroundWorkItem(workItem, activity);
+            var item = new BackgroundWorkItem(workItem, displayName, activityFactory);
             backgroundTaskService.QueueBackgroundWorkItem(item);
 
             return item.Id;
@@ -67,12 +66,12 @@ namespace IntelligentPlant.BackgroundTasks {
         /// <param name="workItem">
         ///   The work item.
         /// </param>
-        /// <param name="activity">
-        ///   The optional <see cref="Activity"/> to assign to the work item. The <see cref="Activity"/> 
-        ///   will be disposed when the work item is completed.
+        /// <param name="displayName">
+        ///   The display name for the work item.
         /// </param>
-        /// <param name="cancellationToken">
-        ///   An optional additional cancellation token for the work item.
+        /// <param name="activityFactory">
+        ///   A factory function that can be used to start an <see cref="Activity"/> associated 
+        ///   with the work item when it is run.
         /// </param>
         /// <returns>
         ///   The unique identifier for the queued work item.
@@ -83,7 +82,12 @@ namespace IntelligentPlant.BackgroundTasks {
         /// <exception cref="ArgumentNullException">
         ///   <paramref name="workItem"/> is <see langword="null"/>.
         /// </exception>
-        public static string QueueBackgroundWorkItem(this IBackgroundTaskService backgroundTaskService, Func<Activity?, CancellationToken, Task> workItem, Activity? activity = null, CancellationToken cancellationToken = default) {
+        public static string QueueBackgroundWorkItem(
+            this IBackgroundTaskService backgroundTaskService, 
+            Func<CancellationToken, Task> workItem, 
+            string? displayName = null,
+            Func<Activity?>? activityFactory = null
+        ) {
             if (backgroundTaskService == null) {
                 throw new ArgumentNullException(nameof(backgroundTaskService));
             }
@@ -91,19 +95,12 @@ namespace IntelligentPlant.BackgroundTasks {
                 throw new ArgumentNullException(nameof(workItem));
             }
 
-            if (cancellationToken != default) {
-                return backgroundTaskService.QueueBackgroundWorkItem(workItem, activity, new[] { cancellationToken });
-            }
-
-            var item = new BackgroundWorkItem(workItem, activity);
+            var item = new BackgroundWorkItem(workItem, displayName, activityFactory);
             backgroundTaskService.QueueBackgroundWorkItem(item);
 
             return item.Id;
         }
 
-        #endregion
-
-        #region [ Simplified Delegate with Description and Activity ] 
 
         /// <summary>
         /// Adds a synchronous work item to the queue.
@@ -114,100 +111,12 @@ namespace IntelligentPlant.BackgroundTasks {
         /// <param name="workItem">
         ///   The work item.
         /// </param>
-        /// <param name="activity">
-        ///   The optional <see cref="Activity"/> to assign to the work item. The <see cref="Activity"/> 
-        ///   will be disposed when the work item is completed.
+        /// <param name="displayName">
+        ///   The display name for the work item.
         /// </param>
-        /// <param name="cancellationToken">
-        ///   An optional additional cancellation token for the work item.
-        /// </param>
-        /// <returns>
-        ///   The unique identifier for the queued work item.
-        /// </returns>
-        /// <exception cref="ArgumentNullException">
-        ///   <paramref name="backgroundTaskService"/> is <see langword="null"/>.
-        /// </exception>
-        /// <exception cref="ArgumentNullException">
-        ///   <paramref name="workItem"/> is <see langword="null"/>.
-        /// </exception>
-        public static string QueueBackgroundWorkItem(this IBackgroundTaskService backgroundTaskService, Action<CancellationToken> workItem, Activity? activity = null, CancellationToken cancellationToken = default) {
-            if (backgroundTaskService == null) {
-                throw new ArgumentNullException(nameof(backgroundTaskService));
-            }
-            if (workItem == null) {
-                throw new ArgumentNullException(nameof(workItem));
-            }
-
-            if (cancellationToken != default) {
-                return backgroundTaskService.QueueBackgroundWorkItem(workItem, activity, new[] { cancellationToken });
-            }
-
-            var item = new BackgroundWorkItem((a, ct) => workItem(ct), activity);
-            backgroundTaskService.QueueBackgroundWorkItem(item);
-
-            return item.Id;
-        }
-
-
-        /// <summary>
-        /// Adds an asynchronous work item to the queue.
-        /// </summary>
-        /// <param name="backgroundTaskService">
-        ///   The <see cref="IBackgroundTaskService"/>.
-        /// </param>
-        /// <param name="workItem">
-        ///   The work item.
-        /// </param>
-        /// <param name="activity">
-        ///   The optional <see cref="Activity"/> to assign to the work item. The <see cref="Activity"/> 
-        ///   will be disposed when the work item is completed.
-        /// </param>
-        /// <param name="cancellationToken">
-        ///   An optional additional cancellation token for the work item.
-        /// </param>
-        /// <returns>
-        ///   The unique identifier for the queued work item.
-        /// </returns>
-        /// <exception cref="ArgumentNullException">
-        ///   <paramref name="backgroundTaskService"/> is <see langword="null"/>.
-        /// </exception>
-        /// <exception cref="ArgumentNullException">
-        ///   <paramref name="workItem"/> is <see langword="null"/>.
-        /// </exception>
-        public static string QueueBackgroundWorkItem(this IBackgroundTaskService backgroundTaskService, Func<CancellationToken, Task> workItem, Activity? activity = null, CancellationToken cancellationToken = default) {
-            if (backgroundTaskService == null) {
-                throw new ArgumentNullException(nameof(backgroundTaskService));
-            }
-            if (workItem == null) {
-                throw new ArgumentNullException(nameof(workItem));
-            }
-
-            if (cancellationToken != default) {
-                return backgroundTaskService.QueueBackgroundWorkItem(workItem, activity, new[] { cancellationToken });
-            }
-
-            var item = new BackgroundWorkItem((a, ct) => workItem(ct), activity);
-            backgroundTaskService.QueueBackgroundWorkItem(item);
-
-            return item.Id;
-        }
-
-        #endregion
-
-        #region [ Full Delegate with Description, Activity and Multiple Cancellation Tokens ]
-
-        /// <summary>
-        /// Adds a synchronous work item to the queue.
-        /// </summary>
-        /// <param name="backgroundTaskService">
-        ///   The <see cref="IBackgroundTaskService"/>.
-        /// </param>
-        /// <param name="workItem">
-        ///   The work item.
-        /// </param>
-        /// <param name="activity">
-        ///   The optional <see cref="Activity"/> to assign to the work item. The <see cref="Activity"/> 
-        ///   will be disposed when the work item is completed.
+        /// <param name="activityFactory">
+        ///   A factory function that can be used to start an <see cref="Activity"/> associated 
+        ///   with the work item when it is run.
         /// </param>
         /// <param name="tokens">
         ///   Additional cancellation tokens for the operation. A composite token consisting of 
@@ -223,8 +132,14 @@ namespace IntelligentPlant.BackgroundTasks {
         /// <exception cref="ArgumentNullException">
         ///   <paramref name="workItem"/> is <see langword="null"/>.
         /// </exception>
-        public static string QueueBackgroundWorkItem(this IBackgroundTaskService backgroundTaskService, Action<Activity?, CancellationToken> workItem, Activity? activity, params CancellationToken[] tokens) {
-            return QueueBackgroundWorkItem(backgroundTaskService, workItem, activity, (IEnumerable<CancellationToken>) tokens);
+        public static string QueueBackgroundWorkItem(
+            this IBackgroundTaskService backgroundTaskService, 
+            Action<CancellationToken> workItem,
+            string? displayName,
+            Func<Activity?>? activityFactory, 
+            params CancellationToken[] tokens
+        ) {
+            return QueueBackgroundWorkItem(backgroundTaskService, workItem, displayName, activityFactory, (IEnumerable<CancellationToken>) tokens);
         }
 
 
@@ -237,9 +152,12 @@ namespace IntelligentPlant.BackgroundTasks {
         /// <param name="workItem">
         ///   The work item.
         /// </param>
-        /// <param name="activity">
-        ///   The optional <see cref="Activity"/> to assign to the work item. The <see cref="Activity"/> 
-        ///   will be disposed when the work item is completed.
+        /// <param name="displayName">
+        ///   The display name for the work item.
+        /// </param>
+        /// <param name="activityFactory">
+        ///   A factory function that can be used to start an <see cref="Activity"/> associated 
+        ///   with the work item when it is run.
         /// </param>
         /// <param name="tokens">
         ///   Additional cancellation tokens for the operation. A composite token consisting of 
@@ -255,7 +173,13 @@ namespace IntelligentPlant.BackgroundTasks {
         /// <exception cref="ArgumentNullException">
         ///   <paramref name="workItem"/> is <see langword="null"/>.
         /// </exception>
-        public static string QueueBackgroundWorkItem(this IBackgroundTaskService backgroundTaskService, Action<Activity?, CancellationToken> workItem, Activity? activity, IEnumerable<CancellationToken> tokens) {
+        public static string QueueBackgroundWorkItem(
+            this IBackgroundTaskService backgroundTaskService, 
+            Action<CancellationToken> workItem, 
+            string? displayName,
+            Func<Activity?>? activityFactory, 
+            IEnumerable<CancellationToken>? tokens
+        ) {
             if (backgroundTaskService == null) {
                 throw new ArgumentNullException(nameof(backgroundTaskService));
             }
@@ -263,194 +187,62 @@ namespace IntelligentPlant.BackgroundTasks {
                 throw new ArgumentNullException(nameof(workItem));
             }
 
-            if (tokens == null || !tokens.Any()) {
+            var additionalTokens = tokens?.ToArray();
+
+            if (additionalTokens?.Length == 0) {
                 // No additional tokens; just queue the work item as normal.
-                return backgroundTaskService.QueueBackgroundWorkItem(workItem, activity);
+                return backgroundTaskService.QueueBackgroundWorkItem(workItem, displayName, activityFactory);
             }
 
             // We're constructing a new delegate to allow us to listen to multiple cancellation 
-            // tokens. If no description has been specified, create a description now, using the 
-            // original delegate provided to us, or the auto-generated description will reference 
-            // this method instead of the original delegate.
+            // tokens.
 
-            return backgroundTaskService.QueueBackgroundWorkItem((a, ct) => {
-                using (var compositeTokenSource = CancellationTokenSource.CreateLinkedTokenSource(new[] { ct }.Concat(tokens).ToArray())) {
-                    workItem(a, compositeTokenSource.Token);
-                }
-            }, activity);
-        }
-
-
-        /// <summary>
-        /// Adds an asynchronous work item to the queue.
-        /// </summary>
-        /// <param name="backgroundTaskService">
-        ///   The <see cref="IBackgroundTaskService"/>.
-        /// </param>
-        /// <param name="workItem">
-        ///   The work item.
-        /// </param>
-        /// <param name="activity">
-        ///   The optional <see cref="Activity"/> to assign to the work item. The <see cref="Activity"/> 
-        ///   will be disposed when the work item is completed.
-        /// </param>
-        /// <param name="tokens">
-        ///   Additional cancellation tokens for the operation. A composite token consisting of 
-        ///   these tokens and the lifetime token of the <see cref="IBackgroundTaskService"/> will 
-        ///   be passed to <paramref name="workItem"/>.
-        /// </param>
-        /// <returns>
-        ///   The unique identifier for the queued work item.
-        /// </returns>
-        /// <exception cref="ArgumentNullException">
-        ///   <paramref name="backgroundTaskService"/> is <see langword="null"/>.
-        /// </exception>
-        /// <exception cref="ArgumentNullException">
-        ///   <paramref name="workItem"/> is <see langword="null"/>.
-        /// </exception>
-        public static string QueueBackgroundWorkItem(this IBackgroundTaskService backgroundTaskService, Func<Activity?, CancellationToken, Task> workItem, Activity? activity, params CancellationToken[] tokens) {
-            return QueueBackgroundWorkItem(backgroundTaskService, workItem, activity, (IEnumerable<CancellationToken>) tokens);
-        }
-
-
-        /// <summary>
-        /// Adds an asynchronous work item to the queue.
-        /// </summary>
-        /// <param name="backgroundTaskService">
-        ///   The <see cref="IBackgroundTaskService"/>.
-        /// </param>
-        /// <param name="workItem">
-        ///   The work item.
-        /// </param>
-        /// <param name="activity">
-        ///   The optional <see cref="Activity"/> to assign to the work item. The <see cref="Activity"/> 
-        ///   will be disposed when the work item is completed.
-        /// </param>
-        /// <param name="tokens">
-        ///   Additional cancellation tokens for the operation. A composite token consisting of 
-        ///   these tokens and the lifetime token of the <see cref="IBackgroundTaskService"/> will 
-        ///   be passed to <paramref name="workItem"/>.
-        /// </param>
-        /// <returns>
-        ///   The unique identifier for the queued work item.
-        /// </returns>
-        /// <exception cref="ArgumentNullException">
-        ///   <paramref name="backgroundTaskService"/> is <see langword="null"/>.
-        /// </exception>
-        /// <exception cref="ArgumentNullException">
-        ///   <paramref name="workItem"/> is <see langword="null"/>.
-        /// </exception>
-        public static string QueueBackgroundWorkItem(this IBackgroundTaskService backgroundTaskService, Func<Activity?, CancellationToken, Task> workItem, Activity? activity, IEnumerable<CancellationToken> tokens) {
-            if (backgroundTaskService == null) {
-                throw new ArgumentNullException(nameof(backgroundTaskService));
-            }
-            if (workItem == null) {
-                throw new ArgumentNullException(nameof(workItem));
-            }
-
-            if (tokens == null || !tokens.Any()) {
-                // No additional tokens; just queue the work item as normal.
-                return backgroundTaskService.QueueBackgroundWorkItem(workItem, activity);
-            }
-
-            // We're constructing a new delegate to allow us to listen to multiple cancellation 
-            // tokens. If no description has been specified, create a description now, using the 
-            // original delegate provided to us, or the auto-generated description will reference 
-            // this method instead of the original delegate.
-
-            return backgroundTaskService.QueueBackgroundWorkItem(async (a, ct) => {
-                using (var compositeTokenSource = CancellationTokenSource.CreateLinkedTokenSource(new[] { ct }.Concat(tokens).ToArray())) {
-                    await workItem(a, compositeTokenSource.Token).ConfigureAwait(false);
-                }
-            }, activity);
-        }
-
-        #endregion
-
-        #region [ Simplified Delegate with Description, Activity and Multiple Cancellation Tokens ]
-
-        /// <summary>
-        /// Adds a synchronous work item to the queue.
-        /// </summary>
-        /// <param name="backgroundTaskService">
-        ///   The <see cref="IBackgroundTaskService"/>.
-        /// </param>
-        /// <param name="workItem">
-        ///   The work item.
-        /// </param>
-        /// <param name="activity">
-        ///   The optional <see cref="Activity"/> to assign to the work item. The <see cref="Activity"/> 
-        ///   will be disposed when the work item is completed.
-        /// </param>
-        /// <param name="tokens">
-        ///   Additional cancellation tokens for the operation. A composite token consisting of 
-        ///   these tokens and the lifetime token of the <see cref="IBackgroundTaskService"/> will 
-        ///   be passed to <paramref name="workItem"/>.
-        /// </param>
-        /// <returns>
-        ///   The unique identifier for the queued work item.
-        /// </returns>
-        /// <exception cref="ArgumentNullException">
-        ///   <paramref name="backgroundTaskService"/> is <see langword="null"/>.
-        /// </exception>
-        /// <exception cref="ArgumentNullException">
-        ///   <paramref name="workItem"/> is <see langword="null"/>.
-        /// </exception>
-        public static string QueueBackgroundWorkItem(this IBackgroundTaskService backgroundTaskService, Action<CancellationToken> workItem, Activity? activity, params CancellationToken[] tokens) {
-            return QueueBackgroundWorkItem(backgroundTaskService, workItem, activity, (IEnumerable<CancellationToken>) tokens);
-        }
-
-
-        /// <summary>
-        /// Adds a synchronous work item to the queue.
-        /// </summary>
-        /// <param name="backgroundTaskService">
-        ///   The <see cref="IBackgroundTaskService"/>.
-        /// </param>
-        /// <param name="workItem">
-        ///   The work item.
-        /// </param>
-        /// <param name="activity">
-        ///   The optional <see cref="Activity"/> to assign to the work item. The <see cref="Activity"/> 
-        ///   will be disposed when the work item is completed.
-        /// </param>
-        /// <param name="tokens">
-        ///   Additional cancellation tokens for the operation. A composite token consisting of 
-        ///   these tokens and the lifetime token of the <see cref="IBackgroundTaskService"/> will 
-        ///   be passed to <paramref name="workItem"/>.
-        /// </param>
-        /// <returns>
-        ///   The unique identifier for the queued work item.
-        /// </returns>
-        /// <exception cref="ArgumentNullException">
-        ///   <paramref name="backgroundTaskService"/> is <see langword="null"/>.
-        /// </exception>
-        /// <exception cref="ArgumentNullException">
-        ///   <paramref name="workItem"/> is <see langword="null"/>.
-        /// </exception>
-        public static string QueueBackgroundWorkItem(this IBackgroundTaskService backgroundTaskService, Action<CancellationToken> workItem, Activity? activity, IEnumerable<CancellationToken> tokens) {
-            if (backgroundTaskService == null) {
-                throw new ArgumentNullException(nameof(backgroundTaskService));
-            }
-            if (workItem == null) {
-                throw new ArgumentNullException(nameof(workItem));
-            }
-
-            if (tokens == null || !tokens.Any()) {
-                // No additional tokens; just queue the work item as normal.
-                return backgroundTaskService.QueueBackgroundWorkItem(workItem, activity);
-            }
-
-            // We're constructing a new delegate to allow us to listen to multiple cancellation 
-            // tokens. If no description has been specified, create a description now, using the 
-            // original delegate provided to us, or the auto-generated description will reference 
-            // this method instead of the original delegate.
-
-            return backgroundTaskService.QueueBackgroundWorkItem((a, ct) => {
-                using (var compositeTokenSource = CancellationTokenSource.CreateLinkedTokenSource(new[] { ct }.Concat(tokens).ToArray())) {
+            return backgroundTaskService.QueueBackgroundWorkItem(ct => {
+                using (var compositeTokenSource = CancellationTokenSource.CreateLinkedTokenSource(new[] { ct }.Concat(additionalTokens).ToArray())) {
                     workItem(compositeTokenSource.Token);
                 }
-            }, activity);
+            }, displayName, activityFactory);
+        }
+
+
+        /// <summary>
+        /// Adds an asynchronous work item to the queue.
+        /// </summary>
+        /// <param name="backgroundTaskService">
+        ///   The <see cref="IBackgroundTaskService"/>.
+        /// </param>
+        /// <param name="workItem">
+        ///   The work item.
+        /// </param>
+        /// <param name="displayName">
+        ///   The display name for the work item.
+        /// </param>
+        /// <param name="activityFactory">
+        ///   A factory function that can be used to start an <see cref="Activity"/> associated 
+        ///   with the work item when it is run.
+        /// </param>
+        /// <param name="tokens">
+        ///   Additional cancellation tokens for the operation. A composite token consisting of 
+        ///   these tokens and the lifetime token of the <see cref="IBackgroundTaskService"/> will 
+        ///   be passed to <paramref name="workItem"/>.
+        /// </param>
+        /// <returns>
+        ///   The unique identifier for the queued work item.
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        ///   <paramref name="backgroundTaskService"/> is <see langword="null"/>.
+        /// </exception>
+        /// <exception cref="ArgumentNullException">
+        ///   <paramref name="workItem"/> is <see langword="null"/>.
+        /// </exception>
+        public static string QueueBackgroundWorkItem(
+            this IBackgroundTaskService backgroundTaskService, 
+            Func<CancellationToken, Task> workItem,
+            string? displayName,
+            Func<Activity?>? activityFactory,
+            params CancellationToken[] tokens
+        ) {
+            return QueueBackgroundWorkItem(backgroundTaskService, workItem, displayName, activityFactory, (IEnumerable<CancellationToken>) tokens);
         }
 
 
@@ -481,39 +273,13 @@ namespace IntelligentPlant.BackgroundTasks {
         /// <exception cref="ArgumentNullException">
         ///   <paramref name="workItem"/> is <see langword="null"/>.
         /// </exception>
-        public static string QueueBackgroundWorkItem(this IBackgroundTaskService backgroundTaskService, Func<CancellationToken, Task> workItem, Activity? activity, params CancellationToken[] tokens) {
-            return QueueBackgroundWorkItem(backgroundTaskService, workItem, activity, (IEnumerable<CancellationToken>) tokens);
-        }
-
-
-        /// <summary>
-        /// Adds an asynchronous work item to the queue.
-        /// </summary>
-        /// <param name="backgroundTaskService">
-        ///   The <see cref="IBackgroundTaskService"/>.
-        /// </param>
-        /// <param name="workItem">
-        ///   The work item.
-        /// </param>
-        /// <param name="activity">
-        ///   The optional <see cref="Activity"/> to assign to the work item. The <see cref="Activity"/> 
-        ///   will be disposed when the work item is completed.
-        /// </param>
-        /// <param name="tokens">
-        ///   Additional cancellation tokens for the operation. A composite token consisting of 
-        ///   these tokens and the lifetime token of the <see cref="IBackgroundTaskService"/> will 
-        ///   be passed to <paramref name="workItem"/>.
-        /// </param>
-        /// <returns>
-        ///   The unique identifier for the queued work item.
-        /// </returns>
-        /// <exception cref="ArgumentNullException">
-        ///   <paramref name="backgroundTaskService"/> is <see langword="null"/>.
-        /// </exception>
-        /// <exception cref="ArgumentNullException">
-        ///   <paramref name="workItem"/> is <see langword="null"/>.
-        /// </exception>
-        public static string QueueBackgroundWorkItem(this IBackgroundTaskService backgroundTaskService, Func<CancellationToken, Task> workItem, Activity? activity, IEnumerable<CancellationToken> tokens) {
+        public static string QueueBackgroundWorkItem(
+            this IBackgroundTaskService backgroundTaskService, 
+            Func<CancellationToken, Task> workItem,
+            string? displayName,
+            Func<Activity?>? activityFactory,
+            IEnumerable<CancellationToken>? tokens
+        ) {
             if (backgroundTaskService == null) {
                 throw new ArgumentNullException(nameof(backgroundTaskService));
             }
@@ -521,9 +287,11 @@ namespace IntelligentPlant.BackgroundTasks {
                 throw new ArgumentNullException(nameof(workItem));
             }
 
-            if (tokens == null || !tokens.Any()) {
+            var additionalTokens = tokens?.ToArray();
+
+            if (additionalTokens?.Length == 0) {
                 // No additional tokens; just queue the work item as normal.
-                return backgroundTaskService.QueueBackgroundWorkItem(workItem, activity);
+                return backgroundTaskService.QueueBackgroundWorkItem(workItem, displayName, activityFactory);
             }
 
             // We're constructing a new delegate to allow us to listen to multiple cancellation 
@@ -531,14 +299,12 @@ namespace IntelligentPlant.BackgroundTasks {
             // original delegate provided to us, or the auto-generated description will reference 
             // this method instead of the original delegate.
 
-            return backgroundTaskService.QueueBackgroundWorkItem(async (a, ct) => {
-                using (var compositeTokenSource = CancellationTokenSource.CreateLinkedTokenSource(new[] { ct }.Concat(tokens).ToArray())) {
+            return backgroundTaskService.QueueBackgroundWorkItem(async (ct) => {
+                using (var compositeTokenSource = CancellationTokenSource.CreateLinkedTokenSource(new[] { ct }.Concat(additionalTokens).ToArray())) {
                     await workItem(compositeTokenSource.Token).ConfigureAwait(false);
                 }
-            }, activity);
+            }, displayName, activityFactory);
         }
-
-        #endregion
 
     }
 }

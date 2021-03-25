@@ -169,7 +169,7 @@ namespace IntelligentPlant.BackgroundTasks.Tests {
                         value = 1;
                         semaphore.Release();
                     }
-                }, null, ctSource2.Token);
+                }, null, null, ctSource2.Token);
 
                 Assert.AreEqual(1, svc.QueuedItemCount);
 
@@ -216,7 +216,7 @@ namespace IntelligentPlant.BackgroundTasks.Tests {
                             value = 1;
                         }
                         semaphore.Release();
-                    }, activitySource.StartActivity(TestContext.TestName));
+                    }, null, () => activitySource.StartActivity(TestContext.TestName));
 
                     Assert.AreEqual(1, svc.QueuedItemCount);
 
@@ -227,6 +227,7 @@ namespace IntelligentPlant.BackgroundTasks.Tests {
                     Assert.IsTrue(lockObtained);
                     Assert.AreEqual(0, svc.QueuedItemCount);
                     Assert.AreEqual(1, value);
+                    Assert.AreEqual(parentActivity?.DisplayName, Activity.Current?.DisplayName);
 
                     ctSource.Cancel();
                     await run;
@@ -264,7 +265,7 @@ namespace IntelligentPlant.BackgroundTasks.Tests {
                         }
                         semaphore.Release();
                         return Task.CompletedTask;
-                    }, activitySource.StartActivity(TestContext.TestName));
+                    }, null, () => activitySource.StartActivity(TestContext.TestName));
 
                     Assert.AreEqual(1, svc.QueuedItemCount);
 
@@ -275,6 +276,7 @@ namespace IntelligentPlant.BackgroundTasks.Tests {
                     Assert.IsTrue(lockObtained);
                     Assert.AreEqual(0, svc.QueuedItemCount);
                     Assert.AreEqual(1, value);
+                    Assert.AreEqual(parentActivity?.DisplayName, Activity.Current?.DisplayName);
 
                     ctSource.Cancel();
                     await run;

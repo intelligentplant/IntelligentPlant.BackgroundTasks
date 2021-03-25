@@ -128,10 +128,10 @@ namespace IntelligentPlant.BackgroundTasks {
             }
 
             if (workItem.WorkItemAsync != null) {
-                _inner.QueueBackgroundWorkItem(workItem.WorkItemAsync, workItem.Activity, _callback.Invoke() ?? Array.Empty<CancellationToken>());
+                _inner.QueueBackgroundWorkItem(workItem.WorkItemAsync, workItem.DisplayName, () => workItem.StartActivity(), _callback.Invoke() ?? Array.Empty<CancellationToken>());
             }
             else {
-                _inner.QueueBackgroundWorkItem(workItem.WorkItem!, workItem.Activity, _callback.Invoke() ?? Array.Empty<CancellationToken>());
+                _inner.QueueBackgroundWorkItem(workItem.WorkItem!, workItem.DisplayName, () => workItem.StartActivity(), _callback.Invoke() ?? Array.Empty<CancellationToken>());
             }
         }
 
