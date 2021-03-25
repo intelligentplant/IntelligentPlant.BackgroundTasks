@@ -36,8 +36,6 @@ Inject the [IBackgroundTaskService](./src/IntelligentPlant.BackgroundTasks/IBack
 ```csharp
 public class EmailNotifier {
 
-    private static readonly ActivitySource s_activitySource { get; } = new ActivitySource("MyCompany.EmailNotifier", "1.0.0");
-
     private readonly IBackgroundTaskService _backgroundTaskService;
 
 
@@ -47,40 +45,34 @@ public class EmailNotifier {
 
 
     public void SendEmail(string recipient, string subject, string content) {
-        _backgroundTaskService.QueueBackgroundWorkItem(async (activity, ct) => {
-            activity?.SetTag("recipient", recipient);
+        _backgroundTaskService.QueueBackgroundWorkItem(async ct => {
             // The provided cancellation token will fire when the application is shutting down.
             await SendEmailInternal(recipient, subject, content, ct);
-        }, s_activitySource.StartActivity("send_email"));
+        });
     }
 }
 ```
-
-Note that we are passing a `System.Diagnostics.Activity?` parameter into the `QueueBackgroundWorkItem` method, which is in turn being passed into our delegate. When this is non-null, we can use it to provide trace information to the host application.
 
 By default, the `CancellationToken` provided to the work item will fire when the application is shutting down. The [BackgroundTaskServiceExtensions](./src/IntelligentPlant.BackgroundTasks/BackgroundTaskServiceExtensions.cs) class contains extension methods that allow you to specify additional `CancellationToken` instances for the work item. In these scenarios, a composite of the master token and all of the additional tokens is passed to the work item. Examples of when you might want to use this functionality include starting a long-running background task from an object that should stop when the object is disposed, e.g.
 
 ```csharp
 public class MyClass : IDisposable {
 
-    private static readonly ActivitySource s_activitySource { get; } = new ActivitySource("MyCompany.MyClass", "1.0.0");
-
     private readonly CancellationTokenSource _shutdownSource = new CancellationTokenSource();
 
     public MyClass(IBackgroundTaskService backgroundTaskService) {
         backgroundTaskService.QueueBackgroundWorkItem(
             LongRunningTask, 
-            s_activitySource.StartActivity("long_running_task"), 
+            null, // display name
+            null, // activity factory (see OpenTelemetry section below)
+            false, // parent activity capture flag (see OpenTelemetry section below)
             _shutdownSource.Token
         );
     }
 
-    private async Task LongRunningTask(Activity? activity, CancellationToken cancellationToken) {
+    private async Task LongRunningTask(CancellationToken cancellationToken) {
         while (!cancellationToken.IsCancellationRequested) {
-            // Do long-running work. The cancellation token will fire when either 
-            // _shutdownSource is cancelled, or the IBackgroundTaskService is shut 
-            // down. If the 'activity' parameter is non-null, you can use it to provide trace 
-            // information about the operation.
+            // Do long-running work.
         }
     }
 
@@ -91,7 +83,6 @@ public class MyClass : IDisposable {
 
 }
 ```
-
 
 # EventSource
 
@@ -105,7 +96,7 @@ When running on .NET Core 3.0 or later, event counters are available via the `In
 
 # OpenTelemetry
 
-[OpenTelemetry](https://github.com/open-telemetry)-compatible instrumentation for background work items is emitted via the `Activity` objects specified when registering background work items. The `ActivitySource` type in the [System.Diagnostics.DiagnosticSource](https://www.nuget.org/packages/System.Diagnostics.DiagnosticSource) NuGet package is used to create these `Activity` instances.
+[OpenTelemetry](https://github.com/open-telemetry)-compatible instrumentation for background work items is emitted via the value of the `System.Diagnostics.Activity.Current` object when the background work item is run. The `ActivitySource` type in the [System.Diagnostics.DiagnosticSource](https://www.nuget.org/packages/System.Diagnostics.DiagnosticSource) NuGet package is used to create these `Activity` instances.
 
 To enable OpenTelemetry instrumentation in an ASP.NET Core application:
 
@@ -121,3 +112,30 @@ services.AddOpenTelemetryTracing(builder => {
         .AddConsoleExporter();
 });
 ```
+
+Consider our `EmailNotifier` class from above. We can enhance this class so that it can generate `Activity` objects for use in traces:
+
+```csharp
+public class EmailNotifier {
+
+    private static readonly ActivitySource s_activitySource { get; } = new ActivitySource("MyCompany.EmailNotifier", "1.0.0");
+
+    private readonly IBackgroundTaskService _backgroundTaskService;
+
+
+    public EmailNotifier(IBackgroundTaskService backgroundTaskService) {
+        _backgroundTaskService = backgroundTaskService;
+    }
+
+
+    public void SendEmail(string recipient, string subject, string content) {
+        _backgroundTaskService.QueueBackgroundWorkItem(async ct => {
+            Activity.Current?.SetTag("recipient", recipient);
+            // The provided cancellation token will fire when the application is shutting down.
+            await SendEmailInternal(recipient, subject, content, ct);
+        }, activityFactory: () => s_activitySource.StartActivity("send_email"), captureParentActivity: true);
+    }
+}
+```
+
+Note that we are passing a value for the `activityFactory` parameter into the `QueueBackgroundWorkItem` method, which is used to set the value of `Activity.Current` for our work item. Providing a value for this parameter allows us to generate an `Activity` for the work item that will be automatically stopped once the work item has finished. By setting the `captureParentActivity` parameter to `true`, we are saying that we want to attach the `Activity` associated with the work item as a child of the current activity when the `SendEmail` method is called. If we specified `false` for this parameter (the default behaviour), the `Activity` created for the work item would be the child of the of `Activity.Current` at the moment that the work item was run.
