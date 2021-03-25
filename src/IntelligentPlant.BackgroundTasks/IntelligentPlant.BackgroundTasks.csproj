@@ -10,6 +10,11 @@
     <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="5.0.1" />
   </ItemGroup>
 
+  <ItemGroup Condition=" '$(TargetFramework)' != 'netstandard2.1' ">
+    <!-- ValueTask support for .NET Standard 2.0 and .NET Framework 4.x -->
+    <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.4" />
+  </ItemGroup>
+
   <ItemGroup>
     <Compile Update="EventSourceResources.Designer.cs">
       <DesignTime>True</DesignTime>

@@ -15,12 +15,6 @@ namespace IntelligentPlant.BackgroundTasks {
     public class DefaultBackgroundTaskService : BackgroundTaskService {
 
         /// <summary>
-        /// A stopwatch for measuring elapsed time for tasks.
-        /// </summary>
-        private readonly System.Diagnostics.Stopwatch _stopwatch = System.Diagnostics.Stopwatch.StartNew();
-
-
-        /// <summary>
         /// Creates a new <see cref="DefaultBackgroundTaskService"/> object.
         /// </summary>
         /// <param name="options">
@@ -37,65 +31,7 @@ namespace IntelligentPlant.BackgroundTasks {
 
         /// <inheritdoc/>
         protected override void RunBackgroundWorkItem(BackgroundWorkItem workItem, CancellationToken cancellationToken) {
-            if (workItem.WorkItem != null) {
-                _ = Task.Run(() => {
-                    Activity? previousActivity = null;
-
-                    try {
-                        if (workItem.ParentActivity != null) {
-                            // The work item has captured its parent activity. Store Activity.Current
-                            // so that we can restore it later.
-                            previousActivity = Activity.Current;
-                            Activity.Current = workItem.ParentActivity;
-                        }
-
-                        var elapsedBefore = _stopwatch.Elapsed;
-                        try {
-                            OnRunning(workItem);
-                            workItem.WorkItem(cancellationToken);
-                            OnCompleted(workItem, _stopwatch.Elapsed - elapsedBefore);
-                        }
-                        catch (Exception e) {
-                            OnError(workItem, e, _stopwatch.Elapsed - elapsedBefore);
-                        }
-                    }
-                    finally {
-                        if (workItem.ParentActivity != null) {
-                            // Restore the original activity.
-                            Activity.Current = previousActivity;
-                        }
-                    }
-                }, cancellationToken);
-            }
-            else if (workItem.WorkItemAsync != null) {
-                _ = Task.Run(async () => {
-                    Activity? previousActivity = null;
-                    try {
-                        if (workItem.ParentActivity != null) {
-                            // The work item has captured its parent activity. Store Activity.Current
-                            // so that we can restore it later.
-                            previousActivity = Activity.Current;
-                            Activity.Current = workItem.ParentActivity;
-                        }
-
-                        var elapsedBefore = _stopwatch.Elapsed;
-                        try {
-                            OnRunning(workItem);
-                            await workItem.WorkItemAsync(cancellationToken).ConfigureAwait(false);
-                            OnCompleted(workItem, _stopwatch.Elapsed - elapsedBefore);
-                        }
-                        catch (Exception e) {
-                            OnError(workItem, e, _stopwatch.Elapsed - elapsedBefore);
-                        }
-                    }
-                    finally {
-                        if (workItem.ParentActivity != null) {
-                            // Restore the original activity.
-                            Activity.Current = previousActivity;
-                        }
-                    }
-                }, cancellationToken);
-            }
+            _ = Task.Run(async () => await RunBackgroundWorkItemAsync(workItem, cancellationToken).ConfigureAwait(false));
         }
 
     }

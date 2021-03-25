@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
@@ -20,6 +19,12 @@ namespace IntelligentPlant.BackgroundTasks {
         /// with the background task service.
         /// </summary>
         public const string DiagnosticsSourceName = "IntelligentPlant.BackgroundTasks";
+
+        /// <summary>
+        /// A stopwatch for measuring elapsed time for tasks.
+        /// </summary>
+        private readonly Stopwatch _stopwatch = Stopwatch.StartNew();
+
 
 
         /// <summary>
@@ -257,6 +262,53 @@ namespace IntelligentPlant.BackgroundTasks {
         ///   A cancellation token to pass to the <paramref name="workItem"/>.
         /// </param>
         protected abstract void RunBackgroundWorkItem(BackgroundWorkItem workItem, CancellationToken cancellationToken);
+
+
+        /// <summary>
+        /// Runs a work item.
+        /// </summary>
+        /// <param name="workItem">
+        ///   The work item to run.
+        /// </param>
+        /// <param name="cancellationToken">
+        ///   The cancellation token for the operation.
+        /// </param>
+        /// <returns>
+        ///   A <see cref="ValueTask"/> that will run the work item.
+        /// </returns>
+        protected async ValueTask RunBackgroundWorkItemAsync(BackgroundWorkItem workItem, CancellationToken cancellationToken) {
+            Activity? previousActivity = null;
+
+            try {
+                if (workItem.ParentActivity != null) {
+                    // The work item has captured its parent activity. Store Activity.Current
+                    // so that we can restore it later.
+                    previousActivity = Activity.Current;
+                    Activity.Current = workItem.ParentActivity;
+                }
+
+                var elapsedBefore = _stopwatch.Elapsed;
+                try {
+                    OnRunning(workItem);
+                    if (workItem.WorkItemAsync != null) {
+                        await workItem.WorkItemAsync(cancellationToken).ConfigureAwait(false);
+                    }
+                    else if (workItem.WorkItem != null) {
+                        workItem.WorkItem(cancellationToken);
+                    }
+                    OnCompleted(workItem, _stopwatch.Elapsed - elapsedBefore);
+                }
+                catch (Exception e) {
+                    OnError(workItem, e, _stopwatch.Elapsed - elapsedBefore);
+                }
+            }
+            finally {
+                if (workItem.ParentActivity != null) {
+                    // Restore the original activity.
+                    Activity.Current = previousActivity;
+                }
+            }
+        }
 
 
         /// <summary>
