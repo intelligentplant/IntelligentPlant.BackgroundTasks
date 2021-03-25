@@ -48,7 +48,7 @@ public static class BuildUtilities {
         WriteLogMessage(buildSystem, $"Target: {state.Target}");
         WriteLogMessage(buildSystem, $"Configuration: {state.Configuration}");
         WriteLogMessage(buildSystem, $"Clean: {state.RunCleanTarget}");
-        WriteLogMessage(buildSystem, $"Continous Integration Build: {state.ContinuousIntegrationBuild}");
+        WriteLogMessage(buildSystem, $"Continuous Integration Build: {state.ContinuousIntegrationBuild}");
         WriteLogMessage(buildSystem, $"Sign Output: {state.CanSignOutput}");
         WriteLogMessage(buildSystem, $"Informational Version: {state.InformationalVersion}");
         WriteLogMessage(buildSystem, $"Assembly Version: {state.AssemblyVersion}");
