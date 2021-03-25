@@ -59,11 +59,9 @@ namespace IntelligentPlant.BackgroundTasks {
         /// </param>
         /// <param name="captureParentActivity">
         ///   When <see langword="true"/>, the value of <see cref="Activity.Current"/> at the 
-        ///   moment that the <see cref="BackgroundWorkItem"/> is created will be used as the 
-        ///   implicit parent activity when <see cref="StartActivity"/> is called. When 
-        ///   <see langword="false"/>, the value of <see cref="Activity.Current"/> at the moment 
-        ///   <see cref="StartActivity"/> is called will be used. This parameter is ignored if 
-        ///   <paramref name="activityFactory"/> is <see langword="null"/>.
+        ///   moment that the <see cref="BackgroundWorkItem"/> is created will be captured and set 
+        ///   as the value of <see cref="Activity.Current"/> immediately before the background work 
+        ///   item is run.
         /// </param>
         /// <exception cref="ArgumentNullException">
         ///   <paramref name="workItem"/> is <see langword="null"/>.
@@ -72,7 +70,7 @@ namespace IntelligentPlant.BackgroundTasks {
             WorkItem = workItem ?? throw new ArgumentNullException(nameof(workItem));
             WorkItemAsync = null;
 
-            ParentActivity = activityFactory != null && captureParentActivity ? Activity.Current : null;
+            ParentActivity = captureParentActivity ? Activity.Current : null;
             _activityFactory = activityFactory;
             Id = Guid.NewGuid().ToString();
             DisplayName = displayName;
@@ -95,11 +93,9 @@ namespace IntelligentPlant.BackgroundTasks {
         /// </param>
         /// <param name="captureParentActivity">
         ///   When <see langword="true"/>, the value of <see cref="Activity.Current"/> at the 
-        ///   moment that the <see cref="BackgroundWorkItem"/> is created will be used as the 
-        ///   implicit parent activity when <see cref="StartActivity"/> is called. When 
-        ///   <see langword="false"/>, the value of <see cref="Activity.Current"/> at the moment 
-        ///   <see cref="StartActivity"/> is called will be used. This parameter is ignored if 
-        ///   <paramref name="activityFactory"/> is <see langword="null"/>.
+        ///   moment that the <see cref="BackgroundWorkItem"/> is created will be captured and set 
+        ///   as the value of <see cref="Activity.Current"/> immediately before the background work 
+        ///   item is run.
         /// </param>
         /// <exception cref="ArgumentNullException">
         ///   <paramref name="workItem"/> is <see langword="null"/>.
@@ -108,7 +104,7 @@ namespace IntelligentPlant.BackgroundTasks {
             WorkItem = null;
             WorkItemAsync = workItem ?? throw new ArgumentNullException(nameof(workItem));
 
-            ParentActivity = activityFactory != null && captureParentActivity ? Activity.Current : null;
+            ParentActivity = captureParentActivity ? Activity.Current : null;
             _activityFactory = activityFactory;
             Id = Guid.NewGuid().ToString();
             DisplayName = displayName;
