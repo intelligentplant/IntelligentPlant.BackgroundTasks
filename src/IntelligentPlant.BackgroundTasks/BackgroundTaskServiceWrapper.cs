@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 
 namespace IntelligentPlant.BackgroundTasks {
@@ -127,12 +128,39 @@ namespace IntelligentPlant.BackgroundTasks {
                 throw new ObjectDisposedException(GetType().FullName);
             }
 
+            BackgroundWorkItem wrappedWorkItem;
+            var tokens = _callback.Invoke();
+
             if (workItem.WorkItemAsync != null) {
-                _inner.QueueBackgroundWorkItem(workItem.WorkItemAsync, workItem.DisplayName, () => workItem.StartActivity(), _callback.Invoke() ?? Array.Empty<CancellationToken>());
+                wrappedWorkItem = new BackgroundWorkItem(
+                    null, 
+                    async ct => {
+                        using (var ctSource = CancellationTokenSource.CreateLinkedTokenSource(new[] { ct }.Concat(tokens).ToArray())) {
+                            await workItem.WorkItemAsync.Invoke(ctSource.Token);
+                        }
+                    }, 
+                    workItem.Id, 
+                    workItem.DisplayName, 
+                    workItem.StartActivity, 
+                    workItem.ParentActivity
+                );
             }
             else {
-                _inner.QueueBackgroundWorkItem(workItem.WorkItem!, workItem.DisplayName, () => workItem.StartActivity(), _callback.Invoke() ?? Array.Empty<CancellationToken>());
+                wrappedWorkItem = new BackgroundWorkItem(
+                    ct => {
+                        using (var ctSource = CancellationTokenSource.CreateLinkedTokenSource(new[] { ct }.Concat(tokens).ToArray())) {
+                            workItem.WorkItem!.Invoke(ctSource.Token);
+                        }
+                    },
+                    null,
+                    workItem.Id,
+                    workItem.DisplayName,
+                    workItem.StartActivity,
+                    workItem.ParentActivity
+                );
             }
+
+            _inner.QueueBackgroundWorkItem(wrappedWorkItem);
         }
 
 

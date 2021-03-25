@@ -39,9 +39,16 @@ namespace IntelligentPlant.BackgroundTasks {
         protected override void RunBackgroundWorkItem(BackgroundWorkItem workItem, CancellationToken cancellationToken) {
             if (workItem.WorkItem != null) {
                 _ = Task.Run(() => {
-                    var previousActivity = Activity.Current;
+                    Activity? previousActivity = null;
+                    
                     try {
-                        Activity.Current = workItem.ParentActivity;
+                        if (workItem.ParentActivity != null) {
+                            // The work item has captured its parent activity. Store Activity.Current
+                            // so that we can restore it later.
+                            previousActivity = Activity.Current;
+                            Activity.Current = workItem.ParentActivity;
+                        }
+
                         using (var activity = workItem.StartActivity()) {
                             var elapsedBefore = _stopwatch.Elapsed;
                             try {
@@ -58,15 +65,24 @@ namespace IntelligentPlant.BackgroundTasks {
                         }
                     }
                     finally {
-                        Activity.Current = previousActivity;
+                        if (workItem.ParentActivity != null) {
+                            // Restore the original activity.
+                            Activity.Current = previousActivity;
+                        }
                     }
                 }, cancellationToken);
             }
             else if (workItem.WorkItemAsync != null) {
                 _ = Task.Run(async () => {
-                    var previousActivity = Activity.Current;
+                    Activity? previousActivity = null;
                     try {
-                        Activity.Current = workItem.ParentActivity;
+                        if (workItem.ParentActivity != null) {
+                            // The work item has captured its parent activity. Store Activity.Current
+                            // so that we can restore it later.
+                            previousActivity = Activity.Current;
+                            Activity.Current = workItem.ParentActivity;
+                        }
+
                         using (var activity = workItem.StartActivity()) {
                             var elapsedBefore = _stopwatch.Elapsed;
                             try {
@@ -83,7 +99,10 @@ namespace IntelligentPlant.BackgroundTasks {
                         }
                     }
                     finally {
-                        Activity.Current = previousActivity;
+                        if (workItem.ParentActivity != null) {
+                            // Restore the original activity.
+                            Activity.Current = previousActivity;
+                        }
                     }
                 }, cancellationToken);
             }

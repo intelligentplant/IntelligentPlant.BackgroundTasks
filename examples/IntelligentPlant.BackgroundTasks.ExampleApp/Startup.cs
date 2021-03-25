@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
+using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 
 namespace IntelligentPlant.BackgroundTasks.ExampleApp {
@@ -21,6 +22,7 @@ namespace IntelligentPlant.BackgroundTasks.ExampleApp {
 
             services.AddOpenTelemetryTracing(builder => {
                 builder
+                    .SetResourceBuilder(ResourceBuilder.CreateEmpty().AddService(GetType().Assembly.GetName().Name, autoGenerateServiceInstanceId: false))
                     .AddAspNetCoreInstrumentation()
                     .AddSource(nameof(Controllers.TasksController))
                     .AddConsoleExporter();

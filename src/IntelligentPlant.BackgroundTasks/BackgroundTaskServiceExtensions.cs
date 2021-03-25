@@ -28,6 +28,14 @@ namespace IntelligentPlant.BackgroundTasks {
         ///   A factory function that can be used to start an <see cref="Activity"/> associated 
         ///   with the work item when it is run.
         /// </param>
+        /// <param name="captureParentActivity">
+        ///   When <see langword="true"/>, the value of <see cref="Activity.Current"/> at the 
+        ///   moment that the <see cref="BackgroundWorkItem"/> is created will be used as the 
+        ///   implicit parent activity when <see cref="BackgroundWorkItem.StartActivity"/> is 
+        ///   called. When <see langword="false"/>, the value of <see cref="Activity.Current"/> 
+        ///   at the moment <see cref="BackgroundWorkItem.StartActivity"/> is called will be used. 
+        ///   This parameter is ignored if <paramref name="activityFactory"/> is <see langword="null"/>.
+        /// </param>
         /// <returns>
         ///   The unique identifier for the queued work item.
         /// </returns>
@@ -41,7 +49,8 @@ namespace IntelligentPlant.BackgroundTasks {
             this IBackgroundTaskService backgroundTaskService, 
             Action<CancellationToken> workItem, 
             string? displayName = null,
-            Func<Activity?>? activityFactory = null
+            Func<Activity?>? activityFactory = null,
+            bool captureParentActivity = false
         ) {
             if (backgroundTaskService == null) {
                 throw new ArgumentNullException(nameof(backgroundTaskService));
@@ -50,7 +59,7 @@ namespace IntelligentPlant.BackgroundTasks {
                 throw new ArgumentNullException(nameof(workItem));
             }
 
-            var item = new BackgroundWorkItem(workItem, displayName, activityFactory);
+            var item = new BackgroundWorkItem(workItem, displayName, activityFactory, captureParentActivity);
             backgroundTaskService.QueueBackgroundWorkItem(item);
 
             return item.Id;
@@ -73,6 +82,14 @@ namespace IntelligentPlant.BackgroundTasks {
         ///   A factory function that can be used to start an <see cref="Activity"/> associated 
         ///   with the work item when it is run.
         /// </param>
+        /// <param name="captureParentActivity">
+        ///   When <see langword="true"/>, the value of <see cref="Activity.Current"/> at the 
+        ///   moment that the <see cref="BackgroundWorkItem"/> is created will be used as the 
+        ///   implicit parent activity when <see cref="BackgroundWorkItem.StartActivity"/> is 
+        ///   called. When <see langword="false"/>, the value of <see cref="Activity.Current"/> 
+        ///   at the moment <see cref="BackgroundWorkItem.StartActivity"/> is called will be used. 
+        ///   This parameter is ignored if <paramref name="activityFactory"/> is <see langword="null"/>.
+        /// </param>
         /// <returns>
         ///   The unique identifier for the queued work item.
         /// </returns>
@@ -86,7 +103,8 @@ namespace IntelligentPlant.BackgroundTasks {
             this IBackgroundTaskService backgroundTaskService, 
             Func<CancellationToken, Task> workItem, 
             string? displayName = null,
-            Func<Activity?>? activityFactory = null
+            Func<Activity?>? activityFactory = null,
+            bool captureParentActivity = false
         ) {
             if (backgroundTaskService == null) {
                 throw new ArgumentNullException(nameof(backgroundTaskService));
@@ -95,7 +113,7 @@ namespace IntelligentPlant.BackgroundTasks {
                 throw new ArgumentNullException(nameof(workItem));
             }
 
-            var item = new BackgroundWorkItem(workItem, displayName, activityFactory);
+            var item = new BackgroundWorkItem(workItem, displayName, activityFactory, captureParentActivity);
             backgroundTaskService.QueueBackgroundWorkItem(item);
 
             return item.Id;
@@ -117,6 +135,14 @@ namespace IntelligentPlant.BackgroundTasks {
         /// <param name="activityFactory">
         ///   A factory function that can be used to start an <see cref="Activity"/> associated 
         ///   with the work item when it is run.
+        /// </param>
+        /// <param name="captureParentActivity">
+        ///   When <see langword="true"/>, the value of <see cref="Activity.Current"/> at the 
+        ///   moment that the <see cref="BackgroundWorkItem"/> is created will be used as the 
+        ///   implicit parent activity when <see cref="BackgroundWorkItem.StartActivity"/> is 
+        ///   called. When <see langword="false"/>, the value of <see cref="Activity.Current"/> 
+        ///   at the moment <see cref="BackgroundWorkItem.StartActivity"/> is called will be used. 
+        ///   This parameter is ignored if <paramref name="activityFactory"/> is <see langword="null"/>.
         /// </param>
         /// <param name="tokens">
         ///   Additional cancellation tokens for the operation. A composite token consisting of 
@@ -137,9 +163,10 @@ namespace IntelligentPlant.BackgroundTasks {
             Action<CancellationToken> workItem,
             string? displayName,
             Func<Activity?>? activityFactory, 
+            bool captureParentActivity,
             params CancellationToken[] tokens
         ) {
-            return QueueBackgroundWorkItem(backgroundTaskService, workItem, displayName, activityFactory, (IEnumerable<CancellationToken>) tokens);
+            return QueueBackgroundWorkItem(backgroundTaskService, workItem, displayName, activityFactory, captureParentActivity, (IEnumerable<CancellationToken>) tokens);
         }
 
 
@@ -158,6 +185,14 @@ namespace IntelligentPlant.BackgroundTasks {
         /// <param name="activityFactory">
         ///   A factory function that can be used to start an <see cref="Activity"/> associated 
         ///   with the work item when it is run.
+        /// </param>
+        /// <param name="captureParentActivity">
+        ///   When <see langword="true"/>, the value of <see cref="Activity.Current"/> at the 
+        ///   moment that the <see cref="BackgroundWorkItem"/> is created will be used as the 
+        ///   implicit parent activity when <see cref="BackgroundWorkItem.StartActivity"/> is 
+        ///   called. When <see langword="false"/>, the value of <see cref="Activity.Current"/> 
+        ///   at the moment <see cref="BackgroundWorkItem.StartActivity"/> is called will be used. 
+        ///   This parameter is ignored if <paramref name="activityFactory"/> is <see langword="null"/>.
         /// </param>
         /// <param name="tokens">
         ///   Additional cancellation tokens for the operation. A composite token consisting of 
@@ -178,6 +213,7 @@ namespace IntelligentPlant.BackgroundTasks {
             Action<CancellationToken> workItem, 
             string? displayName,
             Func<Activity?>? activityFactory, 
+            bool captureParentActivity,
             IEnumerable<CancellationToken>? tokens
         ) {
             if (backgroundTaskService == null) {
@@ -191,7 +227,7 @@ namespace IntelligentPlant.BackgroundTasks {
 
             if (additionalTokens?.Length == 0) {
                 // No additional tokens; just queue the work item as normal.
-                return backgroundTaskService.QueueBackgroundWorkItem(workItem, displayName, activityFactory);
+                return backgroundTaskService.QueueBackgroundWorkItem(workItem, displayName, activityFactory, captureParentActivity);
             }
 
             // We're constructing a new delegate to allow us to listen to multiple cancellation 
@@ -201,7 +237,7 @@ namespace IntelligentPlant.BackgroundTasks {
                 using (var compositeTokenSource = CancellationTokenSource.CreateLinkedTokenSource(new[] { ct }.Concat(additionalTokens).ToArray())) {
                     workItem(compositeTokenSource.Token);
                 }
-            }, displayName, activityFactory);
+            }, displayName, activityFactory, captureParentActivity);
         }
 
 
@@ -221,6 +257,14 @@ namespace IntelligentPlant.BackgroundTasks {
         ///   A factory function that can be used to start an <see cref="Activity"/> associated 
         ///   with the work item when it is run.
         /// </param>
+        /// <param name="captureParentActivity">
+        ///   When <see langword="true"/>, the value of <see cref="Activity.Current"/> at the 
+        ///   moment that the <see cref="BackgroundWorkItem"/> is created will be used as the 
+        ///   implicit parent activity when <see cref="BackgroundWorkItem.StartActivity"/> is 
+        ///   called. When <see langword="false"/>, the value of <see cref="Activity.Current"/> 
+        ///   at the moment <see cref="BackgroundWorkItem.StartActivity"/> is called will be used. 
+        ///   This parameter is ignored if <paramref name="activityFactory"/> is <see langword="null"/>.
+        /// </param>
         /// <param name="tokens">
         ///   Additional cancellation tokens for the operation. A composite token consisting of 
         ///   these tokens and the lifetime token of the <see cref="IBackgroundTaskService"/> will 
@@ -240,9 +284,10 @@ namespace IntelligentPlant.BackgroundTasks {
             Func<CancellationToken, Task> workItem,
             string? displayName,
             Func<Activity?>? activityFactory,
+            bool captureParentActivity,
             params CancellationToken[] tokens
         ) {
-            return QueueBackgroundWorkItem(backgroundTaskService, workItem, displayName, activityFactory, (IEnumerable<CancellationToken>) tokens);
+            return QueueBackgroundWorkItem(backgroundTaskService, workItem, displayName, activityFactory, captureParentActivity, (IEnumerable<CancellationToken>) tokens);
         }
 
 
@@ -259,6 +304,14 @@ namespace IntelligentPlant.BackgroundTasks {
         ///   The optional <see cref="Activity"/> to assign to the work item. The <see cref="Activity"/> 
         ///   will be disposed when the work item is completed.
         /// </param>
+        /// <param name="captureParentActivity">
+        ///   When <see langword="true"/>, the value of <see cref="Activity.Current"/> at the 
+        ///   moment that the <see cref="BackgroundWorkItem"/> is created will be used as the 
+        ///   implicit parent activity when <see cref="BackgroundWorkItem.StartActivity"/> is 
+        ///   called. When <see langword="false"/>, the value of <see cref="Activity.Current"/> 
+        ///   at the moment <see cref="BackgroundWorkItem.StartActivity"/> is called will be used. 
+        ///   This parameter is ignored if <paramref name="activityFactory"/> is <see langword="null"/>.
+        /// </param>
         /// <param name="tokens">
         ///   Additional cancellation tokens for the operation. A composite token consisting of 
         ///   these tokens and the lifetime token of the <see cref="IBackgroundTaskService"/> will 
@@ -278,6 +331,7 @@ namespace IntelligentPlant.BackgroundTasks {
             Func<CancellationToken, Task> workItem,
             string? displayName,
             Func<Activity?>? activityFactory,
+            bool captureParentActivity,
             IEnumerable<CancellationToken>? tokens
         ) {
             if (backgroundTaskService == null) {
@@ -291,7 +345,7 @@ namespace IntelligentPlant.BackgroundTasks {
 
             if (additionalTokens?.Length == 0) {
                 // No additional tokens; just queue the work item as normal.
-                return backgroundTaskService.QueueBackgroundWorkItem(workItem, displayName, activityFactory);
+                return backgroundTaskService.QueueBackgroundWorkItem(workItem, displayName, activityFactory, captureParentActivity);
             }
 
             // We're constructing a new delegate to allow us to listen to multiple cancellation 
@@ -303,7 +357,7 @@ namespace IntelligentPlant.BackgroundTasks {
                 using (var compositeTokenSource = CancellationTokenSource.CreateLinkedTokenSource(new[] { ct }.Concat(additionalTokens).ToArray())) {
                     await workItem(compositeTokenSource.Token).ConfigureAwait(false);
                 }
-            }, displayName, activityFactory);
+            }, displayName, activityFactory, captureParentActivity);
         }
 
     }

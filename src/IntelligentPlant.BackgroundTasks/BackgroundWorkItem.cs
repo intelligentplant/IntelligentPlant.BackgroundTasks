@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Diagnostics;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -55,18 +54,25 @@ namespace IntelligentPlant.BackgroundTasks {
         ///   The display name for the work item.
         /// </param>
         /// <param name="activityFactory">
-        ///   A factory function that will be called by the <see cref="IBackgroundTaskService"/> 
-        ///   when the work item is run to generate an <see cref="Activity"/> to associate with 
-        ///   the work item.
+        ///   A factory function that will be invoked when <see cref="StartActivity"/> is called 
+        ///   to generate an <see cref="Activity"/> to associate with the work item.
+        /// </param>
+        /// <param name="captureParentActivity">
+        ///   When <see langword="true"/>, the value of <see cref="Activity.Current"/> at the 
+        ///   moment that the <see cref="BackgroundWorkItem"/> is created will be used as the 
+        ///   implicit parent activity when <see cref="StartActivity"/> is called. When 
+        ///   <see langword="false"/>, the value of <see cref="Activity.Current"/> at the moment 
+        ///   <see cref="StartActivity"/> is called will be used. This parameter is ignored if 
+        ///   <paramref name="activityFactory"/> is <see langword="null"/>.
         /// </param>
         /// <exception cref="ArgumentNullException">
         ///   <paramref name="workItem"/> is <see langword="null"/>.
         /// </exception>
-        public BackgroundWorkItem(Action<CancellationToken> workItem, string? displayName = null, Func<Activity?>? activityFactory = null) {
+        public BackgroundWorkItem(Action<CancellationToken> workItem, string? displayName = null, Func<Activity?>? activityFactory = null, bool captureParentActivity = false) {
             WorkItem = workItem ?? throw new ArgumentNullException(nameof(workItem));
             WorkItemAsync = null;
 
-            ParentActivity = Activity.Current;
+            ParentActivity = activityFactory != null && captureParentActivity ? Activity.Current : null;
             _activityFactory = activityFactory;
             Id = Guid.NewGuid().ToString();
             DisplayName = displayName;
@@ -87,16 +93,65 @@ namespace IntelligentPlant.BackgroundTasks {
         ///   when the work item is run to generate an <see cref="Activity"/> to associate with 
         ///   the work item.
         /// </param>
+        /// <param name="captureParentActivity">
+        ///   When <see langword="true"/>, the value of <see cref="Activity.Current"/> at the 
+        ///   moment that the <see cref="BackgroundWorkItem"/> is created will be used as the 
+        ///   implicit parent activity when <see cref="StartActivity"/> is called. When 
+        ///   <see langword="false"/>, the value of <see cref="Activity.Current"/> at the moment 
+        ///   <see cref="StartActivity"/> is called will be used. This parameter is ignored if 
+        ///   <paramref name="activityFactory"/> is <see langword="null"/>.
+        /// </param>
         /// <exception cref="ArgumentNullException">
         ///   <paramref name="workItem"/> is <see langword="null"/>.
         /// </exception>
-        public BackgroundWorkItem(Func<CancellationToken, Task> workItem, string? displayName = null, Func<Activity?>? activityFactory = null) {
+        public BackgroundWorkItem(Func<CancellationToken, Task> workItem, string? displayName = null, Func<Activity?>? activityFactory = null, bool captureParentActivity = false) {
             WorkItem = null;
             WorkItemAsync = workItem ?? throw new ArgumentNullException(nameof(workItem));
 
-            ParentActivity = Activity.Current;
+            ParentActivity = activityFactory != null && captureParentActivity ? Activity.Current : null;
             _activityFactory = activityFactory;
             Id = Guid.NewGuid().ToString();
+            DisplayName = displayName;
+        }
+
+
+        /// <summary>
+        /// Creates a new <see cref="BackgroundWorkItem"/> with an asynchronous work item.
+        /// </summary>
+        /// <param name="workItem">
+        ///   The synchronous work item.
+        /// </param>
+        /// <param name="workItemAsync">
+        ///   The asynchronous work item.
+        /// </param>
+        /// <param name="id">
+        ///   The work item ID.
+        /// </param>
+        /// <param name="displayName">
+        ///   The display name for the work item.
+        /// </param>
+        /// <param name="activityFactory">
+        ///   A factory function that will be called by the <see cref="IBackgroundTaskService"/> 
+        ///   when the work item is run to generate an <see cref="Activity"/> to associate with 
+        ///   the work item.
+        /// </param>
+        /// <param name="parentActivity">
+        ///   The parent activity for the work item.
+        /// </param>
+        internal BackgroundWorkItem(
+            Action<CancellationToken>? workItem, 
+            Func<CancellationToken, Task>? workItemAsync, 
+            string id,
+            string? displayName, 
+            Func<Activity?>? activityFactory, 
+            Activity? parentActivity
+        ) {
+            WorkItem = workItem;
+            WorkItemAsync = workItemAsync;
+
+            ParentActivity = parentActivity;
+            _activityFactory = activityFactory;
+            Id = id;
             DisplayName = displayName;
         }
 
