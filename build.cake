@@ -98,10 +98,6 @@ Setup<BuildState>(context => {
             ? $"{majorVersion}.{minorVersion}.{patchVersion}"
             : $"{majorVersion}.{minorVersion}.{patchVersion}-{versionSuffix}.{buildCounter}";
 
-        if (!string.IsNullOrEmpty(buildMetadata)) {
-            state.PackageVersion = string.Concat(state.PackageVersion, "+", buildMetadata);
-        }
-
         state.BuildNumber = string.IsNullOrWhiteSpace(versionSuffix)
             ? $"{majorVersion}.{minorVersion}.{patchVersion}.{buildCounter}+{branch}"
             : $"{majorVersion}.{minorVersion}.{patchVersion}-{versionSuffix}.{buildCounter}+{branch}";
