@@ -31,7 +31,7 @@ namespace IntelligentPlant.BackgroundTasks {
 
         /// <inheritdoc/>
         protected override void RunBackgroundWorkItem(BackgroundWorkItem workItem, CancellationToken cancellationToken) {
-            _ = Task.Run(async () => await RunBackgroundWorkItemAsync(workItem, cancellationToken).ConfigureAwait(false));
+            _ = Task.Run(async () => await InvokeWorkItemAsync(workItem, cancellationToken).ConfigureAwait(false));
         }
 
     }

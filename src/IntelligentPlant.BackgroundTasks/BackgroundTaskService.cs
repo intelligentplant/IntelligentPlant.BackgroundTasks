@@ -31,7 +31,7 @@ namespace IntelligentPlant.BackgroundTasks {
         /// The default background task service.
         /// </summary>
         private static readonly Lazy<IBackgroundTaskService> s_default = new Lazy<IBackgroundTaskService>(() => {
-            var result = new DefaultBackgroundTaskService(new BackgroundTaskServiceOptions() { 
+            var result = new DefaultBackgroundTaskService(new BackgroundTaskServiceOptions() {
                 Name = "Default"
             }, null);
             _ = result.RunAsync(default);
@@ -46,8 +46,8 @@ namespace IntelligentPlant.BackgroundTasks {
         /// <summary>
         /// The default background task service.
         /// </summary>
-        public static IBackgroundTaskService Default { 
-            get { return s_defaultOverridden ?? s_default.Value; } 
+        public static IBackgroundTaskService Default {
+            get { return s_defaultOverridden ?? s_default.Value; }
             set {
                 if (value != null && s_default.IsValueCreated && s_default.Value == value) {
                     s_defaultOverridden = null;
@@ -70,9 +70,9 @@ namespace IntelligentPlant.BackgroundTasks {
         public static BackgroundTaskServiceEventSource EventSource => s_eventSourceFactory.Value;
 
         /// <summary>
-        /// Logging.
+        /// The logger for the service.
         /// </summary>
-        private readonly ILogger _logger;
+        protected ILogger Logger { get; }
 
         /// <summary>
         /// Cancellation token source that fires when the service is being disposed.
@@ -141,7 +141,7 @@ namespace IntelligentPlant.BackgroundTasks {
             Name = _options.Name ?? string.Empty;
             _disposedCancellationTokenSource = new CancellationTokenSource();
             _disposedCancellationToken = _disposedCancellationTokenSource.Token;
-            _logger = logger ?? Microsoft.Extensions.Logging.Abstractions.NullLogger.Instance;
+            Logger = logger ?? Microsoft.Extensions.Logging.Abstractions.NullLogger.Instance;
         }
 
 
@@ -155,7 +155,7 @@ namespace IntelligentPlant.BackgroundTasks {
         ///   The qualified name.
         /// </returns>
         internal static string GetOpenTelemetryName(params string[] parts) {
-            return string.Concat("intelligentplant.backgroundtasks.", string.Join(".",parts));
+            return string.Concat("intelligentplant.backgroundtasks.", string.Join(".", parts));
         }
 
 
@@ -213,7 +213,7 @@ namespace IntelligentPlant.BackgroundTasks {
 
             try {
                 EventSource.ServiceRunning(Name);
-                LogServiceRunning(_logger);
+                LogServiceRunning(Logger);
                 using (var compositeSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _disposedCancellationToken)) {
                     var compositeToken = compositeSource.Token;
                     while (!compositeToken.IsCancellationRequested) {
@@ -246,7 +246,7 @@ namespace IntelligentPlant.BackgroundTasks {
             }
             finally {
                 EventSource.ServiceStopped(Name);
-                LogServiceStopped(_logger);
+                LogServiceStopped(Logger);
                 _isRunning = 0;
             }
         }
@@ -261,11 +261,28 @@ namespace IntelligentPlant.BackgroundTasks {
         /// <param name="cancellationToken">
         ///   A cancellation token to pass to the <paramref name="workItem"/>.
         /// </param>
+        /// <remarks>
+        ///   Implementers should schedule the provided <paramref name="workItem"/> for invocation 
+        ///   when this method is called. The <see cref="InvokeWorkItemAsync"/> method call be 
+        ///   called to perform the actual invocation.
+        /// </remarks>
+        /// <example>
+        /// 
+        /// The following example uses <see cref="Task.Run(Func{Task}, CancellationToken)"/> to run a 
+        /// work item:
+        /// 
+        /// <code lang="C#">
+        /// protected override void RunBackgroundWorkItem(BackgroundWorkItem workItem, CancellationToken cancellationToken) {
+        ///   _ = Task.Run(async () => await InvokeWorkItemAsync(workItem, cancellationToken).ConfigureAwait(false));
+        /// }
+        /// </code>
+        /// 
+        /// </example>
         protected abstract void RunBackgroundWorkItem(BackgroundWorkItem workItem, CancellationToken cancellationToken);
 
 
         /// <summary>
-        /// Runs a work item.
+        /// Invokes a work item's delegate.
         /// </summary>
         /// <param name="workItem">
         ///   The work item to run.
@@ -276,17 +293,12 @@ namespace IntelligentPlant.BackgroundTasks {
         /// <returns>
         ///   A <see cref="ValueTask"/> that will run the work item.
         /// </returns>
-        protected async ValueTask RunBackgroundWorkItemAsync(BackgroundWorkItem workItem, CancellationToken cancellationToken) {
-            Activity? previousActivity = null;
+        protected async ValueTask InvokeWorkItemAsync(BackgroundWorkItem workItem, CancellationToken cancellationToken) {
+            // Capture the current activity so that we can restore it later.
+            var previousActivity = Activity.Current;
+            Activity.Current = workItem.ParentActivity;
 
             try {
-                if (workItem.ParentActivity != null) {
-                    // The work item has captured its parent activity. Store Activity.Current
-                    // so that we can restore it later.
-                    previousActivity = Activity.Current;
-                    Activity.Current = workItem.ParentActivity;
-                }
-
                 var elapsedBefore = _stopwatch.Elapsed;
                 try {
                     OnRunning(workItem);
@@ -303,10 +315,8 @@ namespace IntelligentPlant.BackgroundTasks {
                 }
             }
             finally {
-                if (workItem.ParentActivity != null) {
-                    // Restore the original activity.
-                    Activity.Current = previousActivity;
-                }
+                // Restore the original activity.
+                Activity.Current = previousActivity;
             }
         }
 
@@ -319,7 +329,7 @@ namespace IntelligentPlant.BackgroundTasks {
         /// </param>
         private void OnQueuedInternal(BackgroundWorkItem workItem) {
             EventSource.WorkItemEnqueued(Name, workItem.Id, workItem.DisplayName, _queue.Count);
-            LogItemEnqueued(_logger, workItem, IsRunning);
+            LogItemEnqueued(Logger, workItem, IsRunning);
             OnQueued(workItem);
         }
 
@@ -336,7 +346,7 @@ namespace IntelligentPlant.BackgroundTasks {
                 _options.OnEnqueued?.Invoke(workItem);
             }
             catch (Exception e) {
-                _logger.LogError(e, Resources.Log_ErrorInCallback, nameof(BackgroundTaskServiceOptions.OnEnqueued));
+                Logger.LogError(e, Resources.Log_ErrorInCallback, nameof(BackgroundTaskServiceOptions.OnEnqueued));
             }
         }
 
@@ -349,7 +359,7 @@ namespace IntelligentPlant.BackgroundTasks {
         /// </param>
         private void OnDequeuedInternal(BackgroundWorkItem workItem) {
             EventSource.WorkItemDequeued(Name, workItem.Id, workItem.DisplayName, _queue.Count);
-            LogItemDequeued(_logger, workItem);
+            LogItemDequeued(Logger, workItem);
             OnDequeued(workItem);
         }
 
@@ -366,7 +376,7 @@ namespace IntelligentPlant.BackgroundTasks {
                 _options.OnDequeued?.Invoke(workItem);
             }
             catch (Exception e) {
-                _logger.LogError(e, Resources.Log_ErrorInCallback, nameof(BackgroundTaskServiceOptions.OnDequeued));
+                Logger.LogError(e, Resources.Log_ErrorInCallback, nameof(BackgroundTaskServiceOptions.OnDequeued));
             }
         }
 
@@ -379,7 +389,7 @@ namespace IntelligentPlant.BackgroundTasks {
         /// </param>
         private void OnRunningInternal(BackgroundWorkItem workItem) {
             EventSource.WorkItemRunning(Name, workItem.Id, workItem.DisplayName);
-            LogItemRunning(_logger, workItem);
+            LogItemRunning(Logger, workItem);
         }
 
 
@@ -396,7 +406,7 @@ namespace IntelligentPlant.BackgroundTasks {
                 _options.OnRunning?.Invoke(workItem);
             }
             catch (Exception e) {
-                _logger.LogError(e, Resources.Log_ErrorInCallback, nameof(BackgroundTaskServiceOptions.OnRunning));
+                Logger.LogError(e, Resources.Log_ErrorInCallback, nameof(BackgroundTaskServiceOptions.OnRunning));
             }
         }
 
@@ -413,7 +423,7 @@ namespace IntelligentPlant.BackgroundTasks {
         /// </param>
         private void OnCompletedInternal(BackgroundWorkItem workItem, TimeSpan elapsed) {
             EventSource.WorkItemCompleted(Name, workItem.Id, workItem.DisplayName, elapsed.TotalSeconds);
-            LogItemCompleted(_logger, workItem);
+            LogItemCompleted(Logger, workItem);
         }
 
 
@@ -433,7 +443,7 @@ namespace IntelligentPlant.BackgroundTasks {
                 _options.OnCompleted?.Invoke(workItem);
             }
             catch (Exception e) {
-                _logger.LogError(e, Resources.Log_ErrorInCallback, nameof(BackgroundTaskServiceOptions.OnCompleted));
+                Logger.LogError(e, Resources.Log_ErrorInCallback, nameof(BackgroundTaskServiceOptions.OnCompleted));
             }
         }
 
@@ -453,7 +463,7 @@ namespace IntelligentPlant.BackgroundTasks {
         /// </param>
         private void OnErrorInternal(BackgroundWorkItem workItem, Exception err, TimeSpan elapsed) {
             EventSource.WorkItemFaulted(Name, workItem.Id, workItem.DisplayName, elapsed.TotalSeconds);
-            LogItemFaulted(_logger, workItem, err);
+            LogItemFaulted(Logger, workItem, err);
         }
 
 
@@ -480,7 +490,7 @@ namespace IntelligentPlant.BackgroundTasks {
                 _options.OnError?.Invoke(workItem, err);
             }
             catch (Exception e) {
-                _logger.LogError(e, Resources.Log_ErrorInCallback, nameof(BackgroundTaskServiceOptions.OnError));
+                Logger.LogError(e, Resources.Log_ErrorInCallback, nameof(BackgroundTaskServiceOptions.OnError));
             }
         }
 
