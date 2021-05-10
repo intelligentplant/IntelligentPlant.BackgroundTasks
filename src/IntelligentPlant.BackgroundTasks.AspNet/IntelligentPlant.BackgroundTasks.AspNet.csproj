@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net48</TargetFramework>
-    <Description>Allows an ASP.NET application using an background task service to register fire-and-forget background tasks with IIS.</Description>
+    <Description>Allows an ASP.NET application using a background task service to register fire-and-forget background tasks with IIS.</Description>
   </PropertyGroup>
 
   <ItemGroup>
