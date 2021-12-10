@@ -9,6 +9,7 @@
   <PropertyGroup>
     <IsPackable>false</IsPackable>
     <IsSignable>false</IsSignable>
+    <DeterministicSourcePaths>false</DeterministicSourcePaths>
     <IncludeDevelopmentPackages>false</IncludeDevelopmentPackages>
   </PropertyGroup>
 
