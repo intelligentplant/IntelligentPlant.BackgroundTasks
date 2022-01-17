@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics.Metrics;
 using System.Diagnostics.Tracing;
+using System.Linq;
 
 namespace IntelligentPlant.BackgroundTasks {
     partial class BackgroundTaskService {
@@ -62,122 +65,84 @@ namespace IntelligentPlant.BackgroundTasks {
         )]
         public class BackgroundTaskServiceEventSource : EventSource {
 
-#if NETSTANDARD2_1
+            /// <summary>
+            /// Instrumentation meter.
+            /// </summary>
+            private static readonly Meter s_meter = new Meter(DiagnosticsSourceName);
 
             /// <summary>
-            /// The current number of queued work items.
+            /// Holds queue sizes emitted by <see cref="s_queueSizeCounter"/>. Cleared on every 
+            /// call to observe values.
             /// </summary>
-            private long _queueSize;
+            private static readonly Dictionary<string, int> s_queueSizes = new Dictionary<string, int>(StringComparer.Ordinal);
 
             /// <summary>
-            /// The number of work items that are currently running.
+            /// Counter that emits the total number of work items that have been queued by 
+            /// background task services.
             /// </summary>
-            private long _workItemsRunning;
+            private static readonly Counter<long> s_queuedItemsCounter = s_meter.CreateCounter<long>("Queued_Items", "{work items}", "Number of work items that have been queued since observation of the counter began.");
 
             /// <summary>
-            /// The total number of work items that have finished running (both to completion and 
-            /// faulted) since startup.
+            /// Counter that emits the total number of work items that have been dequeued by 
+            /// background task services in preparation for running.
             /// </summary>
-            private long _totalWorkItemsCompleted;
+            private static readonly Counter<long> s_dequeuedItemsCounter = s_meter.CreateCounter<long>("Total_Dequeued_Items", "{work items}", "Number of work items that have been dequeued for execution since observation of the counter began.");
 
             /// <summary>
-            /// The total number of work items that have finished successfully since startup.
+            /// Counter that emits the total number of work items that have started running.
             /// </summary>
-            private long _totalSuccessfulWorkItems;
+            private static readonly Counter<long> s_startedItemsCounter = s_meter.CreateCounter<long>("Total_Started_Items", "{work items}", "Number of work items that have started executing since observation of the counter began.");
 
             /// <summary>
-            /// The total number of work items that have finished due to an exception since startup.
+            /// Counter that emits the number of work items that are currently running.
             /// </summary>
-            private long _totalWorkItemsFaulted;
+            private static readonly Counter<long> s_currentRunningItemsCounter = s_meter.CreateCounter<long>("Running_Items", "{work items}", "Number of work items that are currently running.");
 
             /// <summary>
-            /// Counter that tracks to number of queued work items.
+            /// Counter that emits the total number of work items that have completed.
             /// </summary>
-            private PollingCounter? _queueSizeCounter;
+            private static readonly Counter<long> s_completedItemsCounter = s_meter.CreateCounter<long>("Total_Completed_Items", "{work items}", "Number work items that have completed since observation of the counter began.");
 
             /// <summary>
-            /// Counter that tracks the number of work items that are currently running.
+            /// Counter that emits the total number of work items that have completed successfully.
             /// </summary>
-            private PollingCounter? _workItemsRunningCounter;
+            private static readonly Counter<long> s_completedItemsSuccessCounter = s_meter.CreateCounter<long>("Total_Completed_Items_Success", "{work items}", "Number of successfully completed work items since observation of the counter began.");
 
             /// <summary>
-            /// Counter that tracks the total number of work items that have finished (successfully 
-            /// or otherwise) since startup.
+            /// Counter that emits the total number of work items that have faulted.
             /// </summary>
-            private PollingCounter? _totalWorkItemsCompletedCounter;
+            private static readonly Counter<long> s_completedItemsFaultedCounter = s_meter.CreateCounter<long>("Total_Completed_Items_Faulted", "{work items}", "Number of work items that completed with a fault since observation of the counter began.");
 
             /// <summary>
-            /// Counter that tracks the rate that work items are finishing at (successfully 
-            /// or otherwise).
+            /// Histogram that emits the duration that work items ran for.
             /// </summary>
-            private IncrementingPollingCounter? _workItemCompletedRateCounter;
+            private static readonly Histogram<double> s_processingTimeCounter = s_meter.CreateHistogram<double>("Processing_Time", "s", "Time to complete a work item.");
+            
+            /// <summary>
+            /// Gauge that emits the current queue size for all background task services.
+            /// </summary>
+            private static readonly ObservableGauge<int> s_queueSizeCounter = s_meter.CreateObservableGauge<int>("Queue_Size", () => {
+                KeyValuePair<string, int>[] vals;
+                
+                lock (s_queueSizes) {
+                    vals = s_queueSizes.ToArray();
+                    s_queueSizes.Clear();
+                }
+
+                return vals.Select(x => new Measurement<int>(x.Value, new KeyValuePair<string, object?>(ServiceNameTag, x.Key))).ToArray();
+            }, "{work items}", "Current number of pending work items.");
 
             /// <summary>
-            /// Counter that tracks the total number of work items that have completed successfully 
-            /// since startup.
+            /// Tag added to counter values to identify the background task service that the 
+            /// counter applies to.
             /// </summary>
-            private PollingCounter? _totalSuccessfulWorkItemsCounter;
-
-            /// <summary>
-            /// Counter that tracks the rate that work items are being completed successfully at.
-            /// </summary>
-            private IncrementingPollingCounter? _successfulWorkItemsRateCounter;
-
-            /// <summary>
-            /// Counter that tracks the total number of work items that have completed 
-            /// unsuccessfully since startup.
-            /// </summary>
-            private PollingCounter? _totalWorkItemsFaultedCounter;
-
-            /// <summary>
-            /// Counter that tracks the rate that work items are being completed unsuccessfully at.
-            /// </summary>
-            private IncrementingPollingCounter? _faultedWorkItemsRateCounter;
-#endif
+            private const string ServiceNameTag = DiagnosticsSourceName + ".Service_Name";
 
 
             /// <summary>
             /// Creates a new <see cref="BackgroundTaskServiceEventSource"/> object.
             /// </summary>
             internal BackgroundTaskServiceEventSource() { }
-
-
-#if NETSTANDARD2_1
-            /// <inheritdoc/>
-            protected override void OnEventCommand(EventCommandEventArgs command) {
-                base.OnEventCommand(command);
-                if (command.Command == EventCommand.Enable) {
-                    _queueSizeCounter ??= new PollingCounter(EventSourceResources.Counter_QueueSize_Name, this, () => _queueSize) { 
-                        DisplayName = EventSourceResources.Counter_QueueSize_DisplayName
-                    };
-
-                    _workItemsRunningCounter ??= new PollingCounter(EventSourceResources.Counter_RunningWorkItems_Name, this, () => _workItemsRunning) { 
-                        DisplayName = EventSourceResources.Counter_RunningWorkItems_DisplayName
-                    };
-
-                    _totalWorkItemsCompletedCounter ??= new PollingCounter(EventSourceResources.Counter_TotalCompletedWorkItems_Name, this, () => _totalWorkItemsCompleted) { 
-                        DisplayName = EventSourceResources.Counter_TotalCompletedWorkItems_DisplayName
-                    };
-                    _workItemCompletedRateCounter ??= new IncrementingPollingCounter(EventSourceResources.Counter_CompletedWorkItems_Name, this, () => _totalWorkItemsCompleted) { 
-                        DisplayName = EventSourceResources.Counter_CompletedWorkItems_DisplayName
-                    };
-                    
-                    _totalSuccessfulWorkItemsCounter ??= new PollingCounter(EventSourceResources.Counter_TotalSuccessfulWorkItems_Name, this, () => _totalSuccessfulWorkItems) { 
-                        DisplayName = EventSourceResources.Counter_TotalSuccessfulWorkItems_DisplayName
-                    };
-                    _successfulWorkItemsRateCounter ??= new IncrementingPollingCounter(EventSourceResources.Counter_SuccessfulWorkItems_Name, this, () => _totalSuccessfulWorkItems) { 
-                        DisplayName = EventSourceResources.Counter_SuccessfulWorkItems_DisplayName
-                    };
-
-                    _totalWorkItemsFaultedCounter ??= new PollingCounter(EventSourceResources.Counter_TotalFaultedWorkItems_Name, this, () => _totalWorkItemsFaulted) { 
-                        DisplayName = EventSourceResources.Counter_TotalFaultedWorkItems_DisplayName
-                    };
-                    _faultedWorkItemsRateCounter ??= new IncrementingPollingCounter(EventSourceResources.Counter_FaultedWorkItems_Name, this, () => _totalWorkItemsFaulted) { 
-                        DisplayName = EventSourceResources.Counter_FaultedWorkItems_DisplayName
-                    };
-                }
-            }
-#endif
 
 
             /// <summary>
@@ -221,10 +186,15 @@ namespace IntelligentPlant.BackgroundTasks {
             /// </param>
             [Event(EventIds.WorkItemEnqueued, Level = EventLevel.Informational)]
             public void WorkItemEnqueued(string serviceName, string id, string? displayName, int queueSize) {
-#if NETSTANDARD2_1
-                ++_queueSize;
-#endif
                 WriteEvent(EventIds.WorkItemEnqueued, serviceName, id, displayName, queueSize);
+                if (s_queuedItemsCounter.Enabled) {
+                    s_queuedItemsCounter.Add(1, new KeyValuePair<string, object?>(ServiceNameTag, serviceName));
+                }
+                if (s_queuedItemsCounter.Enabled) { 
+                    lock (s_queueSizes) {
+                        s_queueSizes[serviceName] = queueSize;
+                    }
+                }
             }
 
 
@@ -245,10 +215,15 @@ namespace IntelligentPlant.BackgroundTasks {
             /// </param>
             [Event(EventIds.WorkItemDequeued, Level = EventLevel.Informational)]
             public void WorkItemDequeued(string serviceName, string id, string? displayName, int queueSize) {
-#if NETSTANDARD2_1
-                --_queueSize;
-#endif
                 WriteEvent(EventIds.WorkItemDequeued, serviceName, id, displayName, queueSize);
+                if (s_dequeuedItemsCounter.Enabled) {
+                    s_dequeuedItemsCounter.Add(1, new KeyValuePair<string, object?>(ServiceNameTag, serviceName));
+                }
+                if (s_queuedItemsCounter.Enabled) {
+                    lock (s_queueSizes) {
+                        s_queueSizes[serviceName] = queueSize;
+                    }
+                }
             }
 
 
@@ -266,10 +241,13 @@ namespace IntelligentPlant.BackgroundTasks {
             /// </param>
             [Event(EventIds.WorkItemRunning, Level = EventLevel.Informational)]
             public void WorkItemRunning(string serviceName, string id, string? displayName) {
-#if NETSTANDARD2_1
-                ++_workItemsRunning;
-#endif
                 WriteEvent(EventIds.WorkItemRunning, serviceName, id, displayName);
+                if (s_startedItemsCounter.Enabled) {
+                    s_startedItemsCounter.Add(1, new KeyValuePair<string, object?>(ServiceNameTag, serviceName));
+                }
+                if (s_currentRunningItemsCounter.Enabled) {
+                    s_currentRunningItemsCounter.Add(1, new KeyValuePair<string, object?>(ServiceNameTag, serviceName));
+                }
             }
 
 
@@ -290,12 +268,19 @@ namespace IntelligentPlant.BackgroundTasks {
             /// </param>
             [Event(EventIds.WorkItemCompleted, Level = EventLevel.Informational)]
             public void WorkItemCompleted(string serviceName, string id, string? displayName, double elapsed) {
-#if NETSTANDARD2_1
-                --_workItemsRunning;
-                ++_totalWorkItemsCompleted;
-                ++_totalSuccessfulWorkItems;
-#endif
                 WriteEvent(EventIds.WorkItemCompleted, serviceName, id, displayName, elapsed);
+                if (s_completedItemsCounter.Enabled) {
+                    s_completedItemsCounter.Add(1, new KeyValuePair<string, object?>(ServiceNameTag, serviceName));
+                }
+                if (s_completedItemsSuccessCounter.Enabled) {
+                    s_completedItemsSuccessCounter.Add(1, new KeyValuePair<string, object?>(ServiceNameTag, serviceName));
+                }
+                if (s_processingTimeCounter.Enabled) {
+                    s_processingTimeCounter.Record(elapsed, new KeyValuePair<string, object?>(ServiceNameTag, serviceName));
+                }
+                if (s_currentRunningItemsCounter.Enabled) {
+                    s_currentRunningItemsCounter.Add(-1, new KeyValuePair<string, object?>(ServiceNameTag, serviceName));
+                }
             }
 
 
@@ -316,12 +301,19 @@ namespace IntelligentPlant.BackgroundTasks {
             /// </param>
             [Event(EventIds.WorkItemFaulted, Level = EventLevel.Warning)]
             public void WorkItemFaulted(string serviceName, string id, string? displayName, double elapsed) {
-#if NETSTANDARD2_1
-                --_workItemsRunning;
-                ++_totalWorkItemsCompleted;
-                ++_totalWorkItemsFaulted;
-#endif
                 WriteEvent(EventIds.WorkItemFaulted, serviceName, id, displayName, elapsed);
+                if (s_completedItemsCounter.Enabled) {
+                    s_completedItemsCounter.Add(1, new KeyValuePair<string, object?>(ServiceNameTag, serviceName));
+                }
+                if (s_completedItemsFaultedCounter.Enabled) {
+                    s_completedItemsFaultedCounter.Add(1, new KeyValuePair<string, object?>(ServiceNameTag, serviceName));
+                }
+                if (s_processingTimeCounter.Enabled) {
+                    s_processingTimeCounter.Record(elapsed, new KeyValuePair<string, object?>(ServiceNameTag, serviceName));
+                }
+                if (s_currentRunningItemsCounter.Enabled) {
+                    s_currentRunningItemsCounter.Add(-1, new KeyValuePair<string, object?>(ServiceNameTag, serviceName));
+                }
             }
 
         }
