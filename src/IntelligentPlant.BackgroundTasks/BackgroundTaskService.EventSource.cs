@@ -242,11 +242,14 @@ namespace IntelligentPlant.BackgroundTasks {
             [Event(EventIds.WorkItemRunning, Level = EventLevel.Informational)]
             public void WorkItemRunning(string serviceName, string id, string? displayName) {
                 WriteEvent(EventIds.WorkItemRunning, serviceName, id, displayName);
+
+                KeyValuePair<string, object?>? tag = null;
+                
                 if (s_startedItemsCounter.Enabled) {
-                    s_startedItemsCounter.Add(1, new KeyValuePair<string, object?>(ServiceNameTag, serviceName));
+                    s_startedItemsCounter.Add(1, tag ??= new KeyValuePair<string, object?>(ServiceNameTag, serviceName));
                 }
                 if (s_currentRunningItemsCounter.Enabled) {
-                    s_currentRunningItemsCounter.Add(1, new KeyValuePair<string, object?>(ServiceNameTag, serviceName));
+                    s_currentRunningItemsCounter.Add(1, tag ??= new KeyValuePair<string, object?>(ServiceNameTag, serviceName));
                 }
             }
 
@@ -269,17 +272,20 @@ namespace IntelligentPlant.BackgroundTasks {
             [Event(EventIds.WorkItemCompleted, Level = EventLevel.Informational)]
             public void WorkItemCompleted(string serviceName, string id, string? displayName, double elapsed) {
                 WriteEvent(EventIds.WorkItemCompleted, serviceName, id, displayName, elapsed);
+
+                KeyValuePair<string, object?>? tag = null;
+
                 if (s_completedItemsCounter.Enabled) {
-                    s_completedItemsCounter.Add(1, new KeyValuePair<string, object?>(ServiceNameTag, serviceName));
+                    s_completedItemsCounter.Add(1, tag ??= new KeyValuePair<string, object?>(ServiceNameTag, serviceName));
                 }
                 if (s_completedItemsSuccessCounter.Enabled) {
-                    s_completedItemsSuccessCounter.Add(1, new KeyValuePair<string, object?>(ServiceNameTag, serviceName));
+                    s_completedItemsSuccessCounter.Add(1, tag ??= new KeyValuePair<string, object?>(ServiceNameTag, serviceName));
                 }
                 if (s_processingTimeCounter.Enabled) {
-                    s_processingTimeCounter.Record(elapsed, new KeyValuePair<string, object?>(ServiceNameTag, serviceName));
+                    s_processingTimeCounter.Record(elapsed, tag ??= new KeyValuePair<string, object?>(ServiceNameTag, serviceName));
                 }
                 if (s_currentRunningItemsCounter.Enabled) {
-                    s_currentRunningItemsCounter.Add(-1, new KeyValuePair<string, object?>(ServiceNameTag, serviceName));
+                    s_currentRunningItemsCounter.Add(-1, tag ??= new KeyValuePair<string, object?>(ServiceNameTag, serviceName));
                 }
             }
 
@@ -302,17 +308,20 @@ namespace IntelligentPlant.BackgroundTasks {
             [Event(EventIds.WorkItemFaulted, Level = EventLevel.Warning)]
             public void WorkItemFaulted(string serviceName, string id, string? displayName, double elapsed) {
                 WriteEvent(EventIds.WorkItemFaulted, serviceName, id, displayName, elapsed);
+
+                KeyValuePair<string, object?>? tag = null;
+
                 if (s_completedItemsCounter.Enabled) {
-                    s_completedItemsCounter.Add(1, new KeyValuePair<string, object?>(ServiceNameTag, serviceName));
+                    s_completedItemsCounter.Add(1, tag ??= new KeyValuePair<string, object?>(ServiceNameTag, serviceName));
                 }
                 if (s_completedItemsFaultedCounter.Enabled) {
-                    s_completedItemsFaultedCounter.Add(1, new KeyValuePair<string, object?>(ServiceNameTag, serviceName));
+                    s_completedItemsFaultedCounter.Add(1, tag ??= new KeyValuePair<string, object?>(ServiceNameTag, serviceName));
                 }
                 if (s_processingTimeCounter.Enabled) {
-                    s_processingTimeCounter.Record(elapsed, new KeyValuePair<string, object?>(ServiceNameTag, serviceName));
+                    s_processingTimeCounter.Record(elapsed, tag ??= new KeyValuePair<string, object?>(ServiceNameTag, serviceName));
                 }
                 if (s_currentRunningItemsCounter.Enabled) {
-                    s_currentRunningItemsCounter.Add(-1, new KeyValuePair<string, object?>(ServiceNameTag, serviceName));
+                    s_currentRunningItemsCounter.Add(-1, tag ??= new KeyValuePair<string, object?>(ServiceNameTag, serviceName));
                 }
             }
 
