@@ -80,7 +80,7 @@ namespace IntelligentPlant.BackgroundTasks {
             /// Counter that emits the total number of work items that have been queued by 
             /// background task services.
             /// </summary>
-            private static readonly Counter<long> s_queuedItemsCounter = s_meter.CreateCounter<long>("Queued_Items", "{work items}", "Number of work items that have been queued since observation of the counter began.");
+            private static readonly Counter<long> s_queuedItemsCounter = s_meter.CreateCounter<long>("Total_Queued_Items", "{work items}", "Number of work items that have been queued since observation of the counter began.");
 
             /// <summary>
             /// Counter that emits the total number of work items that have been dequeued by 
@@ -111,7 +111,7 @@ namespace IntelligentPlant.BackgroundTasks {
             /// <summary>
             /// Counter that emits the total number of work items that have faulted.
             /// </summary>
-            private static readonly Counter<long> s_completedItemsFaultedCounter = s_meter.CreateCounter<long>("Total_Completed_Items_Faulted", "{work items}", "Number of work items that completed with a fault since observation of the counter began.");
+            private static readonly Counter<long> s_completedItemsFaultedCounter = s_meter.CreateCounter<long>("Total_Completed_Items_Fail", "{work items}", "Number of work items that completed with a fault since observation of the counter began.");
 
             /// <summary>
             /// Histogram that emits the duration that work items ran for.
