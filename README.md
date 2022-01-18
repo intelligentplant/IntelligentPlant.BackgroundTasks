@@ -88,7 +88,7 @@ The `IntelligentPlant.BackgroundTasks` event source emits events when background
 
 # OpenTelemetry
 
-[OpenTelemetry](https://github.com/open-telemetry)-compatible tracing and metrics for background work items is created via the [System.Diagnostics.DiagnosticSource](https://www.nuget.org/packages/System.Diagnostics.DiagnosticSource) NuGet package.
+[OpenTelemetry](https://github.com/open-telemetry)-compatible tracing and metrics for background work items is provided via the [System.Diagnostics.DiagnosticSource](https://www.nuget.org/packages/System.Diagnostics.DiagnosticSource) NuGet package.
 
 To enable OpenTelemetry tracing and metrics instrumentation in an ASP.NET Core application:
 
