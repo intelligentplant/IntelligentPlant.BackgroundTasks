@@ -53,12 +53,6 @@ namespace IntelligentPlant.BackgroundTasks {
         /// <summary>
         /// <see cref="System.Diagnostics.Tracing.EventSource"/> for a <see cref="BackgroundTaskService"/>.
         /// </summary>
-        /// <remarks>
-        ///   In .NET Standard 2.1 (i.e. .NET Core 3.0 or later), event counters are also 
-        ///   available the total number and rate of processing of background work items. Note that
-        ///   the counter values refer to all instances of <see cref="BackgroundTaskService"/>, 
-        ///   rather than a single instance.
-        /// </remarks>
         [EventSource(
             Name = DiagnosticsSourceName, 
             LocalizationResources = "IntelligentPlant.BackgroundTasks.EventSourceResources"
