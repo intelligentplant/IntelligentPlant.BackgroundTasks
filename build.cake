@@ -1,4 +1,4 @@
-const string DefaultSolutionName = "./IntelligentPlant.BackgroundTasks.sln";
+const string DefaultSolutionFile = "./IntelligentPlant.BackgroundTasks.sln";
 const string VersionFile = "./build/version.json";
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
