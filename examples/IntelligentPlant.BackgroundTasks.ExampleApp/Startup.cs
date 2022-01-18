@@ -4,6 +4,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
+using IntelligentPlant.BackgroundTasks;
+
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
@@ -34,7 +36,7 @@ namespace IntelligentPlant.BackgroundTasks.ExampleApp {
             services.AddOpenTelemetryMetrics(builder => {
                 builder
                     .SetResourceBuilder(resourceBuilder)
-                    .AddMeter(BackgroundTaskService.DiagnosticsSourceName)
+                    .AddBackgroundTaskServiceInstrumentation()
                     .AddConsoleExporter(options => {
                         options.MetricReaderType = MetricReaderType.Periodic;
                         options.AggregationTemporality = AggregationTemporality.Cumulative;

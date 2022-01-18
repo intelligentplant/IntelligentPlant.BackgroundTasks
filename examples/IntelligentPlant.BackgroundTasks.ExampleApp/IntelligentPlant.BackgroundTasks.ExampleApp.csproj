@@ -15,6 +15,7 @@
   
   <ItemGroup>
     <ProjectReference Include="..\..\src\IntelligentPlant.BackgroundTasks.AspNetCore\IntelligentPlant.BackgroundTasks.AspNetCore.csproj" />
+    <ProjectReference Include="..\..\src\IntelligentPlant.BackgroundTasks.OpenTelemetry\IntelligentPlant.BackgroundTasks.OpenTelemetry.csproj" />
   </ItemGroup>
 
 </Project>
