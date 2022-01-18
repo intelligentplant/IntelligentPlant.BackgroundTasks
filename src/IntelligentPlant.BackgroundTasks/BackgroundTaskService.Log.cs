@@ -3,7 +3,7 @@
 using Microsoft.Extensions.Logging;
 
 namespace IntelligentPlant.BackgroundTasks {
-    public partial class BackgroundTaskService {
+    partial class BackgroundTaskService {
 
         /// <summary>
         /// Service running log delegate.
