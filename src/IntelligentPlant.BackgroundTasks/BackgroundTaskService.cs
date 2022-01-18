@@ -15,8 +15,9 @@ namespace IntelligentPlant.BackgroundTasks {
     public abstract partial class BackgroundTaskService : IBackgroundTaskService, IDisposable {
 
         /// <summary>
-        /// The name used by the <see cref="System.Diagnostics.Tracing.EventSource"/> associated 
-        /// with the background task service.
+        /// The name used by the <see cref="System.Diagnostics.Tracing.EventSource"/> and 
+        /// <see cref="System.Diagnostics.Metrics.Meter"/> associated with the background task 
+        /// service.
         /// </summary>
         public const string DiagnosticsSourceName = "IntelligentPlant.BackgroundTasks";
 
@@ -138,24 +139,10 @@ namespace IntelligentPlant.BackgroundTasks {
             ILogger? logger
         ) {
             _options = options ?? new BackgroundTaskServiceOptions();
-            Name = _options.Name ?? string.Empty;
+            Name = _options.Name ?? GetType().Name;
             _disposedCancellationTokenSource = new CancellationTokenSource();
             _disposedCancellationToken = _disposedCancellationTokenSource.Token;
             Logger = logger ?? Microsoft.Extensions.Logging.Abstractions.NullLogger.Instance;
-        }
-
-
-        /// <summary>
-        /// Gets the qualified OpenTelemetry name to use for the specified unqualified name.
-        /// </summary>
-        /// <param name="parts">
-        ///   The unqualified name parts.
-        /// </param>
-        /// <returns>
-        ///   The qualified name.
-        /// </returns>
-        internal static string GetOpenTelemetryName(params string[] parts) {
-            return string.Concat("intelligentplant.backgroundtasks.", string.Join(".", parts));
         }
 
 

@@ -14,17 +14,28 @@
     <PackageOutputPath>$(MSBuildThisFileDirectory)artifacts\packages\$(Configuration)</PackageOutputPath>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <NeutralLanguage>en</NeutralLanguage>
+    <CopyrightStartYear>2019</CopyrightStartYear>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <!-- 
+    IMPORTANT: 
+    This version will always be overridden by the version specified in build\version.json when 
+    building via build.ps1 or build.sh. It is defined here to allow Visual Studio to build with 
+    the solution with the correct version number.
+    -->
+    <Version>8.1.0</Version>
   </PropertyGroup>
 
   <Choose>
-    <When Condition=" $([System.DateTime]::UtcNow.Year) > 2019 ">
+    <When Condition=" $([System.DateTime]::UtcNow.Year) > $(CopyrightStartYear) ">
       <PropertyGroup>
-        <Copyright>Copyright © 2019-$([System.DateTime]::UtcNow.Year) $(Authors)</Copyright>
+        <Copyright>Copyright © $(CopyrightStartYear)-$([System.DateTime]::UtcNow.Year) $(Authors)</Copyright>
       </PropertyGroup>
     </When>
     <Otherwise>
       <PropertyGroup>
-        <Copyright>Copyright © 2019 $(Authors)</Copyright>
+        <Copyright>Copyright © $(CopyrightStartYear) $(Authors)</Copyright>
       </PropertyGroup>
     </Otherwise>
   </Choose>
