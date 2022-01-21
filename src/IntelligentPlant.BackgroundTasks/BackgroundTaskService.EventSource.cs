@@ -130,7 +130,7 @@ namespace IntelligentPlant.BackgroundTasks {
             /// Tag added to counter values to identify the background task service that the 
             /// counter applies to.
             /// </summary>
-            private const string ServiceNameTag = DiagnosticsSourceName + ".Service_Name";
+            public const string ServiceNameTag = DiagnosticsSourceName + ".Service_Name";
 
 
             /// <summary>
