@@ -297,6 +297,14 @@ namespace IntelligentPlant.BackgroundTasks {
                     }
                     OnCompleted(workItem, _stopwatch.Elapsed - elapsedBefore);
                 }
+                catch (OperationCanceledException e) {
+                    if (cancellationToken.IsCancellationRequested) {
+                        OnCompleted(workItem, _stopwatch.Elapsed - elapsedBefore);
+                    }
+                    else {
+                        OnError(workItem, e, _stopwatch.Elapsed - elapsedBefore);
+                    }
+                }
                 catch (Exception e) {
                     OnError(workItem, e, _stopwatch.Elapsed - elapsedBefore);
                 }
