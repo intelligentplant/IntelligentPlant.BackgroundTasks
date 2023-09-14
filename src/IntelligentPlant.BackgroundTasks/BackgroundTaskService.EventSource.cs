@@ -47,6 +47,11 @@ namespace IntelligentPlant.BackgroundTasks {
             /// </summary>
             public const int WorkItemFaulted = 7;
 
+            /// <summary>
+            /// An error occurred in a callback such as <see cref="BackgroundTaskServiceOptions.OnDequeued"/>.
+            /// </summary>
+            public const int ErrorInCallback = 8;
+
         }
 
 
@@ -317,6 +322,21 @@ namespace IntelligentPlant.BackgroundTasks {
                 if (s_currentRunningItemsCounter.Enabled) {
                     s_currentRunningItemsCounter.Add(-1, tag ??= new KeyValuePair<string, object?>(ServiceNameTag, serviceName));
                 }
+            }
+
+
+            /// <summary>
+            /// Writes an <see cref="EventIds.ErrorInCallback"/> event.
+            /// </summary>
+            /// <param name="serviceName">
+            ///   The name of the service.
+            /// </param>
+            /// <param name="callbackName">
+            ///   The name of the callback.
+            /// </param>
+            [Event(EventIds.ErrorInCallback, Level = EventLevel.Warning)]
+            public void ErrorInCallback(string serviceName, string callbackName) {
+                WriteEvent(EventIds.ErrorInCallback, serviceName, callbackName);
             }
 
         }
