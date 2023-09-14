@@ -11,11 +11,6 @@ namespace IntelligentPlant.BackgroundTasks {
     public struct BackgroundWorkItem : IEquatable<BackgroundWorkItem> {
 
         /// <summary>
-        /// The parent activity for the background work item.
-        /// </summary>
-        internal Activity? ParentActivity { get; }
-
-        /// <summary>
         /// Gets the unique identifier for the work item.
         /// </summary>
         public string Id { get; }
@@ -47,20 +42,13 @@ namespace IntelligentPlant.BackgroundTasks {
         /// <param name="displayName">
         ///   The display name for the work item.
         /// </param>
-        /// <param name="captureParentActivity">
-        ///   When <see langword="true"/>, the value of <see cref="Activity.Current"/> at the 
-        ///   moment that the <see cref="BackgroundWorkItem"/> is created will be captured and set 
-        ///   as the value of <see cref="Activity.Current"/> immediately before the background work 
-        ///   item is run.
-        /// </param>
         /// <exception cref="ArgumentNullException">
         ///   <paramref name="workItem"/> is <see langword="null"/>.
         /// </exception>
-        public BackgroundWorkItem(Action<CancellationToken> workItem, string? displayName = null, bool captureParentActivity = false) {
+        public BackgroundWorkItem(Action<CancellationToken> workItem, string? displayName = null) {
             WorkItem = workItem ?? throw new ArgumentNullException(nameof(workItem));
             WorkItemAsync = null;
 
-            ParentActivity = captureParentActivity ? Activity.Current : null;
             Id = Guid.NewGuid().ToString();
             DisplayName = displayName;
         }
@@ -75,20 +63,13 @@ namespace IntelligentPlant.BackgroundTasks {
         /// <param name="displayName">
         ///   The display name for the work item.
         /// </param>
-        /// <param name="captureParentActivity">
-        ///   When <see langword="true"/>, the value of <see cref="Activity.Current"/> at the 
-        ///   moment that the <see cref="BackgroundWorkItem"/> is created will be captured and set 
-        ///   as the value of <see cref="Activity.Current"/> immediately before the background work 
-        ///   item is run.
-        /// </param>
         /// <exception cref="ArgumentNullException">
         ///   <paramref name="workItem"/> is <see langword="null"/>.
         /// </exception>
-        public BackgroundWorkItem(Func<CancellationToken, Task> workItem, string? displayName = null, bool captureParentActivity = false) {
+        public BackgroundWorkItem(Func<CancellationToken, Task> workItem, string? displayName = null) {
             WorkItem = null;
             WorkItemAsync = workItem ?? throw new ArgumentNullException(nameof(workItem));
 
-            ParentActivity = captureParentActivity ? Activity.Current : null;
             Id = Guid.NewGuid().ToString();
             DisplayName = displayName;
         }
@@ -109,20 +90,14 @@ namespace IntelligentPlant.BackgroundTasks {
         /// <param name="displayName">
         ///   The display name for the work item.
         /// </param>
-        /// <param name="parentActivity">
-        ///   The parent activity for the work item.
-        /// </param>
         internal BackgroundWorkItem(
             Action<CancellationToken>? workItem, 
             Func<CancellationToken, Task>? workItemAsync, 
             string id,
-            string? displayName,
-            Activity? parentActivity
+            string? displayName
         ) {
             WorkItem = workItem;
             WorkItemAsync = workItemAsync;
-
-            ParentActivity = parentActivity;
             Id = id;
             DisplayName = displayName;
         }

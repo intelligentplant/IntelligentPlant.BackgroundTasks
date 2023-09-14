@@ -158,7 +158,10 @@ namespace IntelligentPlant.BackgroundTasks {
 
         /// <inheritdoc/>
         public void QueueBackgroundWorkItem(BackgroundWorkItem workItem) {
-            ThrowIfDisposed();
+            if (_isDisposed) {
+                LogWorkItemCompleted(Logger, workItem);
+                return;
+            }
 
             if (!_options.AllowWorkItemRegistrationWhileStopped && !IsRunning) {
                 throw new InvalidOperationException(Resources.Error_CannotRegisterWorkItemsWhileStopped);
@@ -281,37 +284,27 @@ namespace IntelligentPlant.BackgroundTasks {
         ///   A <see cref="ValueTask"/> that will run the work item.
         /// </returns>
         protected async ValueTask InvokeWorkItemAsync(BackgroundWorkItem workItem, CancellationToken cancellationToken) {
-            // Capture the current activity so that we can restore it later.
-            var previousActivity = Activity.Current;
-            Activity.Current = workItem.ParentActivity;
-
+            var elapsedBefore = _stopwatch.Elapsed;
             try {
-                var elapsedBefore = _stopwatch.Elapsed;
-                try {
-                    OnRunning(workItem);
-                    if (workItem.WorkItemAsync != null) {
-                        await workItem.WorkItemAsync(cancellationToken).ConfigureAwait(false);
-                    }
-                    else if (workItem.WorkItem != null) {
-                        workItem.WorkItem(cancellationToken);
-                    }
+                OnRunning(workItem);
+                if (workItem.WorkItemAsync != null) {
+                    await workItem.WorkItemAsync(cancellationToken).ConfigureAwait(false);
+                }
+                else if (workItem.WorkItem != null) {
+                    workItem.WorkItem(cancellationToken);
+                }
+                OnCompleted(workItem, _stopwatch.Elapsed - elapsedBefore);
+            }
+            catch (OperationCanceledException e) {
+                if (cancellationToken.IsCancellationRequested) {
                     OnCompleted(workItem, _stopwatch.Elapsed - elapsedBefore);
                 }
-                catch (OperationCanceledException e) {
-                    if (cancellationToken.IsCancellationRequested) {
-                        OnCompleted(workItem, _stopwatch.Elapsed - elapsedBefore);
-                    }
-                    else {
-                        OnError(workItem, e, _stopwatch.Elapsed - elapsedBefore);
-                    }
-                }
-                catch (Exception e) {
+                else {
                     OnError(workItem, e, _stopwatch.Elapsed - elapsedBefore);
                 }
             }
-            finally {
-                // Restore the original activity.
-                Activity.Current = previousActivity;
+            catch (Exception e) {
+                OnError(workItem, e, _stopwatch.Elapsed - elapsedBefore);
             }
         }
 
@@ -324,7 +317,7 @@ namespace IntelligentPlant.BackgroundTasks {
         /// </param>
         private void OnQueuedInternal(BackgroundWorkItem workItem) {
             EventSource.WorkItemEnqueued(Name, workItem.Id, workItem.DisplayName, _queue.Count);
-            LogItemEnqueued(Logger, workItem, IsRunning);
+            LogWorkItemEnqueued(Logger, workItem);
             OnQueued(workItem);
         }
 
@@ -341,7 +334,8 @@ namespace IntelligentPlant.BackgroundTasks {
                 _options.OnEnqueued?.Invoke(workItem);
             }
             catch (Exception e) {
-                Logger.LogError(e, Resources.Log_ErrorInCallback, nameof(BackgroundTaskServiceOptions.OnEnqueued));
+                EventSource.ErrorInCallback(Name, nameof(BackgroundTaskServiceOptions.OnEnqueued));
+                LogErrorInCallback(Logger, nameof(BackgroundTaskServiceOptions.OnEnqueued), e);
             }
         }
 
@@ -354,7 +348,7 @@ namespace IntelligentPlant.BackgroundTasks {
         /// </param>
         private void OnDequeuedInternal(BackgroundWorkItem workItem) {
             EventSource.WorkItemDequeued(Name, workItem.Id, workItem.DisplayName, _queue.Count);
-            LogItemDequeued(Logger, workItem);
+            LogWorkItemDequeued(Logger, workItem);
             OnDequeued(workItem);
         }
 
@@ -371,7 +365,8 @@ namespace IntelligentPlant.BackgroundTasks {
                 _options.OnDequeued?.Invoke(workItem);
             }
             catch (Exception e) {
-                Logger.LogError(e, Resources.Log_ErrorInCallback, nameof(BackgroundTaskServiceOptions.OnDequeued));
+                EventSource.ErrorInCallback(Name, nameof(BackgroundTaskServiceOptions.OnDequeued));
+                LogErrorInCallback(Logger, nameof(BackgroundTaskServiceOptions.OnDequeued), e);
             }
         }
 
@@ -384,7 +379,7 @@ namespace IntelligentPlant.BackgroundTasks {
         /// </param>
         private void OnRunningInternal(BackgroundWorkItem workItem) {
             EventSource.WorkItemRunning(Name, workItem.Id, workItem.DisplayName);
-            LogItemRunning(Logger, workItem);
+            LogWorkItemRunning(Logger, workItem);
         }
 
 
@@ -401,7 +396,8 @@ namespace IntelligentPlant.BackgroundTasks {
                 _options.OnRunning?.Invoke(workItem);
             }
             catch (Exception e) {
-                Logger.LogError(e, Resources.Log_ErrorInCallback, nameof(BackgroundTaskServiceOptions.OnRunning));
+                EventSource.ErrorInCallback(Name, nameof(BackgroundTaskServiceOptions.OnRunning));
+                LogErrorInCallback(Logger, nameof(BackgroundTaskServiceOptions.OnRunning), e);
             }
         }
 
@@ -418,7 +414,7 @@ namespace IntelligentPlant.BackgroundTasks {
         /// </param>
         private void OnCompletedInternal(BackgroundWorkItem workItem, TimeSpan elapsed) {
             EventSource.WorkItemCompleted(Name, workItem.Id, workItem.DisplayName, elapsed.TotalSeconds);
-            LogItemCompleted(Logger, workItem);
+            LogWorkItemCompleted(Logger, workItem);
         }
 
 
@@ -438,7 +434,8 @@ namespace IntelligentPlant.BackgroundTasks {
                 _options.OnCompleted?.Invoke(workItem);
             }
             catch (Exception e) {
-                Logger.LogError(e, Resources.Log_ErrorInCallback, nameof(BackgroundTaskServiceOptions.OnCompleted));
+                EventSource.ErrorInCallback(Name, nameof(BackgroundTaskServiceOptions.OnCompleted));
+                LogErrorInCallback(Logger, nameof(BackgroundTaskServiceOptions.OnCompleted), e);
             }
         }
 
@@ -458,7 +455,7 @@ namespace IntelligentPlant.BackgroundTasks {
         /// </param>
         private void OnErrorInternal(BackgroundWorkItem workItem, Exception err, TimeSpan elapsed) {
             EventSource.WorkItemFaulted(Name, workItem.Id, workItem.DisplayName, elapsed.TotalSeconds);
-            LogItemFaulted(Logger, workItem, err);
+            LogWorkItemFaulted(Logger, workItem, err);
         }
 
 
@@ -485,7 +482,8 @@ namespace IntelligentPlant.BackgroundTasks {
                 _options.OnError?.Invoke(workItem, err);
             }
             catch (Exception e) {
-                Logger.LogError(e, Resources.Log_ErrorInCallback, nameof(BackgroundTaskServiceOptions.OnError));
+                EventSource.ErrorInCallback(Name, nameof(BackgroundTaskServiceOptions.OnError));
+                LogErrorInCallback(Logger, nameof(BackgroundTaskServiceOptions.OnError), e);
             }
         }
 

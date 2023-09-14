@@ -24,11 +24,6 @@ namespace IntelligentPlant.BackgroundTasks {
         /// <param name="displayName">
         ///   The display name for the work item.
         /// </param>
-        /// <param name="captureParentActivity">
-        ///   When <see langword="true"/>, the value of <see cref="Activity.Current"/> at the 
-        ///   moment that the <see cref="BackgroundWorkItem"/> is created will be restored onto 
-        ///   the work item thread immediately before the item is run.
-        /// </param>
         /// <returns>
         ///   The unique identifier for the queued work item.
         /// </returns>
@@ -41,8 +36,7 @@ namespace IntelligentPlant.BackgroundTasks {
         public static string QueueBackgroundWorkItem(
             this IBackgroundTaskService backgroundTaskService, 
             Action<CancellationToken> workItem, 
-            string? displayName = null,
-            bool captureParentActivity = false
+            string? displayName = null
         ) {
             if (backgroundTaskService == null) {
                 throw new ArgumentNullException(nameof(backgroundTaskService));
@@ -51,7 +45,7 @@ namespace IntelligentPlant.BackgroundTasks {
                 throw new ArgumentNullException(nameof(workItem));
             }
 
-            var item = new BackgroundWorkItem(workItem, displayName, captureParentActivity);
+            var item = new BackgroundWorkItem(workItem, displayName);
             backgroundTaskService.QueueBackgroundWorkItem(item);
 
             return item.Id;
@@ -69,11 +63,6 @@ namespace IntelligentPlant.BackgroundTasks {
         /// </param>
         /// <param name="displayName">
         ///   The display name for the work item.
-        /// </param>
-        /// <param name="captureParentActivity">
-        ///   When <see langword="true"/>, the value of <see cref="Activity.Current"/> at the 
-        ///   moment that the <see cref="BackgroundWorkItem"/> is created will be restored onto 
-        ///   the work item thread immediately before the item is run.
         /// </param>
         /// <returns>
         ///   The unique identifier for the queued work item.
@@ -87,8 +76,7 @@ namespace IntelligentPlant.BackgroundTasks {
         public static string QueueBackgroundWorkItem(
             this IBackgroundTaskService backgroundTaskService, 
             Func<CancellationToken, Task> workItem, 
-            string? displayName = null,
-            bool captureParentActivity = false
+            string? displayName = null
         ) {
             if (backgroundTaskService == null) {
                 throw new ArgumentNullException(nameof(backgroundTaskService));
@@ -97,7 +85,7 @@ namespace IntelligentPlant.BackgroundTasks {
                 throw new ArgumentNullException(nameof(workItem));
             }
 
-            var item = new BackgroundWorkItem(workItem, displayName, captureParentActivity);
+            var item = new BackgroundWorkItem(workItem, displayName);
             backgroundTaskService.QueueBackgroundWorkItem(item);
 
             return item.Id;
@@ -115,11 +103,6 @@ namespace IntelligentPlant.BackgroundTasks {
         /// </param>
         /// <param name="displayName">
         ///   The display name for the work item.
-        /// </param>
-        /// <param name="captureParentActivity">
-        ///   When <see langword="true"/>, the value of <see cref="Activity.Current"/> at the 
-        ///   moment that the <see cref="BackgroundWorkItem"/> is created will be restored onto 
-        ///   the work item thread immediately before the item is run.
         /// </param>
         /// <param name="tokens">
         ///   Additional cancellation tokens for the operation. A composite token consisting of 
@@ -139,46 +122,9 @@ namespace IntelligentPlant.BackgroundTasks {
             this IBackgroundTaskService backgroundTaskService, 
             Action<CancellationToken> workItem,
             string? displayName,
-            bool captureParentActivity,
             params CancellationToken[] tokens
         ) {
-            return QueueBackgroundWorkItem(backgroundTaskService, workItem, displayName, captureParentActivity, (IEnumerable<CancellationToken>) tokens);
-        }
-
-
-        /// <summary>
-        /// Adds a synchronous work item to the queue.
-        /// </summary>
-        /// <param name="backgroundTaskService">
-        ///   The <see cref="IBackgroundTaskService"/>.
-        /// </param>
-        /// <param name="workItem">
-        ///   The work item.
-        /// </param>
-        /// <param name="displayName">
-        ///   The display name for the work item.
-        /// </param>
-        /// <param name="tokens">
-        ///   Additional cancellation tokens for the operation. A composite token consisting of 
-        ///   these tokens and the lifetime token of the <see cref="IBackgroundTaskService"/> will 
-        ///   be passed to <paramref name="workItem"/>.
-        /// </param>
-        /// <returns>
-        ///   The unique identifier for the queued work item.
-        /// </returns>
-        /// <exception cref="ArgumentNullException">
-        ///   <paramref name="backgroundTaskService"/> is <see langword="null"/>.
-        /// </exception>
-        /// <exception cref="ArgumentNullException">
-        ///   <paramref name="workItem"/> is <see langword="null"/>.
-        /// </exception>
-        public static string QueueBackgroundWorkItem(
-            this IBackgroundTaskService backgroundTaskService,
-            Action<CancellationToken> workItem,
-            string? displayName,
-            params CancellationToken[] tokens
-        ) {
-            return QueueBackgroundWorkItem(backgroundTaskService, workItem, displayName, false, (IEnumerable<CancellationToken>) tokens);
+            return QueueBackgroundWorkItem(backgroundTaskService, workItem, displayName, (IEnumerable<CancellationToken>) tokens);
         }
 
 
@@ -210,7 +156,7 @@ namespace IntelligentPlant.BackgroundTasks {
             Action<CancellationToken> workItem,
             params CancellationToken[] tokens
         ) {
-            return QueueBackgroundWorkItem(backgroundTaskService, workItem, null, false, (IEnumerable<CancellationToken>) tokens);
+            return QueueBackgroundWorkItem(backgroundTaskService, workItem, null, (IEnumerable<CancellationToken>) tokens);
         }
 
 
@@ -225,11 +171,6 @@ namespace IntelligentPlant.BackgroundTasks {
         /// </param>
         /// <param name="displayName">
         ///   The display name for the work item.
-        /// </param>
-        /// <param name="captureParentActivity">
-        ///   When <see langword="true"/>, the value of <see cref="Activity.Current"/> at the 
-        ///   moment that the <see cref="BackgroundWorkItem"/> is created will be restored onto 
-        ///   the work item thread immediately before the item is run.
         /// </param>
         /// <param name="tokens">
         ///   Additional cancellation tokens for the operation. A composite token consisting of 
@@ -249,7 +190,6 @@ namespace IntelligentPlant.BackgroundTasks {
             this IBackgroundTaskService backgroundTaskService, 
             Action<CancellationToken> workItem, 
             string? displayName,
-            bool captureParentActivity,
             IEnumerable<CancellationToken>? tokens
         ) {
             if (backgroundTaskService == null) {
@@ -263,7 +203,7 @@ namespace IntelligentPlant.BackgroundTasks {
 
             if (additionalTokens?.Length == 0) {
                 // No additional tokens; just queue the work item as normal.
-                return backgroundTaskService.QueueBackgroundWorkItem(workItem, displayName, captureParentActivity);
+                return backgroundTaskService.QueueBackgroundWorkItem(workItem, displayName);
             }
 
             // We're constructing a new delegate to allow us to listen to multiple cancellation 
@@ -273,49 +213,7 @@ namespace IntelligentPlant.BackgroundTasks {
                 using (var compositeTokenSource = CancellationTokenSource.CreateLinkedTokenSource(new[] { ct }.Concat(additionalTokens).ToArray())) {
                     workItem(compositeTokenSource.Token);
                 }
-            }, displayName, captureParentActivity);
-        }
-
-
-        /// <summary>
-        /// Adds an asynchronous work item to the queue.
-        /// </summary>
-        /// <param name="backgroundTaskService">
-        ///   The <see cref="IBackgroundTaskService"/>.
-        /// </param>
-        /// <param name="workItem">
-        ///   The work item.
-        /// </param>
-        /// <param name="displayName">
-        ///   The display name for the work item.
-        /// </param>
-        /// <param name="captureParentActivity">
-        ///   When <see langword="true"/>, the value of <see cref="Activity.Current"/> at the 
-        ///   moment that the <see cref="BackgroundWorkItem"/> is created will be restored onto 
-        ///   the work item thread immediately before the item is run.
-        /// </param>
-        /// <param name="tokens">
-        ///   Additional cancellation tokens for the operation. A composite token consisting of 
-        ///   these tokens and the lifetime token of the <see cref="IBackgroundTaskService"/> will 
-        ///   be passed to <paramref name="workItem"/>.
-        /// </param>
-        /// <returns>
-        ///   The unique identifier for the queued work item.
-        /// </returns>
-        /// <exception cref="ArgumentNullException">
-        ///   <paramref name="backgroundTaskService"/> is <see langword="null"/>.
-        /// </exception>
-        /// <exception cref="ArgumentNullException">
-        ///   <paramref name="workItem"/> is <see langword="null"/>.
-        /// </exception>
-        public static string QueueBackgroundWorkItem(
-            this IBackgroundTaskService backgroundTaskService, 
-            Func<CancellationToken, Task> workItem,
-            string? displayName,
-            bool captureParentActivity,
-            params CancellationToken[] tokens
-        ) {
-            return QueueBackgroundWorkItem(backgroundTaskService, workItem, displayName, captureParentActivity, (IEnumerable<CancellationToken>) tokens);
+            }, displayName);
         }
 
 
@@ -351,7 +249,7 @@ namespace IntelligentPlant.BackgroundTasks {
             string? displayName,
             params CancellationToken[] tokens
         ) {
-            return QueueBackgroundWorkItem(backgroundTaskService, workItem, displayName, false, (IEnumerable<CancellationToken>) tokens);
+            return QueueBackgroundWorkItem(backgroundTaskService, workItem, displayName, (IEnumerable<CancellationToken>) tokens);
         }
 
 
@@ -383,7 +281,7 @@ namespace IntelligentPlant.BackgroundTasks {
             Func<CancellationToken, Task> workItem,
             params CancellationToken[] tokens
         ) {
-            return QueueBackgroundWorkItem(backgroundTaskService, workItem, null, false, (IEnumerable<CancellationToken>) tokens);
+            return QueueBackgroundWorkItem(backgroundTaskService, workItem, null, (IEnumerable<CancellationToken>) tokens);
         }
 
 
@@ -395,11 +293,6 @@ namespace IntelligentPlant.BackgroundTasks {
         /// </param>
         /// <param name="workItem">
         ///   The work item.
-        /// </param>
-        /// <param name="captureParentActivity">
-        ///   When <see langword="true"/>, the value of <see cref="Activity.Current"/> at the 
-        ///   moment that the <see cref="BackgroundWorkItem"/> is created will be restored onto 
-        ///   the work item thread immediately before the item is run.
         /// </param>
         /// <param name="tokens">
         ///   Additional cancellation tokens for the operation. A composite token consisting of 
@@ -419,7 +312,6 @@ namespace IntelligentPlant.BackgroundTasks {
             this IBackgroundTaskService backgroundTaskService, 
             Func<CancellationToken, Task> workItem,
             string? displayName,
-            bool captureParentActivity,
             IEnumerable<CancellationToken>? tokens
         ) {
             if (backgroundTaskService == null) {
@@ -433,7 +325,7 @@ namespace IntelligentPlant.BackgroundTasks {
 
             if (additionalTokens?.Length == 0) {
                 // No additional tokens; just queue the work item as normal.
-                return backgroundTaskService.QueueBackgroundWorkItem(workItem, displayName, captureParentActivity);
+                return backgroundTaskService.QueueBackgroundWorkItem(workItem, displayName);
             }
 
             // We're constructing a new delegate to allow us to listen to multiple cancellation 
@@ -445,7 +337,7 @@ namespace IntelligentPlant.BackgroundTasks {
                 using (var compositeTokenSource = CancellationTokenSource.CreateLinkedTokenSource(new[] { ct }.Concat(additionalTokens).ToArray())) {
                     await workItem(compositeTokenSource.Token).ConfigureAwait(false);
                 }
-            }, displayName, captureParentActivity);
+            }, displayName);
         }
 
     }
