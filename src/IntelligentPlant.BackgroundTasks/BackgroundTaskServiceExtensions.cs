@@ -39,8 +39,8 @@ namespace IntelligentPlant.BackgroundTasks {
         ///   <paramref name="workItem"/> is <see langword="null"/>.
         /// </exception>
         public static string QueueBackgroundWorkItem(
-            this IBackgroundTaskService backgroundTaskService, 
-            Action<CancellationToken> workItem, 
+            this IBackgroundTaskService backgroundTaskService,
+            Action<CancellationToken> workItem,
             string? displayName = null,
             bool captureParentActivity = false
         ) {
@@ -85,8 +85,8 @@ namespace IntelligentPlant.BackgroundTasks {
         ///   <paramref name="workItem"/> is <see langword="null"/>.
         /// </exception>
         public static string QueueBackgroundWorkItem(
-            this IBackgroundTaskService backgroundTaskService, 
-            Func<CancellationToken, Task> workItem, 
+            this IBackgroundTaskService backgroundTaskService,
+            Func<CancellationToken, Task> workItem,
             string? displayName = null,
             bool captureParentActivity = false
         ) {
@@ -136,7 +136,7 @@ namespace IntelligentPlant.BackgroundTasks {
         ///   <paramref name="workItem"/> is <see langword="null"/>.
         /// </exception>
         public static string QueueBackgroundWorkItem(
-            this IBackgroundTaskService backgroundTaskService, 
+            this IBackgroundTaskService backgroundTaskService,
             Action<CancellationToken> workItem,
             string? displayName,
             bool captureParentActivity,
@@ -246,8 +246,8 @@ namespace IntelligentPlant.BackgroundTasks {
         ///   <paramref name="workItem"/> is <see langword="null"/>.
         /// </exception>
         public static string QueueBackgroundWorkItem(
-            this IBackgroundTaskService backgroundTaskService, 
-            Action<CancellationToken> workItem, 
+            this IBackgroundTaskService backgroundTaskService,
+            Action<CancellationToken> workItem,
             string? displayName,
             bool captureParentActivity,
             IEnumerable<CancellationToken>? tokens
@@ -309,7 +309,7 @@ namespace IntelligentPlant.BackgroundTasks {
         ///   <paramref name="workItem"/> is <see langword="null"/>.
         /// </exception>
         public static string QueueBackgroundWorkItem(
-            this IBackgroundTaskService backgroundTaskService, 
+            this IBackgroundTaskService backgroundTaskService,
             Func<CancellationToken, Task> workItem,
             string? displayName,
             bool captureParentActivity,
@@ -416,7 +416,7 @@ namespace IntelligentPlant.BackgroundTasks {
         ///   <paramref name="workItem"/> is <see langword="null"/>.
         /// </exception>
         public static string QueueBackgroundWorkItem(
-            this IBackgroundTaskService backgroundTaskService, 
+            this IBackgroundTaskService backgroundTaskService,
             Func<CancellationToken, Task> workItem,
             string? displayName,
             bool captureParentActivity,

@@ -31,7 +31,7 @@ namespace IntelligentPlant.BackgroundTasks.Tests {
             };
 
             using (var svc = ActivatorUtilities.CreateInstance<DefaultBackgroundTaskService>(s_serviceProvider, options)) {
-                svc.QueueBackgroundWorkItem(ct => { 
+                svc.QueueBackgroundWorkItem(ct => {
                     // No-op
                 });
 
@@ -196,7 +196,7 @@ namespace IntelligentPlant.BackgroundTasks.Tests {
                 AllowWorkItemRegistrationWhileStopped = true,
             };
 
-            using (var activitySourceListener = new ActivityListener() { 
+            using (var activitySourceListener = new ActivityListener() {
                 ShouldListenTo = x => true,
                 SampleUsingParentId = (ref ActivityCreationOptions<string> activityOptions) => ActivitySamplingResult.AllData,
                 Sample = (ref ActivityCreationOptions<ActivityContext> activityOptions) => ActivitySamplingResult.AllData

@@ -141,31 +141,4 @@
   <data name="Error_UnspecifiedError" xml:space="preserve">
     <value>Unspecified error</value>
   </data>
-  <data name="Log_ErrorInCallback" xml:space="preserve">
-    <value>An unhandled exception occurred in a '{CallbackType}' callback.</value>
-  </data>
-  <data name="Log_ItemCompleted" xml:space="preserve">
-    <value>Work item completed: {WorkItem}</value>
-  </data>
-  <data name="Log_ItemDequeued" xml:space="preserve">
-    <value>Work item dequeued: {WorkItem}</value>
-  </data>
-  <data name="Log_ItemEnqueued" xml:space="preserve">
-    <value>Work item enqueued: {WorkItem}</value>
-  </data>
-  <data name="Log_ItemEnqueuedWhileStopped" xml:space="preserve">
-    <value>Work item enqueued while background task service is stopped: {WorkItem}. This work item will not be processed until the service is started.</value>
-  </data>
-  <data name="Log_ItemFaulted" xml:space="preserve">
-    <value>Work item faulted: {WorkItem}</value>
-  </data>
-  <data name="Log_ItemRunning" xml:space="preserve">
-    <value>Work item running: {WorkItem}</value>
-  </data>
-  <data name="Log_ServiceRunning" xml:space="preserve">
-    <value>Background task service is running.</value>
-  </data>
-  <data name="Log_ServiceStopped" xml:space="preserve">
-    <value>Background task service has stopped.</value>
-  </data>
 </root>

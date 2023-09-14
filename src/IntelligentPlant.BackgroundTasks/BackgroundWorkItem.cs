@@ -113,8 +113,8 @@ namespace IntelligentPlant.BackgroundTasks {
         ///   The parent activity for the work item.
         /// </param>
         internal BackgroundWorkItem(
-            Action<CancellationToken>? workItem, 
-            Func<CancellationToken, Task>? workItemAsync, 
+            Action<CancellationToken>? workItem,
+            Func<CancellationToken, Task>? workItemAsync,
             string id,
             string? displayName,
             Activity? parentActivity
@@ -146,25 +146,7 @@ namespace IntelligentPlant.BackgroundTasks {
 
         /// <inheritdoc/>
         public override int GetHashCode() {
-#if NETSTANDARD2_1 == false
-            // Implementation from https://stackoverflow.com/questions/263400/what-is-the-best-algorithm-for-overriding-gethashcode/263416#263416
-            unchecked {
-                var hash = (int) 2166136261;
-                hash = (hash * 16777619) ^ Id.GetHashCode();
-                if (WorkItem != null) {
-                    hash = (hash * 16777619) ^ WorkItem.GetHashCode();
-                }
-                if (WorkItemAsync != null) {
-                    hash = (hash * 16777619) ^ WorkItemAsync.GetHashCode();
-                }
-                if (DisplayName != null) {
-                    hash = (hash * 16777619) ^ DisplayName.GetHashCode();
-                }
-                return hash;
-            }
-#else
             return HashCode.Combine(Id, WorkItem, WorkItemAsync, DisplayName);
-#endif
         }
 
 
@@ -178,9 +160,9 @@ namespace IntelligentPlant.BackgroundTasks {
 
         /// <inheritdoc/>
         public bool Equals(BackgroundWorkItem other) {
-            return other.Id.Equals(Id, StringComparison.Ordinal) && 
-                string.Equals(other.DisplayName, DisplayName, StringComparison.Ordinal) && 
-                other.WorkItem == WorkItem && 
+            return other.Id.Equals(Id, StringComparison.Ordinal) &&
+                string.Equals(other.DisplayName, DisplayName, StringComparison.Ordinal) &&
+                other.WorkItem == WorkItem &&
                 other.WorkItemAsync == WorkItemAsync;
         }
 
