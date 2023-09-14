@@ -46,7 +46,6 @@ namespace IntelligentPlant.BackgroundTasks.ExampleApp.Controllers {
                     }
                 },
                 null,
-                true,
                 cancellationToken
             );
 

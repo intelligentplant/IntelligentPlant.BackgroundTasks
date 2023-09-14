@@ -1,13 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+
+#if NETCOREAPP
 using System.Linq;
-using System.Text;
 
 using IntelligentPlant.BackgroundTasks.AspNetCore;
 
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+#endif
 
 namespace IntelligentPlant.BackgroundTasks.Tests {
     [TestClass]
@@ -99,6 +99,7 @@ namespace IntelligentPlant.BackgroundTasks.Tests {
             Assert.IsTrue(onRunningCalled);
         }
 
+#if NETCOREAPP
 
         [TestMethod]
         public void AspNetCoreBackgroundTaskServiceShouldBeRegistered() {
@@ -125,6 +126,8 @@ namespace IntelligentPlant.BackgroundTasks.Tests {
                 BackgroundTaskService.Default = defaultSvc;
             }
         }
+
+#endif
 
 
         public class TestBackgroundTaskService : DefaultBackgroundTaskService {

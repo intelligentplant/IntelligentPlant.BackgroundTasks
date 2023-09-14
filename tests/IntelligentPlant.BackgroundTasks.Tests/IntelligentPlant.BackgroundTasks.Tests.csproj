@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net6.0;net5.0;netcoreapp3.1;net48</TargetFrameworks>
+    <TargetFrameworks>net6.0;net7.0;net48</TargetFrameworks>
     <IsSignable>false</IsSignable>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
@@ -25,9 +25,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\IntelligentPlant.BackgroundTasks.AspNetCore\IntelligentPlant.BackgroundTasks.AspNetCore.csproj" />
     <ProjectReference Include="..\..\src\IntelligentPlant.BackgroundTasks.DependencyInjection\IntelligentPlant.BackgroundTasks.DependencyInjection.csproj" />
     <ProjectReference Include="..\..\src\IntelligentPlant.BackgroundTasks\IntelligentPlant.BackgroundTasks.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Condition=" '$(TargetFramework)' != 'net48' ">
+    <ProjectReference Include="..\..\src\IntelligentPlant.BackgroundTasks.AspNetCore\IntelligentPlant.BackgroundTasks.AspNetCore.csproj" />
   </ItemGroup>
 
 </Project>
