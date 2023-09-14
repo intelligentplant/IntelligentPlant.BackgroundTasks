@@ -140,7 +140,8 @@ namespace IntelligentPlant.BackgroundTasks {
                         }
                     }, 
                     workItem.Id, 
-                    workItem.DisplayName
+                    workItem.DisplayName,
+                    workItem.ParentActivity
                 );
             }
             else {
@@ -152,7 +153,8 @@ namespace IntelligentPlant.BackgroundTasks {
                     },
                     null,
                     workItem.Id,
-                    workItem.DisplayName
+                    workItem.DisplayName,
+                    workItem.ParentActivity
                 );
             }
 

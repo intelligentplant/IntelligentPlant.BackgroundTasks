@@ -11,6 +11,11 @@ namespace IntelligentPlant.BackgroundTasks {
     public struct BackgroundWorkItem : IEquatable<BackgroundWorkItem> {
 
         /// <summary>
+        /// The parent activity for the background work item.
+        /// </summary>
+        internal Activity? ParentActivity { get; }
+
+        /// <summary>
         /// Gets the unique identifier for the work item.
         /// </summary>
         public string Id { get; }
@@ -42,13 +47,20 @@ namespace IntelligentPlant.BackgroundTasks {
         /// <param name="displayName">
         ///   The display name for the work item.
         /// </param>
+        /// <param name="captureParentActivity">
+        ///   When <see langword="true"/>, the value of <see cref="Activity.Current"/> at the 
+        ///   moment that the <see cref="BackgroundWorkItem"/> is created will be captured and set 
+        ///   as the value of <see cref="Activity.Current"/> immediately before the background work 
+        ///   item is run.
+        /// </param>
         /// <exception cref="ArgumentNullException">
         ///   <paramref name="workItem"/> is <see langword="null"/>.
         /// </exception>
-        public BackgroundWorkItem(Action<CancellationToken> workItem, string? displayName = null) {
+        public BackgroundWorkItem(Action<CancellationToken> workItem, string? displayName = null, bool captureParentActivity = false) {
             WorkItem = workItem ?? throw new ArgumentNullException(nameof(workItem));
             WorkItemAsync = null;
 
+            ParentActivity = captureParentActivity ? Activity.Current : null;
             Id = Guid.NewGuid().ToString();
             DisplayName = displayName;
         }
@@ -63,13 +75,20 @@ namespace IntelligentPlant.BackgroundTasks {
         /// <param name="displayName">
         ///   The display name for the work item.
         /// </param>
+        /// <param name="captureParentActivity">
+        ///   When <see langword="true"/>, the value of <see cref="Activity.Current"/> at the 
+        ///   moment that the <see cref="BackgroundWorkItem"/> is created will be captured and set 
+        ///   as the value of <see cref="Activity.Current"/> immediately before the background work 
+        ///   item is run.
+        /// </param>
         /// <exception cref="ArgumentNullException">
         ///   <paramref name="workItem"/> is <see langword="null"/>.
         /// </exception>
-        public BackgroundWorkItem(Func<CancellationToken, Task> workItem, string? displayName = null) {
+        public BackgroundWorkItem(Func<CancellationToken, Task> workItem, string? displayName = null, bool captureParentActivity = false) {
             WorkItem = null;
             WorkItemAsync = workItem ?? throw new ArgumentNullException(nameof(workItem));
 
+            ParentActivity = captureParentActivity ? Activity.Current : null;
             Id = Guid.NewGuid().ToString();
             DisplayName = displayName;
         }
@@ -90,14 +109,20 @@ namespace IntelligentPlant.BackgroundTasks {
         /// <param name="displayName">
         ///   The display name for the work item.
         /// </param>
+        /// <param name="parentActivity">
+        ///   The parent activity for the work item.
+        /// </param>
         internal BackgroundWorkItem(
-            Action<CancellationToken>? workItem, 
-            Func<CancellationToken, Task>? workItemAsync, 
+            Action<CancellationToken>? workItem,
+            Func<CancellationToken, Task>? workItemAsync,
             string id,
-            string? displayName
+            string? displayName,
+            Activity? parentActivity
         ) {
             WorkItem = workItem;
             WorkItemAsync = workItemAsync;
+
+            ParentActivity = parentActivity;
             Id = id;
             DisplayName = displayName;
         }
@@ -121,25 +146,7 @@ namespace IntelligentPlant.BackgroundTasks {
 
         /// <inheritdoc/>
         public override int GetHashCode() {
-#if NETSTANDARD2_1 == false
-            // Implementation from https://stackoverflow.com/questions/263400/what-is-the-best-algorithm-for-overriding-gethashcode/263416#263416
-            unchecked {
-                var hash = (int) 2166136261;
-                hash = (hash * 16777619) ^ Id.GetHashCode();
-                if (WorkItem != null) {
-                    hash = (hash * 16777619) ^ WorkItem.GetHashCode();
-                }
-                if (WorkItemAsync != null) {
-                    hash = (hash * 16777619) ^ WorkItemAsync.GetHashCode();
-                }
-                if (DisplayName != null) {
-                    hash = (hash * 16777619) ^ DisplayName.GetHashCode();
-                }
-                return hash;
-            }
-#else
             return HashCode.Combine(Id, WorkItem, WorkItemAsync, DisplayName);
-#endif
         }
 
 
@@ -153,9 +160,9 @@ namespace IntelligentPlant.BackgroundTasks {
 
         /// <inheritdoc/>
         public bool Equals(BackgroundWorkItem other) {
-            return other.Id.Equals(Id, StringComparison.Ordinal) && 
-                string.Equals(other.DisplayName, DisplayName, StringComparison.Ordinal) && 
-                other.WorkItem == WorkItem && 
+            return other.Id.Equals(Id, StringComparison.Ordinal) &&
+                string.Equals(other.DisplayName, DisplayName, StringComparison.Ordinal) &&
+                other.WorkItem == WorkItem &&
                 other.WorkItemAsync == WorkItemAsync;
         }
 

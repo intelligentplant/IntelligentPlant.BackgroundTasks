@@ -159,7 +159,7 @@ namespace IntelligentPlant.BackgroundTasks {
         /// <inheritdoc/>
         public void QueueBackgroundWorkItem(BackgroundWorkItem workItem) {
             if (_isDisposed) {
-                LogWorkItemCompleted(Logger, workItem);
+                OnCompleted(workItem, TimeSpan.Zero);
                 return;
             }
 
@@ -284,6 +284,13 @@ namespace IntelligentPlant.BackgroundTasks {
         ///   A <see cref="ValueTask"/> that will run the work item.
         /// </returns>
         protected async ValueTask InvokeWorkItemAsync(BackgroundWorkItem workItem, CancellationToken cancellationToken) {
+            var restoreActivity = workItem.ParentActivity != null && Activity.Current != workItem.ParentActivity;
+            Activity? previousActivity = null;
+            if (restoreActivity) {
+                previousActivity = Activity.Current;
+                Activity.Current = workItem.ParentActivity;
+            }
+
             var elapsedBefore = _stopwatch.Elapsed;
             try {
                 OnRunning(workItem);
@@ -305,6 +312,11 @@ namespace IntelligentPlant.BackgroundTasks {
             }
             catch (Exception e) {
                 OnError(workItem, e, _stopwatch.Elapsed - elapsedBefore);
+            }
+            finally {
+                if (restoreActivity) {
+                    Activity.Current = previousActivity;
+                }
             }
         }
 
