@@ -179,28 +179,29 @@ To enable OpenTelemetry tracing and metrics instrumentation in an ASP.NET Core a
 3. In your `ConfigureServices` method in your `Startup.cs` file, enable instrumentation for the custom `ActivitySource` instances you want to record, and enable the collection of background task service metrics:
 
 ```csharp
-// using IntelligentPlant.BackgroundTasks;
+using IntelligentPlant.BackgroundTasks;
 
-services.AddOpenTelemetryTracing(builder => {
-    builder
-        .AddAspNetCoreInstrumentation()
-        .AddSource("MyCompany.EmailNotifier", "MyCompany.MyClass")
-        // Configure OpenTelemetry trace exporters here e.g.
-        .AddConsoleExporter();
-});
+// Assumes that you have already created an OpenTelemetry resource builder.
 
-services.AddOpenTelemetryMetrics(builder => {
-    builder
-        .AddBackgroundTaskServiceInstrumentation()
-        // Configure OpenTelemetry metrics exporters here e.g.
-        .AddConsoleExporter(options => {
-            options.MetricReaderType = MetricReaderType.Periodic;
-            options.AggregationTemporality = AggregationTemporality.Cumulative;
-            options.PeriodicExportingMetricReaderOptions = new PeriodicExportingMetricReaderOptions() {
-                ExportIntervalMilliseconds = 5000
-            };
-        });
-});
+services.AddOpenTelemetry()
+    .WithTracing(builder => {
+        builder
+            .SetResourceBuilder(resourceBuilder)
+            .AddAspNetCoreInstrumentation()
+            .AddSource("MyCompany.EmailNotifier", "MyCompany.MyClass")
+            // Configure OpenTelemetry trace exporters here e.g.
+            .AddConsoleExporter();
+    })
+    .WithMetrics(builder => {
+        builder
+            .SetResourceBuilder(resourceBuilder)
+            .AddBackgroundTaskServiceInstrumentation()
+            // Configure OpenTelemetry metrics exporters here e.g.
+            .AddConsoleExporter((exporterOptions, readerOptions) => { 
+                readerOptions.PeriodicExportingMetricReaderOptions.ExportIntervalMilliseconds = 5000;
+                readerOptions.TemporalityPreference = MetricReaderTemporalityPreference.Cumulative;
+            });
+    });
 ```
 
 Consider our `EmailNotifier` class from above. We can enhance this class so that it can generate `Activity` objects for use in traces:
