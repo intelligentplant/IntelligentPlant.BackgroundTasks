@@ -81,6 +81,88 @@ public class MyClass : IDisposable {
 }
 ```
 
+
+# Waiting for Background Tasks to Complete
+
+## Using `BackgroundWorkItem.Task`
+
+All `QueueBackgroundWorkItem` overloads return an instance of the [BackgroundWorkItem](./src/IntelligentPlant.BackgroundTasks/BackgroundWorkItem.cs) type. This type has a `Task` property that can be used to wait for the work item to complete. For example:
+
+```csharp
+public class MyClass : IAsyncDisposable {
+
+    private readonly CancellationTokenSource _shutdownSource = new CancellationTokenSource();
+
+    private readonly Task _workItemTask;
+
+    public MyClass(IBackgroundTaskService backgroundTaskService) {
+        var workItem = backgroundTaskService.QueueBackgroundWorkItem(
+            LongRunningTask,
+            _shutdownSource.Token
+        );
+        _workItemTask = workItem.Task;
+    }
+
+    private async Task LongRunningTask(CancellationToken cancellationToken) {
+        try {
+            while (!cancellationToken.IsCancellationRequested) {
+                // Do long-running work.
+            }
+        }
+        finally {
+            // Perform cleanup here.
+        }
+    }
+
+    public async ValueTask DisposeAsync() {
+        _shutdownSource.Cancel();
+        await _workItemTask;
+        _shutdownSource.Dispose();
+    }
+
+}
+```
+
+## Using Synchronization Primitives
+
+Alternatively, you can use synchronization primitives such as `SemaphoreSlim` to wait for work items to complete. For example:
+
+```csharp
+public class MyClass : IAsyncDisposable {
+
+    private readonly CancellationTokenSource _shutdownSource = new CancellationTokenSource();
+
+    private readonly SemaphoreSlim _workItemSemaphore = new SemaphoreSlim(0);
+
+    public MyClass(IBackgroundTaskService backgroundTaskService) {
+        backgroundTaskService.QueueBackgroundWorkItem(
+            LongRunningTask,
+            _shutdownSource.Token
+        );
+    }
+
+    private async Task LongRunningTask(CancellationToken cancellationToken) {
+        try {
+            while (!cancellationToken.IsCancellationRequested) {
+                // Do long-running work.
+            }
+        }
+        finally {
+            // Perform cleanup here.
+            _workItemSemaphore.Release();
+        }
+    }
+
+    public async ValueTask DisposeAsync() {
+        _shutdownSource.Cancel();
+        await _workItemSemaphore.WaitAsync();
+        _shutdownSource.Dispose();
+        _workItemSemaphore.Dispose();
+    }
+
+}
+```
+
 # EventSource
 
 The `IntelligentPlant.BackgroundTasks` event source emits events when background work items are enqueued, dequeued, started, and completed. The `BackgroundTaskService.EventIds` class contains constants for the different event IDs that can be emitted. See [here](https://docs.microsoft.com/en-us/dotnet/api/system.diagnostics.tracing.eventsource) for more information about event sources.
