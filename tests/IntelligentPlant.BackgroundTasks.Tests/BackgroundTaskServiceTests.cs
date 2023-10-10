@@ -205,11 +205,10 @@ namespace IntelligentPlant.BackgroundTasks.Tests {
             using (var svc = ActivatorUtilities.CreateInstance<DefaultBackgroundTaskService>(s_serviceProvider, options))
             using (var semaphore = new SemaphoreSlim(0))
             using (var ctSource = new CancellationTokenSource()) {
-                var run = svc.RunAsync(ctSource.Token);
                 ActivitySource.AddActivityListener(activitySourceListener);
 
                 using (var parentActivity = activitySource.StartActivity("Parent")) {
-                    svc.QueueBackgroundWorkItem(ct => {
+                    var workItem = svc.QueueBackgroundWorkItem(ct => {
                         using (activitySource.StartActivity(TestContext.TestName)) {
                             try {
                                 Assert.AreEqual(TestContext.TestName, Activity.Current?.DisplayName);
@@ -225,10 +224,12 @@ namespace IntelligentPlant.BackgroundTasks.Tests {
 
                     Assert.AreEqual(1, svc.QueuedItemCount);
 
+                    var run = svc.RunAsync(ctSource.Token);
                     var lockObtained = await semaphore.WaitAsync(5000);
 
                     Assert.IsTrue(lockObtained);
                     Assert.AreEqual(0, svc.QueuedItemCount);
+                    await workItem.Task;
                     Assert.AreEqual(1, value);
                     Assert.AreEqual(parentActivity?.DisplayName, Activity.Current?.DisplayName);
 
@@ -256,11 +257,10 @@ namespace IntelligentPlant.BackgroundTasks.Tests {
             using (var svc = ActivatorUtilities.CreateInstance<DefaultBackgroundTaskService>(s_serviceProvider, options))
             using (var semaphore = new SemaphoreSlim(0))
             using (var ctSource = new CancellationTokenSource()) {
-                var run = svc.RunAsync(ctSource.Token);
                 ActivitySource.AddActivityListener(activitySourceListener);
 
                 using (var parentActivity = activitySource.StartActivity("Parent")) {
-                    svc.QueueBackgroundWorkItem(ct => {
+                    var workItem = svc.QueueBackgroundWorkItem(ct => {
                         using (activitySource.StartActivity(TestContext.TestName)) {
                             try {
                                 Assert.AreEqual(TestContext.TestName, Activity.Current?.DisplayName);
@@ -276,10 +276,12 @@ namespace IntelligentPlant.BackgroundTasks.Tests {
 
                     Assert.AreEqual(1, svc.QueuedItemCount);
 
+                    var run = svc.RunAsync(ctSource.Token);
                     var lockObtained = await semaphore.WaitAsync(5000);
 
                     Assert.IsTrue(lockObtained);
                     Assert.AreEqual(0, svc.QueuedItemCount);
+                    await workItem.Task;
                     Assert.AreEqual(1, value);
                     Assert.AreEqual(parentActivity?.DisplayName, Activity.Current?.DisplayName);
 
@@ -307,11 +309,10 @@ namespace IntelligentPlant.BackgroundTasks.Tests {
             using (var svc = ActivatorUtilities.CreateInstance<DefaultBackgroundTaskService>(s_serviceProvider, options))
             using (var semaphore = new SemaphoreSlim(0))
             using (var ctSource = new CancellationTokenSource()) {
-                var run = svc.RunAsync(ctSource.Token);
                 ActivitySource.AddActivityListener(activitySourceListener);
 
                 using (var parentActivity = activitySource.StartActivity("Parent")) {
-                    svc.QueueBackgroundWorkItem(async ct => {
+                    var workItem = svc.QueueBackgroundWorkItem(async ct => {
                         using (activitySource.StartActivity(TestContext.TestName)) {
                             try {
                                 await Task.Yield();
@@ -328,10 +329,12 @@ namespace IntelligentPlant.BackgroundTasks.Tests {
 
                     Assert.AreEqual(1, svc.QueuedItemCount);
 
+                    var run = svc.RunAsync(ctSource.Token);
                     var lockObtained = await semaphore.WaitAsync(5000);
 
                     Assert.IsTrue(lockObtained);
                     Assert.AreEqual(0, svc.QueuedItemCount);
+                    await workItem.Task;
                     Assert.AreEqual(1, value);
                     Assert.AreEqual(parentActivity?.DisplayName, Activity.Current?.DisplayName);
 
@@ -359,11 +362,10 @@ namespace IntelligentPlant.BackgroundTasks.Tests {
             using (var svc = ActivatorUtilities.CreateInstance<DefaultBackgroundTaskService>(s_serviceProvider, options))
             using (var semaphore = new SemaphoreSlim(0))
             using (var ctSource = new CancellationTokenSource()) {
-                var run = svc.RunAsync(ctSource.Token);
                 ActivitySource.AddActivityListener(activitySourceListener);
 
                 using (var parentActivity = activitySource.StartActivity("Parent")) {
-                    svc.QueueBackgroundWorkItem(async ct => {
+                    var workItem = svc.QueueBackgroundWorkItem(async ct => {
                         using (activitySource.StartActivity(TestContext.TestName)) {
                             try {
                                 await Task.Yield();
@@ -380,16 +382,88 @@ namespace IntelligentPlant.BackgroundTasks.Tests {
 
                     Assert.AreEqual(1, svc.QueuedItemCount);
 
+                    var run = svc.RunAsync(ctSource.Token);
                     var lockObtained = await semaphore.WaitAsync(5000);
 
                     Assert.IsTrue(lockObtained);
                     Assert.AreEqual(0, svc.QueuedItemCount);
+                    await workItem.Task;
                     Assert.AreEqual(1, value);
                     Assert.AreEqual(parentActivity?.DisplayName, Activity.Current?.DisplayName);
 
                     ctSource.Cancel();
                     await run;
                 }
+            }
+        }
+
+
+        [TestMethod]
+        public async Task BackgroundWorkItemTaskShouldComplete() {
+            var options = new BackgroundTaskServiceOptions() {
+                AllowWorkItemRegistrationWhileStopped = true,
+            };
+
+            using (var svc = ActivatorUtilities.CreateInstance<DefaultBackgroundTaskService>(s_serviceProvider, options))
+            using (var ctSource = new CancellationTokenSource()) {
+                var run = svc.RunAsync(ctSource.Token);
+
+                var value = 0;
+
+                var workItem = svc.QueueBackgroundWorkItem(async ct => {
+                    await Task.Yield();
+                    value = 1;
+                });
+
+                await workItem.Task;
+                Assert.AreEqual(1, value);
+
+                ctSource.Cancel();
+                await run;
+            }
+        }
+
+
+        [TestMethod]
+        public async Task BackgroundWorkItemTaskShouldCompleteWithError() {
+            var options = new BackgroundTaskServiceOptions() {
+                AllowWorkItemRegistrationWhileStopped = true,
+            };
+
+            using (var svc = ActivatorUtilities.CreateInstance<DefaultBackgroundTaskService>(s_serviceProvider, options))
+            using (var ctSource = new CancellationTokenSource()) {
+                var run = svc.RunAsync(ctSource.Token);
+
+                var workItem = svc.QueueBackgroundWorkItem(async ct => {
+                    await Task.Yield();
+                    throw new InvalidOperationException();
+                });
+
+                await Assert.ThrowsExceptionAsync<InvalidOperationException>(() => workItem.Task);
+
+                ctSource.Cancel();
+                await run;
+            }
+        }
+
+
+        [TestMethod]
+        public async Task BackgroundWorkItemTaskShouldCancelWhenServiceIsDisposed() {
+            var options = new BackgroundTaskServiceOptions() {
+                AllowWorkItemRegistrationWhileStopped = true,
+            };
+
+            using (var svc = ActivatorUtilities.CreateInstance<DefaultBackgroundTaskService>(s_serviceProvider, options))
+            using (var ctSource = new CancellationTokenSource()) {
+                var workItem = svc.QueueBackgroundWorkItem(async ct => {
+                    await Task.Yield();
+                });
+
+                svc.Dispose();
+
+                await Assert.ThrowsExceptionAsync<TaskCanceledException>(() => workItem.Task);
+
+                ctSource.Cancel();
             }
         }
 

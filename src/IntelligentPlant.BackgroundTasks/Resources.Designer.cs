@@ -88,7 +88,7 @@ namespace IntelligentPlant.BackgroundTasks {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to {{ Id = &apos;{0}&apos;, Type = &apos;{1}&apos;, DisplayName = &apos;{2}&apos; }}.
+        ///   Looks up a localized string similar to {{ Id = &apos;{0}&apos;, Type = &apos;{1}&apos;, DisplayName = &apos;{2}&apos;, Status = &apos;{3}&apos; }}.
         /// </summary>
         internal static string BackgroundWorkItem_StringFormat {
             get {

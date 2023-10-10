@@ -30,7 +30,7 @@ namespace IntelligentPlant.BackgroundTasks {
         ///   the work item thread immediately before the item is run.
         /// </param>
         /// <returns>
-        ///   The unique identifier for the queued work item.
+        ///   A <see cref="BackgroundWorkItem"/> that represents the queued work item.
         /// </returns>
         /// <exception cref="ArgumentNullException">
         ///   <paramref name="backgroundTaskService"/> is <see langword="null"/>.
@@ -38,7 +38,7 @@ namespace IntelligentPlant.BackgroundTasks {
         /// <exception cref="ArgumentNullException">
         ///   <paramref name="workItem"/> is <see langword="null"/>.
         /// </exception>
-        public static string QueueBackgroundWorkItem(
+        public static BackgroundWorkItem QueueBackgroundWorkItem(
             this IBackgroundTaskService backgroundTaskService,
             Action<CancellationToken> workItem,
             string? displayName = null,
@@ -54,53 +54,7 @@ namespace IntelligentPlant.BackgroundTasks {
             var item = new BackgroundWorkItem(workItem, displayName, captureParentActivity);
             backgroundTaskService.QueueBackgroundWorkItem(item);
 
-            return item.Id;
-        }
-
-
-        /// <summary>
-        /// Adds an asynchronous work item to the queue.
-        /// </summary>
-        /// <param name="backgroundTaskService">
-        ///   The <see cref="IBackgroundTaskService"/>.
-        /// </param>
-        /// <param name="workItem">
-        ///   The work item.
-        /// </param>
-        /// <param name="displayName">
-        ///   The display name for the work item.
-        /// </param>
-        /// <param name="captureParentActivity">
-        ///   When <see langword="true"/>, the value of <see cref="Activity.Current"/> at the 
-        ///   moment that the <see cref="BackgroundWorkItem"/> is created will be restored onto 
-        ///   the work item thread immediately before the item is run.
-        /// </param>
-        /// <returns>
-        ///   The unique identifier for the queued work item.
-        /// </returns>
-        /// <exception cref="ArgumentNullException">
-        ///   <paramref name="backgroundTaskService"/> is <see langword="null"/>.
-        /// </exception>
-        /// <exception cref="ArgumentNullException">
-        ///   <paramref name="workItem"/> is <see langword="null"/>.
-        /// </exception>
-        public static string QueueBackgroundWorkItem(
-            this IBackgroundTaskService backgroundTaskService,
-            Func<CancellationToken, Task> workItem,
-            string? displayName = null,
-            bool captureParentActivity = false
-        ) {
-            if (backgroundTaskService == null) {
-                throw new ArgumentNullException(nameof(backgroundTaskService));
-            }
-            if (workItem == null) {
-                throw new ArgumentNullException(nameof(workItem));
-            }
-
-            var item = new BackgroundWorkItem(workItem, displayName, captureParentActivity);
-            backgroundTaskService.QueueBackgroundWorkItem(item);
-
-            return item.Id;
+            return item;
         }
 
 
@@ -127,7 +81,7 @@ namespace IntelligentPlant.BackgroundTasks {
         ///   be passed to <paramref name="workItem"/>.
         /// </param>
         /// <returns>
-        ///   The unique identifier for the queued work item.
+        ///   A <see cref="BackgroundWorkItem"/> that represents the queued work item.
         /// </returns>
         /// <exception cref="ArgumentNullException">
         ///   <paramref name="backgroundTaskService"/> is <see langword="null"/>.
@@ -135,7 +89,7 @@ namespace IntelligentPlant.BackgroundTasks {
         /// <exception cref="ArgumentNullException">
         ///   <paramref name="workItem"/> is <see langword="null"/>.
         /// </exception>
-        public static string QueueBackgroundWorkItem(
+        public static BackgroundWorkItem QueueBackgroundWorkItem(
             this IBackgroundTaskService backgroundTaskService,
             Action<CancellationToken> workItem,
             string? displayName,
@@ -164,7 +118,7 @@ namespace IntelligentPlant.BackgroundTasks {
         ///   be passed to <paramref name="workItem"/>.
         /// </param>
         /// <returns>
-        ///   The unique identifier for the queued work item.
+        ///   A <see cref="BackgroundWorkItem"/> that represents the queued work item.
         /// </returns>
         /// <exception cref="ArgumentNullException">
         ///   <paramref name="backgroundTaskService"/> is <see langword="null"/>.
@@ -172,7 +126,7 @@ namespace IntelligentPlant.BackgroundTasks {
         /// <exception cref="ArgumentNullException">
         ///   <paramref name="workItem"/> is <see langword="null"/>.
         /// </exception>
-        public static string QueueBackgroundWorkItem(
+        public static BackgroundWorkItem QueueBackgroundWorkItem(
             this IBackgroundTaskService backgroundTaskService,
             Action<CancellationToken> workItem,
             string? displayName,
@@ -197,7 +151,7 @@ namespace IntelligentPlant.BackgroundTasks {
         ///   be passed to <paramref name="workItem"/>.
         /// </param>
         /// <returns>
-        ///   The unique identifier for the queued work item.
+        ///   A <see cref="BackgroundWorkItem"/> that represents the queued work item.
         /// </returns>
         /// <exception cref="ArgumentNullException">
         ///   <paramref name="backgroundTaskService"/> is <see langword="null"/>.
@@ -205,7 +159,7 @@ namespace IntelligentPlant.BackgroundTasks {
         /// <exception cref="ArgumentNullException">
         ///   <paramref name="workItem"/> is <see langword="null"/>.
         /// </exception>
-        public static string QueueBackgroundWorkItem(
+        public static BackgroundWorkItem QueueBackgroundWorkItem(
             this IBackgroundTaskService backgroundTaskService,
             Action<CancellationToken> workItem,
             params CancellationToken[] tokens
@@ -237,7 +191,7 @@ namespace IntelligentPlant.BackgroundTasks {
         ///   be passed to <paramref name="workItem"/>.
         /// </param>
         /// <returns>
-        ///   The unique identifier for the queued work item.
+        ///   A <see cref="BackgroundWorkItem"/> that represents the queued work item.
         /// </returns>
         /// <exception cref="ArgumentNullException">
         ///   <paramref name="backgroundTaskService"/> is <see langword="null"/>.
@@ -245,7 +199,7 @@ namespace IntelligentPlant.BackgroundTasks {
         /// <exception cref="ArgumentNullException">
         ///   <paramref name="workItem"/> is <see langword="null"/>.
         /// </exception>
-        public static string QueueBackgroundWorkItem(
+        public static BackgroundWorkItem QueueBackgroundWorkItem(
             this IBackgroundTaskService backgroundTaskService,
             Action<CancellationToken> workItem,
             string? displayName,
@@ -294,13 +248,8 @@ namespace IntelligentPlant.BackgroundTasks {
         ///   moment that the <see cref="BackgroundWorkItem"/> is created will be restored onto 
         ///   the work item thread immediately before the item is run.
         /// </param>
-        /// <param name="tokens">
-        ///   Additional cancellation tokens for the operation. A composite token consisting of 
-        ///   these tokens and the lifetime token of the <see cref="IBackgroundTaskService"/> will 
-        ///   be passed to <paramref name="workItem"/>.
-        /// </param>
         /// <returns>
-        ///   The unique identifier for the queued work item.
+        ///   A <see cref="BackgroundWorkItem"/> that represents the queued work item.
         /// </returns>
         /// <exception cref="ArgumentNullException">
         ///   <paramref name="backgroundTaskService"/> is <see langword="null"/>.
@@ -308,7 +257,58 @@ namespace IntelligentPlant.BackgroundTasks {
         /// <exception cref="ArgumentNullException">
         ///   <paramref name="workItem"/> is <see langword="null"/>.
         /// </exception>
-        public static string QueueBackgroundWorkItem(
+        public static BackgroundWorkItem QueueBackgroundWorkItem(
+            this IBackgroundTaskService backgroundTaskService,
+            Func<CancellationToken, Task> workItem,
+            string? displayName = null,
+            bool captureParentActivity = false
+        ) {
+            if (backgroundTaskService == null) {
+                throw new ArgumentNullException(nameof(backgroundTaskService));
+            }
+            if (workItem == null) {
+                throw new ArgumentNullException(nameof(workItem));
+            }
+
+            var item = new BackgroundWorkItem(workItem, displayName, captureParentActivity);
+            backgroundTaskService.QueueBackgroundWorkItem(item);
+
+            return item;
+        }
+
+
+        /// <summary>
+        /// Adds an asynchronous work item to the queue.
+        /// </summary>
+        /// <param name="backgroundTaskService">
+        ///   The <see cref="IBackgroundTaskService"/>.
+        /// </param>
+        /// <param name="workItem">
+        ///   The work item.
+        /// </param>
+        /// <param name="displayName">
+        ///   The display name for the work item.
+        /// </param>
+        /// <param name="captureParentActivity">
+        ///   When <see langword="true"/>, the value of <see cref="Activity.Current"/> at the 
+        ///   moment that the <see cref="BackgroundWorkItem"/> is created will be restored onto 
+        ///   the work item thread immediately before the item is run.
+        /// </param>
+        /// <param name="tokens">
+        ///   Additional cancellation tokens for the operation. A composite token consisting of 
+        ///   these tokens and the lifetime token of the <see cref="IBackgroundTaskService"/> will 
+        ///   be passed to <paramref name="workItem"/>.
+        /// </param>
+        /// <returns>
+        ///   A <see cref="BackgroundWorkItem"/> that represents the queued work item.
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        ///   <paramref name="backgroundTaskService"/> is <see langword="null"/>.
+        /// </exception>
+        /// <exception cref="ArgumentNullException">
+        ///   <paramref name="workItem"/> is <see langword="null"/>.
+        /// </exception>
+        public static BackgroundWorkItem QueueBackgroundWorkItem(
             this IBackgroundTaskService backgroundTaskService,
             Func<CancellationToken, Task> workItem,
             string? displayName,
@@ -337,7 +337,7 @@ namespace IntelligentPlant.BackgroundTasks {
         ///   be passed to <paramref name="workItem"/>.
         /// </param>
         /// <returns>
-        ///   The unique identifier for the queued work item.
+        ///   A <see cref="BackgroundWorkItem"/> that represents the queued work item.
         /// </returns>
         /// <exception cref="ArgumentNullException">
         ///   <paramref name="backgroundTaskService"/> is <see langword="null"/>.
@@ -345,7 +345,7 @@ namespace IntelligentPlant.BackgroundTasks {
         /// <exception cref="ArgumentNullException">
         ///   <paramref name="workItem"/> is <see langword="null"/>.
         /// </exception>
-        public static string QueueBackgroundWorkItem(
+        public static BackgroundWorkItem QueueBackgroundWorkItem(
             this IBackgroundTaskService backgroundTaskService,
             Func<CancellationToken, Task> workItem,
             string? displayName,
@@ -370,7 +370,7 @@ namespace IntelligentPlant.BackgroundTasks {
         ///   be passed to <paramref name="workItem"/>.
         /// </param>
         /// <returns>
-        ///   The unique identifier for the queued work item.
+        ///   A <see cref="BackgroundWorkItem"/> that represents the queued work item.
         /// </returns>
         /// <exception cref="ArgumentNullException">
         ///   <paramref name="backgroundTaskService"/> is <see langword="null"/>.
@@ -378,7 +378,7 @@ namespace IntelligentPlant.BackgroundTasks {
         /// <exception cref="ArgumentNullException">
         ///   <paramref name="workItem"/> is <see langword="null"/>.
         /// </exception>
-        public static string QueueBackgroundWorkItem(
+        public static BackgroundWorkItem QueueBackgroundWorkItem(
             this IBackgroundTaskService backgroundTaskService,
             Func<CancellationToken, Task> workItem,
             params CancellationToken[] tokens
@@ -407,7 +407,7 @@ namespace IntelligentPlant.BackgroundTasks {
         ///   be passed to <paramref name="workItem"/>.
         /// </param>
         /// <returns>
-        ///   The unique identifier for the queued work item.
+        ///   A <see cref="BackgroundWorkItem"/> that represents the queued work item.
         /// </returns>
         /// <exception cref="ArgumentNullException">
         ///   <paramref name="backgroundTaskService"/> is <see langword="null"/>.
@@ -415,7 +415,7 @@ namespace IntelligentPlant.BackgroundTasks {
         /// <exception cref="ArgumentNullException">
         ///   <paramref name="workItem"/> is <see langword="null"/>.
         /// </exception>
-        public static string QueueBackgroundWorkItem(
+        public static BackgroundWorkItem QueueBackgroundWorkItem(
             this IBackgroundTaskService backgroundTaskService,
             Func<CancellationToken, Task> workItem,
             string? displayName,
@@ -441,11 +441,13 @@ namespace IntelligentPlant.BackgroundTasks {
             // original delegate provided to us, or the auto-generated description will reference 
             // this method instead of the original delegate.
 
-            return backgroundTaskService.QueueBackgroundWorkItem(async (ct) => {
+            Func<CancellationToken, Task> workItemWithTokens = async (ct) => {
                 using (var compositeTokenSource = CancellationTokenSource.CreateLinkedTokenSource(new[] { ct }.Concat(additionalTokens).ToArray())) {
                     await workItem(compositeTokenSource.Token).ConfigureAwait(false);
                 }
-            }, displayName, captureParentActivity);
+            };
+
+            return QueueBackgroundWorkItem(backgroundTaskService, workItemWithTokens, displayName, captureParentActivity);
         }
 
     }

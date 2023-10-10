@@ -4,8 +4,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
-using IntelligentPlant.BackgroundTasks;
-
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
@@ -23,28 +21,25 @@ namespace IntelligentPlant.BackgroundTasks.ExampleApp {
             services.AddAspNetCoreBackgroundTaskService();
             services.AddControllers();
 
-            var resourceBuilder = ResourceBuilder.CreateEmpty().AddService(GetType().Assembly.GetName().Name, autoGenerateServiceInstanceId: false);
+            var resourceBuilder = ResourceBuilder.CreateEmpty().AddService(GetType().Assembly.GetName().Name!, serviceInstanceId: System.Net.Dns.GetHostName());
 
-            services.AddOpenTelemetryTracing(builder => {
-                builder
-                    .SetResourceBuilder(resourceBuilder)
-                    .AddAspNetCoreInstrumentation()
-                    .AddSource(nameof(Controllers.TasksController))
-                    .AddConsoleExporter();
-            });
-
-            services.AddOpenTelemetryMetrics(builder => {
-                builder
-                    .SetResourceBuilder(resourceBuilder)
-                    .AddBackgroundTaskServiceInstrumentation()
-                    .AddConsoleExporter(options => {
-                        options.MetricReaderType = MetricReaderType.Periodic;
-                        options.AggregationTemporality = AggregationTemporality.Cumulative;
-                        options.PeriodicExportingMetricReaderOptions = new PeriodicExportingMetricReaderOptions() {
-                            ExportIntervalMilliseconds = 5000
-                        };
-                    });
-            });
+            services.AddOpenTelemetry()
+                .WithTracing(builder => {
+                    builder
+                        .SetResourceBuilder(resourceBuilder)
+                        .AddAspNetCoreInstrumentation()
+                        .AddSource(nameof(Controllers.TasksController))
+                        .AddConsoleExporter();
+                })
+                .WithMetrics(builder => {
+                    builder
+                        .SetResourceBuilder(resourceBuilder)
+                        .AddBackgroundTaskServiceInstrumentation()
+                        .AddConsoleExporter((exporterOptions, readerOptions) => { 
+                            readerOptions.PeriodicExportingMetricReaderOptions.ExportIntervalMilliseconds = 5000;
+                            readerOptions.TemporalityPreference = MetricReaderTemporalityPreference.Cumulative;
+                        });
+                });
         }
 
 

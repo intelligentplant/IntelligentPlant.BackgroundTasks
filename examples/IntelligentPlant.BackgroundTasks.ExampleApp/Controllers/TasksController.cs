@@ -31,7 +31,7 @@ namespace IntelligentPlant.BackgroundTasks.ExampleApp.Controllers {
         public async Task<string> CreateTask(CancellationToken cancellationToken) {
             var tcs = new TaskCompletionSource<int>(TaskCreationOptions.RunContinuationsAsynchronously);
 
-            var taskId = _backgroundTaskService.QueueBackgroundWorkItem(
+            var workItem = _backgroundTaskService.QueueBackgroundWorkItem(
                 ct => {
                     using (s_activitySource.StartActivity(GetType().FullName + "/" + nameof(CreateTask))) {
                         try {
@@ -50,7 +50,7 @@ namespace IntelligentPlant.BackgroundTasks.ExampleApp.Controllers {
             );
 
             await tcs.Task.ConfigureAwait(false);
-            return taskId;
+            return workItem.Id;
         }
     }
 }

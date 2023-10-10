@@ -284,7 +284,7 @@ namespace IntelligentPlant.BackgroundTasks {
         ///   A <see cref="ValueTask"/> that will run the work item.
         /// </returns>
         protected async ValueTask InvokeWorkItemAsync(BackgroundWorkItem workItem, CancellationToken cancellationToken) {
-            var restoreActivity = workItem.ParentActivity != null && Activity.Current != workItem.ParentActivity;
+            var restoreActivity = workItem.ParentActivity == null || Activity.Current != workItem.ParentActivity;
             Activity? previousActivity = null;
             if (restoreActivity) {
                 previousActivity = Activity.Current;
@@ -315,7 +315,9 @@ namespace IntelligentPlant.BackgroundTasks {
             }
             finally {
                 if (restoreActivity) {
-                    Activity.Current = previousActivity;
+                    Activity.Current = previousActivity == null || !previousActivity.IsStopped
+                        ? previousActivity
+                        : null;
                 }
             }
         }
@@ -425,6 +427,7 @@ namespace IntelligentPlant.BackgroundTasks {
         ///   service.
         /// </param>
         private void OnCompletedInternal(BackgroundWorkItem workItem, TimeSpan elapsed) {
+            workItem.OnCompleted();
             EventSource.WorkItemCompleted(Name, workItem.Id, workItem.DisplayName, elapsed.TotalSeconds);
             LogWorkItemCompleted(Logger, workItem);
         }
@@ -466,6 +469,7 @@ namespace IntelligentPlant.BackgroundTasks {
         ///   service.
         /// </param>
         private void OnErrorInternal(BackgroundWorkItem workItem, Exception err, TimeSpan elapsed) {
+            workItem.OnCompleted(err);
             EventSource.WorkItemFaulted(Name, workItem.Id, workItem.DisplayName, elapsed.TotalSeconds);
             LogWorkItemFaulted(Logger, workItem, err);
         }
@@ -516,13 +520,9 @@ namespace IntelligentPlant.BackgroundTasks {
                 _disposedCancellationTokenSource.Cancel();
                 _disposedCancellationTokenSource.Dispose();
                 _queueSignal.Dispose();
-#if !NETSTANDARD2_1
-                // .NET Framework 4.6.1 / .NET Standard 2.0 don't have a Clear() method on ConcurrentQueue<T>, so we'll 
-                // empty it ourselves.
-                while (_queue.TryDequeue(out var _)) { }
-#else
-                _queue.Clear();
-#endif
+                while (_queue.TryDequeue(out var workItem)) {
+                    workItem.OnCompleted(new OperationCanceledException());
+                }
             }
 
             _isDisposed = true;
