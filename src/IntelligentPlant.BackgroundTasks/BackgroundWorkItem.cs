@@ -29,13 +29,13 @@ namespace IntelligentPlant.BackgroundTasks {
         /// The synchronous work item. The value will be <see langword="null"/> if an asynchronous 
         /// work item was enqueued.
         /// </summary>
-        public Action<CancellationToken>? WorkItem { get; }
+        internal Action<CancellationToken>? WorkItem { get; }
 
         /// <summary>
         /// The asynchronous work item. The value will be <see langword="null"/> if a synchronous 
         /// work item was enqueued.
         /// </summary>
-        public Func<CancellationToken, Task>? WorkItemAsync { get; }
+        internal Func<CancellationToken, Task>? WorkItemAsync { get; }
 
         /// <summary>
         /// A task completion source that is used to signal when the work item has finished.
