@@ -136,7 +136,7 @@ namespace IntelligentPlant.BackgroundTasks {
                     null, 
                     async ct => {
                         using (var ctSource = CancellationTokenSource.CreateLinkedTokenSource(new[] { ct }.Concat(tokens).ToArray())) {
-                            await workItem.WorkItemAsync.Invoke(ctSource.Token);
+                            await workItem.WorkItemAsync.Invoke(ctSource.Token).ConfigureAwait(false);
                         }
                     }, 
                     workItem.Id, 
