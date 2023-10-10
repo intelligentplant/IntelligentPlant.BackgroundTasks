@@ -127,10 +127,11 @@
     <value>Undefined</value>
   </data>
   <data name="BackgroundWorkItem_StringFormat" xml:space="preserve">
-    <value>{{ Id = '{0}', Type = '{1}', DisplayName = '{2}' }}</value>
+    <value>{{ Id = '{0}', Type = '{1}', DisplayName = '{2}', Status = '{3}' }}</value>
     <comment>{0} - ID
 {1} - async/sync/undefined
-{2} - display name</comment>
+{2} - display name
+{3} - pending/completed/faulted/cancelled</comment>
   </data>
   <data name="Error_CannotRegisterWorkItemsWhileStopped" xml:space="preserve">
     <value>Work items cannot be enqueued while the service is stopped.</value>

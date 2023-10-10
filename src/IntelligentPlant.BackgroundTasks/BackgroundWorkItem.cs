@@ -8,7 +8,7 @@ namespace IntelligentPlant.BackgroundTasks {
     /// <summary>
     /// Describes a work item that has been added to an <see cref="IBackgroundTaskService"/> queue.
     /// </summary>
-    public struct BackgroundWorkItem : IEquatable<BackgroundWorkItem> {
+    public readonly struct BackgroundWorkItem : IEquatable<BackgroundWorkItem> {
 
         /// <summary>
         /// The parent activity for the background work item.
@@ -37,6 +37,16 @@ namespace IntelligentPlant.BackgroundTasks {
         /// </summary>
         public Func<CancellationToken, Task>? WorkItemAsync { get; }
 
+        /// <summary>
+        /// A task completion source that is used to signal when the work item has finished.
+        /// </summary>
+        private readonly TaskCompletionSource<object?> _completionSource;
+
+        /// <summary>
+        /// A task that completes when the work item has finished executing.
+        /// </summary>
+        public Task Task => _completionSource.Task;
+
 
         /// <summary>
         /// Creates a new <see cref="BackgroundWorkItem"/> with a synchronous work item.
@@ -63,6 +73,7 @@ namespace IntelligentPlant.BackgroundTasks {
             ParentActivity = captureParentActivity ? Activity.Current : null;
             Id = Guid.NewGuid().ToString();
             DisplayName = displayName;
+            _completionSource = new TaskCompletionSource<object?>(TaskCreationOptions.RunContinuationsAsynchronously);
         }
 
 
@@ -91,6 +102,7 @@ namespace IntelligentPlant.BackgroundTasks {
             ParentActivity = captureParentActivity ? Activity.Current : null;
             Id = Guid.NewGuid().ToString();
             DisplayName = displayName;
+            _completionSource = new TaskCompletionSource<object?>(TaskCreationOptions.RunContinuationsAsynchronously);
         }
 
 
@@ -125,6 +137,31 @@ namespace IntelligentPlant.BackgroundTasks {
             ParentActivity = parentActivity;
             Id = id;
             DisplayName = displayName;
+            _completionSource = new TaskCompletionSource<object?>(TaskCreationOptions.RunContinuationsAsynchronously);
+        }
+
+
+        /// <summary>
+        /// Marks the work item as completed.
+        /// </summary>
+        /// <param name="error">
+        ///   When non-<see langword="null"/>, the work item is marked as faulted with this exception.
+        /// </param>
+        internal void OnCompleted(Exception? error = null) {
+            if (error == null) {
+                _completionSource.TrySetResult(null);
+            }
+            else if (error is OperationCanceledException cancelled) {
+                if (cancelled.CancellationToken == default) {
+                    _completionSource.TrySetCanceled();
+                }
+                else {
+                    _completionSource.TrySetCanceled(cancelled.CancellationToken);
+                }
+            }
+            else {
+                _completionSource.TrySetException(error);
+            }
         }
 
 
@@ -139,7 +176,13 @@ namespace IntelligentPlant.BackgroundTasks {
                     : WorkItemAsync != null
                         ? Resources.BackgroundWorkItem_ItemType_Async
                         : Resources.BackgroundWorkItem_ItemType_Undefined,
-                DisplayName
+                DisplayName,
+                _completionSource.Task.Status switch {
+                    TaskStatus.Canceled => "Cancelled",
+                    TaskStatus.Faulted => "Faulted",
+                    TaskStatus.RanToCompletion => "Completed",
+                    _ => "Pending"
+                }
             );
         }
 
