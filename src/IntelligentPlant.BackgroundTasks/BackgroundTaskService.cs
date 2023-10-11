@@ -284,6 +284,12 @@ namespace IntelligentPlant.BackgroundTasks {
         ///   A <see cref="ValueTask"/> that will run the work item.
         /// </returns>
         protected async ValueTask InvokeWorkItemAsync(BackgroundWorkItem workItem, CancellationToken cancellationToken) {
+            if (workItem.CancellationToken.IsCancellationRequested) {
+                // Work item has already been cancelled.
+                workItem.Dispose();
+                return;
+            }
+
             var restoreActivity = workItem.ParentActivity == null || Activity.Current != workItem.ParentActivity;
             Activity? previousActivity = null;
             if (restoreActivity) {
@@ -291,33 +297,36 @@ namespace IntelligentPlant.BackgroundTasks {
                 Activity.Current = workItem.ParentActivity;
             }
 
-            var elapsedBefore = _stopwatch.Elapsed;
-            try {
-                OnRunning(workItem);
-                if (workItem.WorkItemAsync != null) {
-                    await workItem.WorkItemAsync(cancellationToken).ConfigureAwait(false);
-                }
-                else if (workItem.WorkItem != null) {
-                    workItem.WorkItem(cancellationToken);
-                }
-                OnCompleted(workItem, _stopwatch.Elapsed - elapsedBefore);
-            }
-            catch (OperationCanceledException e) {
-                if (cancellationToken.IsCancellationRequested) {
+            using (var ctSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, workItem.CancellationToken)) {
+                var elapsedBefore = _stopwatch.Elapsed;
+                try {
+                    OnRunning(workItem);
+                    if (workItem.WorkItemAsync != null) {
+                        await workItem.WorkItemAsync(ctSource.Token).ConfigureAwait(false);
+                    }
+                    else if (workItem.WorkItem != null) {
+                        workItem.WorkItem(ctSource.Token);
+                    }
                     OnCompleted(workItem, _stopwatch.Elapsed - elapsedBefore);
                 }
-                else {
+                catch (OperationCanceledException e) {
+                    if (ctSource.IsCancellationRequested) {
+                        OnCompleted(workItem, _stopwatch.Elapsed - elapsedBefore);
+                    }
+                    else {
+                        OnError(workItem, e, _stopwatch.Elapsed - elapsedBefore);
+                    }
+                }
+                catch (Exception e) {
                     OnError(workItem, e, _stopwatch.Elapsed - elapsedBefore);
                 }
-            }
-            catch (Exception e) {
-                OnError(workItem, e, _stopwatch.Elapsed - elapsedBefore);
-            }
-            finally {
-                if (restoreActivity) {
-                    Activity.Current = previousActivity == null || !previousActivity.IsStopped
-                        ? previousActivity
-                        : null;
+                finally {
+                    workItem.Dispose();
+                    if (restoreActivity) {
+                        Activity.Current = previousActivity == null || !previousActivity.IsStopped
+                            ? previousActivity
+                            : null;
+                    }
                 }
             }
         }
