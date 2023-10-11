@@ -15,6 +15,13 @@ namespace IntelligentPlant.BackgroundTasks {
     public abstract partial class BackgroundTaskService : IBackgroundTaskService, IDisposable {
 
         /// <summary>
+        /// <see cref="AppContext"/> switch that controls if work items should be invoked even if 
+        /// cancellation has already been requested by the time the work item reaches the front of 
+        /// the background task service's queue.
+        /// </summary>
+        internal const string InvokeCancelledWorkItemsSwitchName = "IntelligentPlant.BackgroundTasks.BackgroundTaskService.InvokeCancelledWorkItems";
+
+        /// <summary>
         /// The name used by the <see cref="System.Diagnostics.Tracing.EventSource"/> and 
         /// <see cref="System.Diagnostics.Metrics.Meter"/> associated with the background task 
         /// service.
@@ -110,6 +117,12 @@ namespace IntelligentPlant.BackgroundTasks {
         private readonly SemaphoreSlim _queueSignal = new SemaphoreSlim(0);
 
         /// <summary>
+        /// Specifies if work items should be invoked even if cancellation has already been requested 
+        /// by the time the work item reaches the front of the background task service's queue.
+        /// </summary>
+        private readonly bool _invokeCancelledWorkItems;
+
+        /// <summary>
         /// The name for the service.
         /// </summary>
         public string Name { get; }
@@ -143,6 +156,7 @@ namespace IntelligentPlant.BackgroundTasks {
             BackgroundTaskServiceOptions? options,
             ILogger? logger
         ) {
+            _invokeCancelledWorkItems = AppContext.TryGetSwitch(InvokeCancelledWorkItemsSwitchName, out var enabled) && enabled;
             _options = options ?? new BackgroundTaskServiceOptions();
             Name = _options.Name ?? GetType().Name;
             _disposedCancellationTokenSource = new CancellationTokenSource();
@@ -297,7 +311,7 @@ namespace IntelligentPlant.BackgroundTasks {
             }
 
             try {
-                if (workItem.CancellationToken.IsCancellationRequested) {
+                if (!_invokeCancelledWorkItems && (cancellationToken.IsCancellationRequested || workItem.CancellationToken.IsCancellationRequested)) {
                     // Work item has already been cancelled.
                     return;
                 }
@@ -548,11 +562,13 @@ namespace IntelligentPlant.BackgroundTasks {
 
             if (disposing) {
                 _disposedCancellationTokenSource.Cancel();
-                _disposedCancellationTokenSource.Dispose();
                 _queueSignal.Dispose();
+
                 while (_queue.TryDequeue(out var workItem)) {
                     workItem.Dispose();
                 }
+
+                _disposedCancellationTokenSource.Dispose();
             }
 
             _isDisposed = true;
