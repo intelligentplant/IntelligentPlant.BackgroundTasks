@@ -530,7 +530,7 @@ namespace IntelligentPlant.BackgroundTasks {
                 _disposedCancellationTokenSource.Dispose();
                 _queueSignal.Dispose();
                 while (_queue.TryDequeue(out var workItem)) {
-                    workItem.OnCompleted(new OperationCanceledException());
+                    workItem.Dispose();
                 }
             }
 
