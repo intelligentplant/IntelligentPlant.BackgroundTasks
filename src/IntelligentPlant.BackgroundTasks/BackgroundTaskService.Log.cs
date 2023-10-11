@@ -26,7 +26,7 @@ namespace IntelligentPlant.BackgroundTasks {
         [LoggerMessage(EventIds.WorkItemFaulted, LogLevel.Trace, "Work item faulted: {workItem}", EventName = nameof(EventIds.WorkItemFaulted))]
         static partial void LogWorkItemFaulted(ILogger logger, BackgroundWorkItem workItem, Exception error);
 
-        [LoggerMessage(EventIds.ErrorInCallback, LogLevel.Error, "Error in callback '{callback}'. Callbacks should use try..catch blocks to prevent errors from propagating to the background task service.", EventName = nameof(EventIds.ErrorInCallback))]
+        [LoggerMessage(EventIds.ErrorInCallback, LogLevel.Error, "Error in callback or event handler '{callback}'. Handlers should use try..catch blocks to prevent errors from propagating to the background task service.", EventName = nameof(EventIds.ErrorInCallback))]
         static partial void LogErrorInCallback(ILogger logger, string callback, Exception error);
 
     }

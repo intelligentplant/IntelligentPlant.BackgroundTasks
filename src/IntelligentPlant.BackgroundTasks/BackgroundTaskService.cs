@@ -15,6 +15,13 @@ namespace IntelligentPlant.BackgroundTasks {
     public abstract partial class BackgroundTaskService : IBackgroundTaskService, IDisposable {
 
         /// <summary>
+        /// <see cref="AppContext"/> switch that controls if work items should be invoked even if 
+        /// cancellation has already been requested by the time the work item reaches the front of 
+        /// the background task service's queue.
+        /// </summary>
+        internal const string InvokeCancelledWorkItemsSwitchName = "IntelligentPlant.BackgroundTasks.BackgroundTaskService.InvokeCancelledWorkItems";
+
+        /// <summary>
         /// The name used by the <see cref="System.Diagnostics.Tracing.EventSource"/> and 
         /// <see cref="System.Diagnostics.Metrics.Meter"/> associated with the background task 
         /// service.
@@ -25,7 +32,6 @@ namespace IntelligentPlant.BackgroundTasks {
         /// A stopwatch for measuring elapsed time for tasks.
         /// </summary>
         private readonly Stopwatch _stopwatch = Stopwatch.StartNew();
-
 
 
         /// <summary>
@@ -111,6 +117,12 @@ namespace IntelligentPlant.BackgroundTasks {
         private readonly SemaphoreSlim _queueSignal = new SemaphoreSlim(0);
 
         /// <summary>
+        /// Specifies if work items should be invoked even if cancellation has already been requested 
+        /// by the time the work item reaches the front of the background task service's queue.
+        /// </summary>
+        private readonly bool _invokeCancelledWorkItems;
+
+        /// <summary>
         /// The name for the service.
         /// </summary>
         public string Name { get; }
@@ -120,6 +132,12 @@ namespace IntelligentPlant.BackgroundTasks {
 
         /// <inheritdoc/>
         public int QueuedItemCount { get { return _queue.Count; } }
+
+        /// <inheritdoc/>
+        public event EventHandler<BackgroundWorkItem>? BeforeWorkItemStarted;
+
+        /// <inheritdoc/>
+        public event EventHandler<BackgroundWorkItem>? AfterWorkItemCompleted;
 
 
         /// <summary>
@@ -138,6 +156,7 @@ namespace IntelligentPlant.BackgroundTasks {
             BackgroundTaskServiceOptions? options,
             ILogger? logger
         ) {
+            _invokeCancelledWorkItems = AppContext.TryGetSwitch(InvokeCancelledWorkItemsSwitchName, out var enabled) && enabled;
             _options = options ?? new BackgroundTaskServiceOptions();
             Name = _options.Name ?? GetType().Name;
             _disposedCancellationTokenSource = new CancellationTokenSource();
@@ -284,40 +303,65 @@ namespace IntelligentPlant.BackgroundTasks {
         ///   A <see cref="ValueTask"/> that will run the work item.
         /// </returns>
         protected async ValueTask InvokeWorkItemAsync(BackgroundWorkItem workItem, CancellationToken cancellationToken) {
-            var restoreActivity = workItem.ParentActivity == null || Activity.Current != workItem.ParentActivity;
-            Activity? previousActivity = null;
-            if (restoreActivity) {
-                previousActivity = Activity.Current;
-                Activity.Current = workItem.ParentActivity;
-            }
-
-            var elapsedBefore = _stopwatch.Elapsed;
             try {
-                OnRunning(workItem);
-                if (workItem.WorkItemAsync != null) {
-                    await workItem.WorkItemAsync(cancellationToken).ConfigureAwait(false);
-                }
-                else if (workItem.WorkItem != null) {
-                    workItem.WorkItem(cancellationToken);
-                }
-                OnCompleted(workItem, _stopwatch.Elapsed - elapsedBefore);
-            }
-            catch (OperationCanceledException e) {
-                if (cancellationToken.IsCancellationRequested) {
-                    OnCompleted(workItem, _stopwatch.Elapsed - elapsedBefore);
-                }
-                else {
-                    OnError(workItem, e, _stopwatch.Elapsed - elapsedBefore);
-                }
+                BeforeWorkItemStarted?.Invoke(this, workItem);
             }
             catch (Exception e) {
-                OnError(workItem, e, _stopwatch.Elapsed - elapsedBefore);
+                LogErrorInCallback(Logger, nameof(BeforeWorkItemStarted), e);
+            }
+
+            try {
+                if (!_invokeCancelledWorkItems && (cancellationToken.IsCancellationRequested || workItem.CancellationToken.IsCancellationRequested)) {
+                    // Work item has already been cancelled.
+                    return;
+                }
+
+                var restoreActivity = workItem.ParentActivity == null || Activity.Current != workItem.ParentActivity;
+                Activity? previousActivity = null;
+                if (restoreActivity) {
+                    previousActivity = Activity.Current;
+                    Activity.Current = workItem.ParentActivity;
+                }
+
+                using (var ctSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, workItem.CancellationToken)) {
+                    var elapsedBefore = _stopwatch.Elapsed;
+                    try {
+                        OnRunning(workItem);
+                        if (workItem.WorkItemAsync != null) {
+                            await workItem.WorkItemAsync(ctSource.Token).ConfigureAwait(false);
+                        }
+                        else if (workItem.WorkItem != null) {
+                            workItem.WorkItem(ctSource.Token);
+                        }
+                        OnCompleted(workItem, _stopwatch.Elapsed - elapsedBefore);
+                    }
+                    catch (OperationCanceledException e) {
+                        if (ctSource.IsCancellationRequested) {
+                            OnCompleted(workItem, _stopwatch.Elapsed - elapsedBefore);
+                        }
+                        else {
+                            OnError(workItem, e, _stopwatch.Elapsed - elapsedBefore);
+                        }
+                    }
+                    catch (Exception e) {
+                        OnError(workItem, e, _stopwatch.Elapsed - elapsedBefore);
+                    }
+                    finally {
+                        if (restoreActivity) {
+                            Activity.Current = previousActivity == null || !previousActivity.IsStopped
+                                ? previousActivity
+                                : null;
+                        }
+                    }
+                }
             }
             finally {
-                if (restoreActivity) {
-                    Activity.Current = previousActivity == null || !previousActivity.IsStopped
-                        ? previousActivity
-                        : null;
+                workItem.Dispose();
+                try {
+                    AfterWorkItemCompleted?.Invoke(this, workItem);
+                }
+                catch (Exception e) {
+                    LogErrorInCallback(Logger, nameof(AfterWorkItemCompleted), e);
                 }
             }
         }
@@ -518,11 +562,13 @@ namespace IntelligentPlant.BackgroundTasks {
 
             if (disposing) {
                 _disposedCancellationTokenSource.Cancel();
-                _disposedCancellationTokenSource.Dispose();
                 _queueSignal.Dispose();
+
                 while (_queue.TryDequeue(out var workItem)) {
-                    workItem.OnCompleted(new OperationCanceledException());
+                    workItem.Dispose();
                 }
+
+                _disposedCancellationTokenSource.Dispose();
             }
 
             _isDisposed = true;

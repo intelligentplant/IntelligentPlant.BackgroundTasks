@@ -34,6 +34,34 @@ namespace IntelligentPlant.BackgroundTasks {
         /// <inheritdoc/>
         public int QueuedItemCount => _isDisposed ? 0 : _inner.QueuedItemCount;
 
+        /// <inheritdoc/>
+        public event EventHandler<BackgroundWorkItem>? BeforeWorkItemStarted {
+            add {
+                if (!_isDisposed) {
+                    _inner.BeforeWorkItemStarted += value;
+                }
+            }
+            remove {
+                if (!_isDisposed) {
+                    _inner.BeforeWorkItemStarted -= value;
+                }
+            }
+        }
+
+        /// <inheritdoc/>
+        public event EventHandler<BackgroundWorkItem>? AfterWorkItemCompleted {
+            add {
+                if (!_isDisposed) {
+                    _inner.AfterWorkItemCompleted += value;
+                }
+            }
+            remove {
+                if (!_isDisposed) {
+                    _inner.AfterWorkItemCompleted -= value;
+                }
+            }
+        }
+
 
         /// <summary>
         /// Creates a new <see cref="BackgroundTaskServiceWrapper"/> object.

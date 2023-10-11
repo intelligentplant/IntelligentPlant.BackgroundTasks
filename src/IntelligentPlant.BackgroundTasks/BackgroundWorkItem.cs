@@ -8,7 +8,17 @@ namespace IntelligentPlant.BackgroundTasks {
     /// <summary>
     /// Describes a work item that has been added to an <see cref="IBackgroundTaskService"/> queue.
     /// </summary>
-    public readonly struct BackgroundWorkItem : IEquatable<BackgroundWorkItem> {
+    public struct BackgroundWorkItem : IEquatable<BackgroundWorkItem>, IDisposable {
+
+        /// <summary>
+        /// Cancellation token used by the <see langword="default"/> value of this type.
+        /// </summary>
+        private static readonly CancellationToken s_cancelled = new CancellationToken(true);
+
+        /// <summary>
+        /// Specifies if the work item has been disposed.
+        /// </summary>
+        private bool _disposed;
 
         /// <summary>
         /// The parent activity for the background work item.
@@ -38,6 +48,16 @@ namespace IntelligentPlant.BackgroundTasks {
         internal Func<CancellationToken, Task>? WorkItemAsync { get; }
 
         /// <summary>
+        /// A cancellation token source that can be used to explicitly cancel the work item.
+        /// </summary>
+        private readonly CancellationTokenSource _cancellationTokenSource;
+
+        /// <summary>
+        /// A cancellation token that can be used to cancel the work item.
+        /// </summary>
+        internal CancellationToken CancellationToken => _cancellationTokenSource?.Token ?? s_cancelled;
+
+        /// <summary>
         /// A task completion source that is used to signal when the work item has finished.
         /// </summary>
         private readonly TaskCompletionSource<object?> _completionSource;
@@ -45,7 +65,7 @@ namespace IntelligentPlant.BackgroundTasks {
         /// <summary>
         /// A task that completes when the work item has finished executing.
         /// </summary>
-        public Task Task => _completionSource.Task;
+        public Task Task => _completionSource?.Task ?? Task.CompletedTask;
 
 
         /// <summary>
@@ -67,6 +87,7 @@ namespace IntelligentPlant.BackgroundTasks {
         ///   <paramref name="workItem"/> is <see langword="null"/>.
         /// </exception>
         public BackgroundWorkItem(Action<CancellationToken> workItem, string? displayName = null, bool captureParentActivity = false) {
+            _disposed = false;
             WorkItem = workItem ?? throw new ArgumentNullException(nameof(workItem));
             WorkItemAsync = null;
 
@@ -74,6 +95,7 @@ namespace IntelligentPlant.BackgroundTasks {
             Id = Guid.NewGuid().ToString();
             DisplayName = displayName;
             _completionSource = new TaskCompletionSource<object?>(TaskCreationOptions.RunContinuationsAsynchronously);
+            _cancellationTokenSource = new CancellationTokenSource();
         }
 
 
@@ -96,6 +118,7 @@ namespace IntelligentPlant.BackgroundTasks {
         ///   <paramref name="workItem"/> is <see langword="null"/>.
         /// </exception>
         public BackgroundWorkItem(Func<CancellationToken, Task> workItem, string? displayName = null, bool captureParentActivity = false) {
+            _disposed = false;
             WorkItem = null;
             WorkItemAsync = workItem ?? throw new ArgumentNullException(nameof(workItem));
 
@@ -103,6 +126,7 @@ namespace IntelligentPlant.BackgroundTasks {
             Id = Guid.NewGuid().ToString();
             DisplayName = displayName;
             _completionSource = new TaskCompletionSource<object?>(TaskCreationOptions.RunContinuationsAsynchronously);
+            _cancellationTokenSource = new CancellationTokenSource();
         }
 
 
@@ -131,6 +155,7 @@ namespace IntelligentPlant.BackgroundTasks {
             string? displayName,
             Activity? parentActivity
         ) {
+            _disposed = false;
             WorkItem = workItem;
             WorkItemAsync = workItemAsync;
 
@@ -138,6 +163,18 @@ namespace IntelligentPlant.BackgroundTasks {
             Id = id;
             DisplayName = displayName;
             _completionSource = new TaskCompletionSource<object?>(TaskCreationOptions.RunContinuationsAsynchronously);
+            _cancellationTokenSource = new CancellationTokenSource();
+        }
+
+
+        /// <summary>
+        /// Cancels the work item.
+        /// </summary>
+        public void Cancel() {
+            if (_disposed) {
+                return;
+            }
+            _cancellationTokenSource?.Cancel();
         }
 
 
@@ -219,6 +256,21 @@ namespace IntelligentPlant.BackgroundTasks {
         /// <inheritdoc/>
         public static bool operator !=(BackgroundWorkItem left, BackgroundWorkItem right) {
             return !(left == right);
+        }
+
+
+        /// <inheritdoc/>
+        public void Dispose() {
+            if (_disposed) {
+                return;
+            }
+
+            _cancellationTokenSource?.Cancel();
+            _cancellationTokenSource?.Dispose();
+
+            OnCompleted(new OperationCanceledException());
+
+            _disposed = true;
         }
 
     }

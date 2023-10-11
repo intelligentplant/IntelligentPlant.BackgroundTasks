@@ -30,6 +30,16 @@ namespace IntelligentPlant.BackgroundTasks {
         /// </param>
         void QueueBackgroundWorkItem(BackgroundWorkItem workItem);
 
+        /// <summary>
+        /// Raised before a work item is started.
+        /// </summary>
+        event EventHandler<BackgroundWorkItem>? BeforeWorkItemStarted;
+
+        /// <summary>
+        /// Raised after a work item has completed.
+        /// </summary>
+        event EventHandler<BackgroundWorkItem>? AfterWorkItemCompleted;
+
     }
 
 }

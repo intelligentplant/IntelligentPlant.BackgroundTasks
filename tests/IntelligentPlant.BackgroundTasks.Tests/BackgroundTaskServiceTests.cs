@@ -201,7 +201,7 @@ namespace IntelligentPlant.BackgroundTasks.Tests {
                 SampleUsingParentId = (ref ActivityCreationOptions<string> activityOptions) => ActivitySamplingResult.AllData,
                 Sample = (ref ActivityCreationOptions<ActivityContext> activityOptions) => ActivitySamplingResult.AllData
             })
-            using (var activitySource = new ActivitySource(TestContext.TestName))
+            using (var activitySource = new ActivitySource(TestContext.TestName!))
             using (var svc = ActivatorUtilities.CreateInstance<DefaultBackgroundTaskService>(s_serviceProvider, options))
             using (var semaphore = new SemaphoreSlim(0))
             using (var ctSource = new CancellationTokenSource()) {
@@ -209,7 +209,7 @@ namespace IntelligentPlant.BackgroundTasks.Tests {
 
                 using (var parentActivity = activitySource.StartActivity("Parent")) {
                     var workItem = svc.QueueBackgroundWorkItem(ct => {
-                        using (activitySource.StartActivity(TestContext.TestName)) {
+                        using (activitySource.StartActivity(TestContext.TestName!)) {
                             try {
                                 Assert.AreEqual(TestContext.TestName, Activity.Current?.DisplayName);
                                 Assert.AreEqual(parentActivity!.DisplayName, Activity.Current?.Parent?.DisplayName);
@@ -253,7 +253,7 @@ namespace IntelligentPlant.BackgroundTasks.Tests {
                 SampleUsingParentId = (ref ActivityCreationOptions<string> activityOptions) => ActivitySamplingResult.AllData,
                 Sample = (ref ActivityCreationOptions<ActivityContext> activityOptions) => ActivitySamplingResult.AllData
             })
-            using (var activitySource = new ActivitySource(TestContext.TestName))
+            using (var activitySource = new ActivitySource(TestContext.TestName!))
             using (var svc = ActivatorUtilities.CreateInstance<DefaultBackgroundTaskService>(s_serviceProvider, options))
             using (var semaphore = new SemaphoreSlim(0))
             using (var ctSource = new CancellationTokenSource()) {
@@ -261,7 +261,7 @@ namespace IntelligentPlant.BackgroundTasks.Tests {
 
                 using (var parentActivity = activitySource.StartActivity("Parent")) {
                     var workItem = svc.QueueBackgroundWorkItem(ct => {
-                        using (activitySource.StartActivity(TestContext.TestName)) {
+                        using (activitySource.StartActivity(TestContext.TestName!)) {
                             try {
                                 Assert.AreEqual(TestContext.TestName, Activity.Current?.DisplayName);
                                 Assert.AreNotEqual(parentActivity!.DisplayName, Activity.Current?.Parent?.DisplayName);
@@ -305,7 +305,7 @@ namespace IntelligentPlant.BackgroundTasks.Tests {
                 SampleUsingParentId = (ref ActivityCreationOptions<string> activityOptions) => ActivitySamplingResult.AllData,
                 Sample = (ref ActivityCreationOptions<ActivityContext> activityOptions) => ActivitySamplingResult.AllData
             })
-            using (var activitySource = new ActivitySource(TestContext.TestName))
+            using (var activitySource = new ActivitySource(TestContext.TestName!))
             using (var svc = ActivatorUtilities.CreateInstance<DefaultBackgroundTaskService>(s_serviceProvider, options))
             using (var semaphore = new SemaphoreSlim(0))
             using (var ctSource = new CancellationTokenSource()) {
@@ -313,7 +313,7 @@ namespace IntelligentPlant.BackgroundTasks.Tests {
 
                 using (var parentActivity = activitySource.StartActivity("Parent")) {
                     var workItem = svc.QueueBackgroundWorkItem(async ct => {
-                        using (activitySource.StartActivity(TestContext.TestName)) {
+                        using (activitySource.StartActivity(TestContext.TestName!)) {
                             try {
                                 await Task.Yield();
                                 Assert.AreEqual(TestContext.TestName, Activity.Current?.DisplayName);
@@ -358,7 +358,7 @@ namespace IntelligentPlant.BackgroundTasks.Tests {
                 SampleUsingParentId = (ref ActivityCreationOptions<string> activityOptions) => ActivitySamplingResult.AllData,
                 Sample = (ref ActivityCreationOptions<ActivityContext> activityOptions) => ActivitySamplingResult.AllData
             })
-            using (var activitySource = new ActivitySource(TestContext.TestName))
+            using (var activitySource = new ActivitySource(TestContext.TestName!))
             using (var svc = ActivatorUtilities.CreateInstance<DefaultBackgroundTaskService>(s_serviceProvider, options))
             using (var semaphore = new SemaphoreSlim(0))
             using (var ctSource = new CancellationTokenSource()) {
@@ -366,7 +366,7 @@ namespace IntelligentPlant.BackgroundTasks.Tests {
 
                 using (var parentActivity = activitySource.StartActivity("Parent")) {
                     var workItem = svc.QueueBackgroundWorkItem(async ct => {
-                        using (activitySource.StartActivity(TestContext.TestName)) {
+                        using (activitySource.StartActivity(TestContext.TestName!)) {
                             try {
                                 await Task.Yield();
                                 Assert.AreEqual(TestContext.TestName, Activity.Current?.DisplayName);
@@ -462,6 +462,109 @@ namespace IntelligentPlant.BackgroundTasks.Tests {
                 svc.Dispose();
 
                 await Assert.ThrowsExceptionAsync<TaskCanceledException>(() => workItem.Task);
+
+                ctSource.Cancel();
+            }
+        }
+
+
+        [TestMethod]
+        public async Task BackgroundWorkItemThatIsCancelledWhileQueuedShouldNotExecute() {
+            var options = new BackgroundTaskServiceOptions() {
+                AllowWorkItemRegistrationWhileStopped = true,
+            };
+
+            using (var svc = ActivatorUtilities.CreateInstance<DefaultBackgroundTaskService>(s_serviceProvider, options))
+            using (var ctSource = new CancellationTokenSource()) {
+                var value = 0;
+
+                var workItem = new BackgroundWorkItem(async ct => {
+                    await Task.Yield();
+                    value = 1;
+                });
+                workItem.Cancel();
+
+                svc.QueueBackgroundWorkItem(workItem);
+
+                _ = svc.RunAsync(ctSource.Token);
+
+                await Assert.ThrowsExceptionAsync<TaskCanceledException>(() => workItem.Task);
+                Assert.AreEqual(0, value);
+
+                ctSource.Cancel();
+            }
+        }
+
+
+        [TestMethod]
+        public async Task BackgroundWorkItemThatIsCancelledWhileQueuedShouldExecute() {
+            try {
+                AppContext.SetSwitch(BackgroundTaskService.InvokeCancelledWorkItemsSwitchName, true);
+
+                var options = new BackgroundTaskServiceOptions() {
+                    AllowWorkItemRegistrationWhileStopped = true,
+                };
+
+                using (var svc = ActivatorUtilities.CreateInstance<DefaultBackgroundTaskService>(s_serviceProvider, options))
+                using (var ctSource = new CancellationTokenSource()) {
+                    var value = 0;
+
+                    var workItem = new BackgroundWorkItem(async ct => {
+                        await Task.Yield();
+                        value = 1;
+                    });
+                    workItem.Cancel();
+
+                    svc.QueueBackgroundWorkItem(workItem);
+
+                    _ = svc.RunAsync(ctSource.Token);
+
+                    await workItem.Task;
+                    Assert.AreEqual(1, value);
+
+                    ctSource.Cancel();
+                }
+            }
+            finally {
+                AppContext.SetSwitch(BackgroundTaskService.InvokeCancelledWorkItemsSwitchName, false);
+            }
+        }
+
+
+        [TestMethod]
+        public async Task EventHandlersShouldBeInvoked() {
+            var options = new BackgroundTaskServiceOptions() {
+                AllowWorkItemRegistrationWhileStopped = true,
+            };
+
+            using var beforeWorkItem = new SemaphoreSlim(0);
+            using var afterWorkItem = new SemaphoreSlim(0);
+
+            using (var svc = ActivatorUtilities.CreateInstance<DefaultBackgroundTaskService>(s_serviceProvider, options))
+            using (var ctSource = new CancellationTokenSource()) {
+                svc.BeforeWorkItemStarted += (sender, e) => {
+                    beforeWorkItem.Release();
+                };
+                svc.AfterWorkItemCompleted += (sender, e) => {
+                    afterWorkItem.Release();
+                };
+
+                var value = 0;
+
+                var workItem = new BackgroundWorkItem(async ct => {
+                    await Task.Yield();
+                    value = 1;
+                });
+                
+                svc.QueueBackgroundWorkItem(workItem);
+
+                _ = svc.RunAsync(ctSource.Token);
+
+                await beforeWorkItem.WaitAsync(1000);
+                await afterWorkItem.WaitAsync(1000);
+
+                await workItem.Task;
+                Assert.AreEqual(1, value);
 
                 ctSource.Cancel();
             }
