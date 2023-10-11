@@ -268,6 +268,8 @@ namespace IntelligentPlant.BackgroundTasks {
             _cancellationTokenSource?.Cancel();
             _cancellationTokenSource?.Dispose();
 
+            OnCompleted(new OperationCanceledException());
+
             _disposed = true;
         }
 
