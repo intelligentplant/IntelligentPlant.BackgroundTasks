@@ -59,7 +59,9 @@ The [BackgroundWorkItem](./src/IntelligentPlant.BackgroundTasks/BackgroundWorkIt
 
 # Cancelling Background Tasks
 
-By default, the `CancellationToken` provided to the work item will fire when the application is shutting down. You can also explcitly or implicitly cancel work items using the methods described below.
+By default, the `CancellationToken` provided to the work item will fire when the application is shutting down. You can also explicitly or implicitly cancel work items using the methods described below.
+
+> **IMPORTANT:** If a work item is cancelled before it reaches the front of the background task service's queue, its delegate will not be executed by default. This behaviour can be controlled by an `AppContext` switch (see below).
 
 
 ## Using `BackgroundWorkItem.Cancel()`
@@ -92,8 +94,6 @@ public class MyClass : IDisposable {
 Calling the `BackgroundWorkItem.Dispose` method will also cancel the work item if it has not already completed. Note however that calling `Dispose` will also immediately mark the work item's `Task` property as cancelled if it has not already completed. This means that if you are using the `Task` property to wait for the work item to complete (see below), you should not call `Dispose` and instead allow the background task service to dispose of the work item when it has completed.
 
 Cancelling a work item does not guarantee that the work item will stop executing immediately. The work item's delegate must react to the cancellation request and stop executing. Cancelling a work item that has already completed has no effect.
-
-> **IMPORTANT:** If a work item is explicitly cancelled before it has started executing, it will be removed from the queue and its delegate will not be executed. This is different to the behaviour of cancellation via `CancellationToken` instances (see below).
 
 
 ## Using Additional `CancellationToken` Instances
@@ -132,8 +132,19 @@ public class MyClass : IDisposable {
 }
 ```
 
-> **IMPORTANT:** If the composite cancellation token is triggered before the work item starts executing, the work item's delegate will still be called. It is the responsibility of the delegate to handle this scenario. This behaviour is different to the behaviour of cancellation via `BackgroundWorkItem.Cancel` (see above).
 
+## Invoking Already-Cancelled Work Items
+
+By default, work items will not be invoked if they are cancelled (either explicitly or implicitly via an associated cancellation token) before they reach the front of the background task service's queue. If your application requires that work items are invoked even if cancellation is immediately requested, this can be enabled by setting the `IntelligentPlant.BackgroundTasks.BackgroundTaskService.InvokeCancelledWorkItems` switch to `true` in the application's `AppContext`. For example:
+
+```csharp
+AppContext.SetSwitch("IntelligentPlant.BackgroundTasks.BackgroundTaskService.InvokeCancelledWorkItems", true);
+```
+
+There are a couple of important things to note about this behaviour:
+
+- Background task services will only honour the switch if it is set before the service is created.
+- Calling `Dispose` on a service derived from the `BackgroundTaskService` base class will **always** result in queued work items being immediately cancelled and not invoked.
 
 # Waiting for Background Tasks to Complete
 
