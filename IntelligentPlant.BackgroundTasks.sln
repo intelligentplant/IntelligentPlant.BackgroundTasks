@@ -19,6 +19,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "common", "common", "{447F10
 		build.sh = build.sh
 		Directory.Build.props = Directory.Build.props
 		Directory.Build.targets = Directory.Build.targets
+		Directory.Packages.props = Directory.Packages.props
 		LICENSE = LICENSE
 		README.md = README.md
 	EndProjectSection
@@ -43,7 +44,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IntelligentPlant.Background
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExampleAspNetApp", "examples\ExampleAspNetApp\ExampleAspNetApp.csproj", "{5C822D92-F23C-4BB7-80AC-42C1BC179E06}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IntelligentPlant.BackgroundTasks.OpenTelemetry", "src\IntelligentPlant.BackgroundTasks.OpenTelemetry\IntelligentPlant.BackgroundTasks.OpenTelemetry.csproj", "{509DFA10-50C7-4275-9891-32A94081B793}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IntelligentPlant.BackgroundTasks.OpenTelemetry", "src\IntelligentPlant.BackgroundTasks.OpenTelemetry\IntelligentPlant.BackgroundTasks.OpenTelemetry.csproj", "{509DFA10-50C7-4275-9891-32A94081B793}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

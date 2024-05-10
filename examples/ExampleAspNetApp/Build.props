@@ -1,0 +1,11 @@
+﻿<Project>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNet.WebApi"/>
+    <PackageReference Include="Microsoft.AspNet.WebApi.Client"/>
+    <PackageReference Include="Microsoft.AspNet.WebApi.Core"/>
+    <PackageReference Include="Microsoft.AspNet.WebApi.WebHost"/>
+    <PackageReference Include="Microsoft.CodeDom.Providers.DotNetCompilerPlatform"/>
+    <PackageReference Include="Microsoft.Extensions.Hosting"/>
+    <PackageReference Include="Newtonsoft.Json"/>
+  </ItemGroup>
+</Project>
