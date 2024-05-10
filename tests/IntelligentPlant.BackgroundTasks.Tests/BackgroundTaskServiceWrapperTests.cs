@@ -54,13 +54,13 @@ namespace IntelligentPlant.BackgroundTasks.Tests {
                 SampleUsingParentId = (ref ActivityCreationOptions<string> activityOptions) => ActivitySamplingResult.AllData,
                 Sample = (ref ActivityCreationOptions<ActivityContext> activityOptions) => ActivitySamplingResult.AllData
             })
-            using (var activitySource = new ActivitySource(TestContext.TestName))
+            using (var activitySource = new ActivitySource(TestContext.TestName!))
             using (IBackgroundTaskService svc = new BackgroundTaskServiceWrapper(BackgroundTaskService.Default, () => ctSource.Token)) {
                 ActivitySource.AddActivityListener(activitySourceListener);
 
                 using (var parentActivity = activitySource.StartActivity("Parent")) {
                     svc.QueueBackgroundWorkItem(ct => {
-                        using (activitySource.StartActivity(TestContext.TestName)) {
+                        using (activitySource.StartActivity(TestContext.TestName!)) {
                             try {
                                 Assert.AreEqual(TestContext.TestName, Activity.Current?.DisplayName);
                                 Assert.AreEqual(parentActivity!.DisplayName, Activity.Current?.Parent?.DisplayName);
@@ -98,13 +98,13 @@ namespace IntelligentPlant.BackgroundTasks.Tests {
                 SampleUsingParentId = (ref ActivityCreationOptions<string> activityOptions) => ActivitySamplingResult.AllData,
                 Sample = (ref ActivityCreationOptions<ActivityContext> activityOptions) => ActivitySamplingResult.AllData
             })
-            using (var activitySource = new ActivitySource(TestContext.TestName))
+            using (var activitySource = new ActivitySource(TestContext.TestName!))
             using (IBackgroundTaskService svc = new BackgroundTaskServiceWrapper(BackgroundTaskService.Default, () => ctSource.Token)) {
                 ActivitySource.AddActivityListener(activitySourceListener);
 
                 using (var parentActivity = activitySource.StartActivity("Parent")) {
                     svc.QueueBackgroundWorkItem(ct => {
-                        using (activitySource.StartActivity(TestContext.TestName)) {
+                        using (activitySource.StartActivity(TestContext.TestName!)) {
                             try {
                                 Assert.AreEqual(TestContext.TestName, Activity.Current?.DisplayName);
                                 Assert.AreNotEqual(parentActivity!.DisplayName, Activity.Current?.Parent?.DisplayName);
@@ -142,13 +142,13 @@ namespace IntelligentPlant.BackgroundTasks.Tests {
                 SampleUsingParentId = (ref ActivityCreationOptions<string> activityOptions) => ActivitySamplingResult.AllData,
                 Sample = (ref ActivityCreationOptions<ActivityContext> activityOptions) => ActivitySamplingResult.AllData
             })
-            using (var activitySource = new ActivitySource(TestContext.TestName))
+            using (var activitySource = new ActivitySource(TestContext.TestName!))
             using (IBackgroundTaskService svc = new BackgroundTaskServiceWrapper(BackgroundTaskService.Default, () => ctSource.Token)) {
                 ActivitySource.AddActivityListener(activitySourceListener);
 
                 using (var parentActivity = activitySource.StartActivity("Parent")) {
                     svc.QueueBackgroundWorkItem(async ct => {
-                        using (activitySource.StartActivity(TestContext.TestName)) {
+                        using (activitySource.StartActivity(TestContext.TestName!)) {
                             try {
                                 await Task.Yield();
                                 Assert.AreEqual(TestContext.TestName, Activity.Current?.DisplayName);
@@ -187,13 +187,13 @@ namespace IntelligentPlant.BackgroundTasks.Tests {
                 SampleUsingParentId = (ref ActivityCreationOptions<string> activityOptions) => ActivitySamplingResult.AllData,
                 Sample = (ref ActivityCreationOptions<ActivityContext> activityOptions) => ActivitySamplingResult.AllData
             })
-            using (var activitySource = new ActivitySource(TestContext.TestName))
+            using (var activitySource = new ActivitySource(TestContext.TestName!))
             using (IBackgroundTaskService svc = new BackgroundTaskServiceWrapper(BackgroundTaskService.Default, () => ctSource.Token)) {
                 ActivitySource.AddActivityListener(activitySourceListener);
 
                 using (var parentActivity = activitySource.StartActivity("Parent")) {
                     svc.QueueBackgroundWorkItem(async ct => {
-                        using (activitySource.StartActivity(TestContext.TestName)) {
+                        using (activitySource.StartActivity(TestContext.TestName!)) {
                             try {
                                 await Task.Yield();
                                 Assert.AreEqual(TestContext.TestName, Activity.Current?.DisplayName);
