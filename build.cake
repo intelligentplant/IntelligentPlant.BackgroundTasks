@@ -44,13 +44,26 @@ const string VersionFile = "./build/version.json";
 //   Specifies an additional property to pass to MSBuild during Build and Pack targets. The value
 //   must be specified using a '<NAME>=<VALUE>' format e.g. --property="NoWarn=CS1591". This 
 //   argument can be specified multiple times.
+//
+// --github-username=<USERNAME>
+//   Specifies the GitHub username to use when making authenticated API calls to GitHub while 
+//   running the BillOfMaterials target. You must specify the --github-token argument as well when 
+//   specifying this argument.
+//
+// --github-token=<PERSONAL ACCESS TOKEN>
+//   Specifies the GitHub personal access token to use when making authenticated API calls to 
+//   GitHub while running the BillOfMaterials target. You must specify the --github-username 
+//   argument as well when specifying this argument.
 // 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#load nuget:?package=Jaahas.Cake.Extensions&version=1.6.2
+#load nuget:?package=Jaahas.Cake.Extensions&version=2.0.1
 
 // Bootstrap build context and tasks.
 Bootstrap(DefaultSolutionFile, VersionFile);
 
-// Run the requested target.
-Run();
+// Get the target that was specified.
+var target = GetTarget();
+
+// Run the target.
+RunTarget(target);
