@@ -12,29 +12,24 @@
     <AnalysisMode Condition=" '$(AnalysisMode)' == '' ">Default</AnalysisMode>
   </PropertyGroup>
 
-  <!-- Opt in to SourceLink package reference by default. -->
-  <PropertyGroup>
-    <IncludeDevelopmentPackages Condition=" '$(IncludeDevelopmentPackages)' == '' ">true</IncludeDevelopmentPackages>
-  </PropertyGroup>
-
-  <!-- SourceLink settings. -->
-  <PropertyGroup Condition=" '$(IncludeDevelopmentPackages)' == 'true' ">
+  <!-- SourceLink settings -->
+  <PropertyGroup Condition=" '$(DisableSourceLink)' != 'true' ">
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
 
-  <ItemGroup Condition=" '$(IncludeDevelopmentPackages)' == 'true' ">
-    <!-- SourceLink NuGet Package -->
-    <PackageReference Remove="Microsoft.SourceLink.GitHub" />
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1">
+  <!-- SourceLink package reference -->
+  <ItemGroup Condition=" '$(DisableSourceLink)' != 'true' ">
+    <PackageReference Include="Microsoft.SourceLink.GitHub">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
   </ItemGroup>
 
-  <!-- .NET Framework targeting (required to allow compilation against .NET Framework in non-Windows environments). -->
+  <!-- .NET Framework targeting support (required to allow compilation against .NET Framework in 
+       non-Windows environments). -->
   <Import Project=".\build\NetFX.targets" />
 
   <!-- Extension point to allow Continuous Integration systems to inject their own configuration. -->
