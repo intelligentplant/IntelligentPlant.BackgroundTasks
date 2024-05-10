@@ -10,8 +10,7 @@ namespace IntelligentPlant.BackgroundTasks.AspNet {
     /// <see cref="IBackgroundTaskService"/> implementation that uses <see cref="HostingEnvironment.QueueBackgroundWorkItem(Func{CancellationToken, System.Threading.Tasks.Task})"/> 
     /// to register work items with IIS.
     /// </summary>
-    /// <remarks></remarks>
-    public class AspNetBackgroundTaskService : BackgroundTaskService {
+    public sealed partial class AspNetBackgroundTaskService : BackgroundTaskService {
 
         /// <summary>
         /// Creates a new <see cref="AspNetBackgroundTaskService"/> object.
@@ -53,12 +52,16 @@ namespace IntelligentPlant.BackgroundTasks.AspNet {
                 try {
                     await RunAsync(ct).ConfigureAwait(false);
                 }
-                catch (OperationCanceledException) { }
+                catch (OperationCanceledException) when (ct.IsCancellationRequested) { }
                 catch (Exception e) {
-                    Logger.LogError(e, Resources.Error_ServiceError);
+                    LogServiceError(Logger, Name, e);
                 }
             });
         }
+
+
+        [LoggerMessage(200, LogLevel.Error, "An error occurred while running background task service '{name}'.")]
+        static partial void LogServiceError(ILogger logger, string name, Exception error);
 
     }
 }
